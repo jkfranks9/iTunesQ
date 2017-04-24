@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Sheet maximized="true"
+    xmlns:bxml="http://pivot.apache.org/bxml"
+    xmlns:content="org.apache.pivot.wtk.content"
+    xmlns="org.apache.pivot.wtk">
+    
+    <!-- Primary window border. -->
+    <Border bxml:id="primaryBorder">
+        
+        <!-- Lay out the window elements in a single column table pane. -->
+        <TablePane styles="{verticalSpacing:10, padding:10}">
+            <columns>
+                <TablePane.Column width="1*"/>
+            </columns>
+    
+    		<!-- Tab row. -->
+            <TablePane.Row height="8*">
+    			<TabPane bxml:id="tabPane">
+    				
+    				<!-- First tab. -->
+    				<FillPane>
+    					<TabPane.tabData>
+    						<content:ButtonData text="Playlist Management"/>
+    					</TabPane.tabData>
+        
+        				<!-- Lay out the tab elements in a single column table pane. -->
+        				<TablePane styles="{verticalSpacing:10, padding:10}">
+            				<columns>
+                				<TablePane.Column width="1*"/>
+            				</columns>
+            
+				            <!-- Bypass playlist preferences row. -->
+            				<TablePane.Row height="2*">
+            					<ScrollPane	horizontalScrollBarPolicy="fill_to_capacity"
+                    		 			verticalScrollBarPolicy="fill_to_capacity">
+                					<Border bxml:id="bypassPrefsBorder">
+                    		 			<BoxPane bxml:id="bypassPrefsBoxPane" orientation="vertical">
+            								<Label bxml:id="bypassPrefsBorderLabel" 
+            									text="Don't Include Track Playlist Counts For These Playlists"
+            									styles="{font:{bold:true}, padding:5}"/>
+                        					<TablePane bxml:id="bypassPrefsTablePane"
+                        						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
+            									<columns>
+                									<TablePane.Column width="1*"/>
+                									<TablePane.Column width="6*"/>
+                									<TablePane.Column width="2*"/>	
+                									<TablePane.Column width="1*"/>
+                									<TablePane.Column width="1*"/>
+            									</columns>
+                        					</TablePane>
+                						</BoxPane>
+                					</Border>
+                				</ScrollPane>
+            				</TablePane.Row>
+            
+				            <!-- Filtered playlist preferences row. -->
+            				<TablePane.Row height="5*">
+                    			<ScrollPane	horizontalScrollBarPolicy="fill_to_capacity"
+                    		 			verticalScrollBarPolicy="fill_to_capacity">
+                					<Border bxml:id="filteredPrefsBorder">
+            							<BoxPane bxml:id="filteredPrefsBoxPane" orientation="vertical">
+            								<Label bxml:id="filteredPrefsBorderLabel" 
+            									text="Ignore The Following Playlists"
+            									styles="{font:{bold:true}, padding:5}"/>
+                        					<TablePane bxml:id="filteredPrefsTablePane"
+                        						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
+            									<columns>
+                									<TablePane.Column width="1*"/>
+                									<TablePane.Column width="6*"/>	
+                									<TablePane.Column width="1*"/>
+                									<TablePane.Column width="1*"/>
+            									</columns>
+                        					</TablePane>
+                						</BoxPane>
+                					</Border>
+                    			</ScrollPane>
+            				</TablePane.Row>           
+        				</TablePane>
+        			</FillPane> 
+    				
+    				<!-- Second tab. -->
+    				<BoxPane>
+    					<TabPane.tabData>
+    						<content:ButtonData text="Track Display"/>
+    					</TabPane.tabData>
+        
+        				<!-- Lay out the tab elements in a single column table pane. -->
+        				<TablePane styles="{verticalSpacing:10, padding:10}">
+            				<columns>
+                				<TablePane.Column width="1*"/>
+            				</columns>
+            
+            				<!-- Track column preferences row. -->
+            				<TablePane.Row height="2*">
+            					<BoxPane orientation="vertical">
+            						<Label bxml:id="columnPrefsBorderLabel" text="Track Display Columns"
+            						styles="{font:{bold:true}, padding:5}"/>
+                					<Border bxml:id="columnPrefsBorder">
+                
+                    					<TablePane bxml:id="columnPrefsTablePane"
+                    						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
+            								<columns>
+                								<TablePane.Column width="3*"/>
+                								<TablePane.Column width="1*"/>
+                								<TablePane.Column width="1*"/>
+                								<TablePane.Column width="1*"/>
+                								<TablePane.Column width="1*"/>
+                								<TablePane.Column width="1*"/>
+                								<TablePane.Column width="1*"/>
+                								<TablePane.Column width="1*"/>
+                								<TablePane.Column width="1*"/>
+            								</columns>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="fullColumnPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="fullColumnPrefsLabel" 
+            											text="Full Tracks View:" 
+            											preferredWidth="135"
+            											styles="{font:{bold:true}, padding:5}"/>
+            										<Checkbox bxml:id="fullNumberCheckbox" buttonData="Number"/>
+            										<Checkbox bxml:id="fullNameCheckbox" buttonData="Name"/>
+            										<Checkbox bxml:id="fullArtistCheckbox" buttonData="Artist"/>
+            										<Checkbox bxml:id="fullAlbumCheckbox" buttonData="Album"/>
+            										<Checkbox bxml:id="fullKindCheckbox" buttonData="Kind"/>
+            										<Checkbox bxml:id="fullDurationCheckbox" buttonData="Duration"/>
+            										<Checkbox bxml:id="fullYearCheckbox" buttonData="Year"/>
+            										<Checkbox bxml:id="fullAddedCheckbox" buttonData="Added"/>
+            										<Checkbox bxml:id="fullRatingCheckbox" buttonData="Rating"/>
+            									</BoxPane>
+            								</TablePane.Row>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="filteredColumnPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="filteredColumnPrefsLabel" 
+            											text="Filtered List View:" 
+            											preferredWidth="135"
+            											styles="{font:{bold:true}, padding:5}"/>
+            										<Checkbox bxml:id="filteredNumberCheckbox" buttonData="Number"/>
+            										<Checkbox bxml:id="filteredNameCheckbox" buttonData="Name"/>
+            										<Checkbox bxml:id="filteredArtistCheckbox" buttonData="Artist"/>
+            										<Checkbox bxml:id="filteredAlbumCheckbox" buttonData="Album"/>
+            										<Checkbox bxml:id="filteredKindCheckbox" buttonData="Kind"/>
+            										<Checkbox bxml:id="filteredDurationCheckbox" buttonData="Duration"/>
+            										<Checkbox bxml:id="filteredYearCheckbox" buttonData="Year"/>
+            										<Checkbox bxml:id="filteredAddedCheckbox" buttonData="Added"/>
+            										<Checkbox bxml:id="filteredRatingCheckbox" buttonData="Rating"/>
+            									</BoxPane>
+            								</TablePane.Row>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="playlistColumnPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="playlistColumnPrefsLabel" 
+            											text="Playlist View:" 
+            											preferredWidth="135"
+            											styles="{font:{bold:true}, padding:5}"/>
+            										<Checkbox bxml:id="playlistNumberCheckbox" buttonData="Number"/>
+            										<Checkbox bxml:id="playlistNameCheckbox" buttonData="Name"/>
+            										<Checkbox bxml:id="playlistArtistCheckbox" buttonData="Artist"/>
+	            									<Checkbox bxml:id="playlistAlbumCheckbox" buttonData="Album"/>
+            										<Checkbox bxml:id="playlistKindCheckbox" buttonData="Kind"/>
+            										<Checkbox bxml:id="playlistDurationCheckbox" buttonData="Duration"/>
+            										<Checkbox bxml:id="playlistYearCheckbox" buttonData="Year"/>
+            										<Checkbox bxml:id="playlistAddedCheckbox" buttonData="Added"/>
+            										<Checkbox bxml:id="playlistRatingCheckbox" buttonData="Rating"/>
+            									</BoxPane>
+            								</TablePane.Row>
+                    					</TablePane>
+                					</Border>
+                				</BoxPane>
+            				</TablePane.Row>            
+        				</TablePane>
+        			</BoxPane> 
+    				
+    				<!-- Third tab. -->
+    				<BoxPane>
+    					<TabPane.tabData>
+    						<content:ButtonData text="General"/>
+    					</TabPane.tabData>
+        
+        				<!-- Lay out the tab elements in a single column table pane. -->
+        				<TablePane styles="{verticalSpacing:10, padding:10}">
+            				<columns>
+                				<TablePane.Column width="1*"/>
+            				</columns>
+            
+            				<!-- Skin preferences row. -->
+            				<TablePane.Row height="1*">
+            					<BoxPane orientation="vertical">
+            						<Label bxml:id="skinPrefsBorderLabel" text="Skin Name"
+            							styles="{font:{bold:true}, padding:5}"/>
+                					<Border bxml:id="skinPrefsBorder">
+                    					<BoxPane bxml:id="skinPrefsBoxPane" orientation="horizontal"
+                        					styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                							<Spinner bxml:id="skinPrefsSpinner"/>
+                							<PushButton bxml:id="skinPrefsButton" buttonData="Preview"/>
+                    					</BoxPane>
+                					</Border>
+                				</BoxPane>
+            				</TablePane.Row>
+            
+            				<!-- Log level preferences row. -->
+            				<TablePane.Row height="9*">
+            					<BoxPane orientation="vertical">
+            						<Label bxml:id="logLevelPrefsBorderLabel" text="Log Level"
+            							styles="{font:{bold:true}, padding:5}"/>
+                					<Border bxml:id="logLevelPrefsBorder">
+                
+                    					<TablePane bxml:id="logLevelPrefsTablePane"
+                    						styles="{horizontalSpacing:10, padding:5}">
+            								<columns>
+                								<TablePane.Column width="3*"/>
+                								<TablePane.Column width="1*"/>
+            								</columns>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="logLevelPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                									<Spinner bxml:id="logLevelPrefsSpinner"/>
+                									<Checkbox bxml:id="logLevelPrefsCheckbox" 
+                										buttonData="Apply To All?"/>
+                    							</BoxPane>
+            								</TablePane.Row>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="uiLogLevelPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="uiLogLevelPrefsLabel" 
+            											text="UI Log Level:" 
+            											preferredWidth="130"
+            											styles="{font:{bold:true}, padding:5}"/>
+                									<Spinner bxml:id="uiLogLevelPrefsSpinner"/>
+                    							</BoxPane>
+            								</TablePane.Row>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="xmlLogLevelPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="xmlLogLevelPrefsLabel" 
+            											text="XML Log Level:" 
+            											preferredWidth="130"
+            											styles="{font:{bold:true}, padding:5}"/>
+                									<Spinner bxml:id="xmlLogLevelPrefsSpinner"/>
+                    							</BoxPane>
+            								</TablePane.Row>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="trackLogLevelPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="trackLogLevelPrefsLabel" 
+            											text="Track Log Level:" 
+            											preferredWidth="130"
+            											styles="{font:{bold:true}, padding:5}"/>
+                									<Spinner bxml:id="trackLogLevelPrefsSpinner"/>
+                    							</BoxPane>
+            								</TablePane.Row>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="playlistLogLevelPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="playlistLogLevelPrefsLabel" 
+            											text="Playlist Log Level:" 
+            											preferredWidth="130"
+            											styles="{font:{bold:true}, padding:5}"/>
+                									<Spinner bxml:id="playlistLogLevelPrefsSpinner"/>
+                    							</BoxPane>
+            								</TablePane.Row>
+            			
+            								<TablePane.Row height="1*">
+                    							<BoxPane bxml:id="filterLogLevelPrefsBoxPane" 
+                    								orientation="horizontal"
+                        							styles="{padding:10, verticalAlignment:'center'}">
+            										<Label bxml:id="filterLogLevelPrefsLabel" 
+            											text="Filter Log Level:" 
+            											preferredWidth="130"
+            											styles="{font:{bold:true}, padding:5}"/>
+                									<Spinner bxml:id="filterLogLevelPrefsSpinner"/>
+                    							</BoxPane>
+            								</TablePane.Row>
+                    					</TablePane>
+                					</Border>
+                				</BoxPane>
+            				</TablePane.Row> 
+        				</TablePane>    
+    				</BoxPane>
+				</TabPane>
+            </TablePane.Row>
+            
+            <!-- Action elements (buttons) row. -->
+            <TablePane.Row height="1*">
+                <Border bxml:id="actionBorder">
+                    <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
+                        styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+            	        <PushButton bxml:id="preferencesDoneButton" buttonData="Done"/>
+                    </BoxPane>
+                </Border>
+            </TablePane.Row>
+        </TablePane> 
+    </Border>
+</Sheet>
