@@ -422,11 +422,7 @@ public final class Preferences implements Serializable
 		{
 			// Not an error - ignore.
 		} 
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		} 
-		catch (ClassNotFoundException e)
+		catch (IOException | ClassNotFoundException e)
 		{
 			e.printStackTrace();
 		}
@@ -448,10 +444,6 @@ public final class Preferences implements Serializable
 			output.writeObject(this);
 			output.close();
 			prefsOutputStream.close();
-		} 
-		catch (FileNotFoundException e)
-		{
-			e.printStackTrace();
 		} 
 		catch (IOException e)
 		{

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Dialog title="Track Details" modal="false"
+    xmlns:bxml="http://pivot.apache.org/bxml"
+    xmlns="org.apache.pivot.wtk">
+    
+    <!-- Primary window border. -->
+    <Border bxml:id="detailsPrimaryBorder">
+        
+        <!-- Lay out the window elements in a single column table pane. -->
+    	<TablePane bxml:id="detailsTablePane"
+    		styles="{verticalSpacing:0, padding:0}">
+        	<columns>
+            	<TablePane.Column width="1*"/>
+        	</columns>
+    	</TablePane>
+    </Border>
+</Dialog>

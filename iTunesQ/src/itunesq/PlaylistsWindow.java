@@ -95,18 +95,11 @@ public class PlaylistsWindow
     {
     	
     	/*
-    	 * Get the BXML information for the main window, and generate the list of components
+    	 * Get the BXML information for the playlists window, and generate the list of components
     	 * to be skinned.
     	 */
 		List<Component> components = new ArrayList<Component>();
-    	try
-		{
-			initializeBxmlVariables(components);
-		} 
-    	catch (IOException | SerializationException e)
-		{
-			e.printStackTrace();
-		}
+		initializeBxmlVariables(components);
         
         /*
          * Listener to handle the done button press.

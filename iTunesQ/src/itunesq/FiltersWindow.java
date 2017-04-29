@@ -72,15 +72,15 @@ public class FiltersWindow
     {
     	
     	/*
-    	 * Get the logging object singleton.
-    	 */
-    	Logging logging = Logging.getInstance();
-    	
-    	/*
-    	 * The name of the logger is "classname_UI", since this class is all about UI management.
+    	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
     	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Get the logging object singleton.
+    	 */
+    	Logging logging = Logging.getInstance();
     	
     	/*
     	 * Register our logger.
@@ -102,18 +102,11 @@ public class FiltersWindow
     {
     	
     	/*
-    	 * Get the BXML information for the main window, and generate the list of components
+    	 * Get the BXML information for the filters window, and generate the list of components
     	 * to be skinned.
     	 */
 		List<Component> components = new ArrayList<Component>();
-    	try
-		{
-			initializeBxmlVariables(components);
-		} 
-    	catch (IOException | SerializationException e)
-		{
-			e.printStackTrace();
-		}
+		initializeBxmlVariables(components);
         
         /*
          * Listener to handle the show results button press.

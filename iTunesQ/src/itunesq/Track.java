@@ -32,12 +32,20 @@ public class Track
 	private int trkID;
 	private String trkName;
 	private String trkArtist;
+	private String trkComposer;
 	private String trkAlbum;
+	private String trkGenre;
 	private String trkKind;
+	private int trkSize;
 	private int trkDuration;
 	private int trkYear;
+	private Date trkModified;
 	private Date trkDateAdded;
-	private int trkRating;	
+	private int trkBitRate;
+	private int trkSampleRate;
+	private int trkPlayCount;
+	private Date trkReleased;
+	private int trkRating;
 	private List<String> trkPlaylists;
 	
     //---------------- Private variables -----------------------------------
@@ -109,6 +117,14 @@ public class Track
 	{
 		this.trkArtist = artist;
 	}
+	
+	public String getComposer() {
+		return trkComposer;
+	}
+
+	public void setComposer(String composer) {
+		this.trkComposer = composer;
+	}
 
 	/**
 	 * Get the album name.
@@ -130,6 +146,14 @@ public class Track
 		this.trkAlbum = album;
 	}
 
+	public String getGenre() {
+		return trkGenre;
+	}
+
+	public void setGenre(String genre) {
+		this.trkGenre = genre;
+	}
+
 	/**
 	 * Get the kind of track.
 	 * 
@@ -148,6 +172,14 @@ public class Track
 	public void setKind (String kind)
 	{
 		this.trkKind = kind;
+	}
+
+	public int getSize() {
+		return trkSize;
+	}
+
+	public void setSize(int size) {
+		this.trkSize = size;
 	}
 
 	/**
@@ -190,6 +222,14 @@ public class Track
 		this.trkYear = year;
 	}
 
+	public Date getModified() {
+		return trkModified;
+	}
+
+	public void setModified(Date modified) {
+		this.trkModified = modified;
+	}
+
 	/**
 	 * Get the date the track was added.
 	 * 
@@ -208,6 +248,38 @@ public class Track
 	public void setDateAdded (Date dateAdded)
 	{
 		this.trkDateAdded = dateAdded;
+	}
+
+	public int getBitRate() {
+		return trkBitRate;
+	}
+
+	public void setBitRate(int bitRate) {
+		this.trkBitRate = bitRate;
+	}
+
+	public int getSampleRate() {
+		return trkSampleRate;
+	}
+
+	public void setSampleRate(int sampleRate) {
+		this.trkSampleRate = sampleRate;
+	}
+
+	public int getPlayCount() {
+		return trkPlayCount;
+	}
+
+	public void setPlayCount(int playCount) {
+		this.trkPlayCount = playCount;
+	}
+
+	public Date getReleased() {
+		return trkReleased;
+	}
+
+	public void setReleased(Date released) {
+		this.trkReleased = released;
 	}
 
 	/**
@@ -239,7 +311,7 @@ public class Track
 	{
 		this.trkRating = rating;
 	}
-	
+
 	/**
 	 * Get the track playlist count.
 	 * 
@@ -286,20 +358,38 @@ public class Track
 			result.put(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue(), 
 					Integer.toString(trackNum));
 		}
+		result.put(TrackDisplayColumns.ColumnNames.ID.getDisplayValue(), 
+				Integer.toString(trkID));
 		result.put(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue(), 
 				trkName);
 		result.put(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue(), 
 				trkArtist);
+		result.put(TrackDisplayColumns.ColumnNames.COMPOSER.getDisplayValue(), 
+				trkComposer);
 		result.put(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue(), 
 				trkAlbum);
+		result.put(TrackDisplayColumns.ColumnNames.GENRE.getDisplayValue(), 
+				trkGenre);
 		result.put(TrackDisplayColumns.ColumnNames.KIND.getDisplayValue(), 
 				trkKind);
+		result.put(TrackDisplayColumns.ColumnNames.SIZE.getDisplayValue(), 
+				Integer.toString(trkSize));
 		result.put(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue(), 
 				Utilities.convertMillisecondTime(trkDuration));
 		result.put(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue(), 
 				(trkYear > 0) ? Integer.toString(trkYear) : "");
+		result.put(TrackDisplayColumns.ColumnNames.MODIFIED.getDisplayValue(), 
+				Utilities.formatDate(trkModified));
 		result.put(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue(), 
 				Utilities.formatDate(trkDateAdded));
+		result.put(TrackDisplayColumns.ColumnNames.BITRATE.getDisplayValue(), 
+				Integer.toString(trkBitRate));
+		result.put(TrackDisplayColumns.ColumnNames.SAMPLERATE.getDisplayValue(), 
+				Integer.toString(trkSampleRate));
+		result.put(TrackDisplayColumns.ColumnNames.PLAYCOUNT.getDisplayValue(), 
+				Integer.toString(trkPlayCount));
+		result.put(TrackDisplayColumns.ColumnNames.RELEASED.getDisplayValue(), 
+				Utilities.formatDate(trkReleased));
 		result.put(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue(), 
 				Integer.toString(trkRating / RATING_DIVISOR));
 		

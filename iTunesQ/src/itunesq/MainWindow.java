@@ -150,11 +150,7 @@ public class MainWindow implements Application
             		TracksWindow tracksWindowHandler = new TracksWindow();
             		tracksWindowHandler.displayTracks(display, XMLHandler.getTracks(), false);
 				} 
-            	catch (IOException e)
-				{
-					e.printStackTrace();
-				} 
-            	catch (SerializationException e)
+            	catch (IOException | SerializationException e)
 				{
 					e.printStackTrace();
 				}
@@ -176,11 +172,7 @@ public class MainWindow implements Application
             		PlaylistsWindow playlistsWindowHandler = new PlaylistsWindow();
             		playlistsWindowHandler.displayPlaylists(display);
 				} 
-            	catch (IOException e)
-				{
-					e.printStackTrace();
-				} 
-            	catch (SerializationException e)
+            	catch (IOException | SerializationException e)
 				{
 					e.printStackTrace();
 				}
@@ -202,11 +194,7 @@ public class MainWindow implements Application
             		FiltersWindow filtersWindowHandler = new FiltersWindow();
             		filtersWindowHandler.displayFilters(display);
 				} 
-            	catch (IOException e)
-				{
-					e.printStackTrace();
-				} 
-            	catch (SerializationException e)
+            	catch (IOException | SerializationException e)
 				{
 					e.printStackTrace();
 				}

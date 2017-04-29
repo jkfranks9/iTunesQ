@@ -108,19 +108,14 @@ public class MenuBars extends Frame implements Bindable
 							userPrefs.setXMLFileName(xmlFileName);
 							userPrefs.writePreferences();
 
+							logger.info("updating for new XML file '" + xmlFileName + "'");
+
+							/*
+							 * Update based on the new XML file.
+							 */
 							try
 							{
-								logger.info("updating for new XML file '" + xmlFileName + "'");
-
-								/*
-								 * Update based on the new XML file.
-								 */
 								Utilities.updateFromXMLFile(xmlFileName);
-
-								/*
-								 * Repaint the main window.
-								 */
-								MenuBars.this.repaint();
 							}							
 							catch (JDOMException e)
 							{
@@ -129,6 +124,11 @@ public class MenuBars extends Frame implements Bindable
 										xmlFileName, MenuBars.this);
 								e.printStackTrace();
 							}
+
+							/*
+							 * Repaint the main window.
+							 */
+							MenuBars.this.repaint();
 						}
 						else
 						{
@@ -164,15 +164,12 @@ public class MenuBars extends Frame implements Bindable
 				Display display = source.getDisplay();
         		PreferencesWindow prefsWindowHandler = 
         				new PreferencesWindow(preferencesSheet, MenuBars.this);
+        		
         		try
 				{
 					prefsWindowHandler.displayPreferences(display);
 				} 
-        		catch (IOException e)
-				{
-					e.printStackTrace();
-				} 
-        		catch (SerializationException e)
+        		catch (IOException | SerializationException e)
 				{
 					e.printStackTrace();
 				}

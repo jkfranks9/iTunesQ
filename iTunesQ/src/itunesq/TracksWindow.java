@@ -15,12 +15,17 @@ import org.apache.pivot.wtk.BoxPane;
 import org.apache.pivot.wtk.Button;
 import org.apache.pivot.wtk.ButtonPressListener;
 import org.apache.pivot.wtk.Component;
+import org.apache.pivot.wtk.ComponentMouseButtonListener;
+import org.apache.pivot.wtk.Dialog;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.FillPane;
 import org.apache.pivot.wtk.Label;
 import org.apache.pivot.wtk.Menu;
 import org.apache.pivot.wtk.MenuBar;
+import org.apache.pivot.wtk.Mouse;
+import org.apache.pivot.wtk.Orientation;
 import org.apache.pivot.wtk.PushButton;
+import org.apache.pivot.wtk.TablePane;
 import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TableViewHeader;
 import org.apache.pivot.wtk.TableViewSelectionListener;
@@ -41,8 +46,11 @@ public class TracksWindow
 {
 	
     //---------------- Private variables -----------------------------------
-	
+
+	private Window tracksWindow = null;
+	private Dialog trackInfoDialog = null;
 	private Logger logger = null;
+	private HashMap<String, String> selectedTrackRowData = null;
 	
 	/*
 	 * BXML variables.
@@ -62,6 +70,9 @@ public class TracksWindow
 	@BXML private Border actionBorder = null;
 	@BXML private BoxPane actionBoxPane = null;
 	@BXML private PushButton tracksDoneButton = null;
+
+	@BXML private Border detailsPrimaryBorder = null;
+	@BXML private TablePane detailsTablePane = null;
     
     /**
      * Constructor.
@@ -70,15 +81,15 @@ public class TracksWindow
     {
     	
     	/*
-    	 * Get the logging object singleton.
-    	 */
-    	Logging logging = Logging.getInstance();
-    	
-    	/*
-    	 * Get a logger.
+    	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
     	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Get the logging object singleton.
+    	 */
+    	Logging logging = Logging.getInstance();
     	
     	/*
     	 * Register our logger.
@@ -102,58 +113,14 @@ public class TracksWindow
     {
     	
     	/*
-    	 * Get the BXML information for the tracks display window.
+    	 * Get the BXML information for the tracks window, and generate the list of components
+    	 * to be skinned.
     	 */
-        BXMLSerializer tracksWindowSerializer = new BXMLSerializer();
-        Window tracksWindow;
-        if (filtered == true)
-        {
-        	tracksWindow = (Window)tracksWindowSerializer.
-        			readObject(getClass().getResource("filteredTracksWindow.bxml"));
-        }
-        else
-        {
-        	tracksWindow = (Window)tracksWindowSerializer.
-        			readObject(getClass().getResource("tracksWindow.bxml"));
-        }
-
-        mainMenuBar = 
-        		(MenuBar)tracksWindowSerializer.getNamespace().get("mainMenuBar");
-        mainFileMenu = 
-        		(Menu)tracksWindowSerializer.getNamespace().get("mainFileMenu");
-        mainEditMenu = 
-        		(Menu)tracksWindowSerializer.getNamespace().get("mainEditMenu");
-        primaryBorder = 
-        		(Border)tracksWindowSerializer.getNamespace().get("primaryBorder");
-        infoBorder = 
-        		(Border)tracksWindowSerializer.getNamespace().get("infoBorder");
-        infoFillPane = 
-        		(FillPane)tracksWindowSerializer.getNamespace().get("infoFillPane");
-        numTracksLabel = 
-        		(Label)tracksWindowSerializer.getNamespace().get("numTracksLabel");
-        tracksBorder = 
-        		(Border)tracksWindowSerializer.getNamespace().get("tracksBorder");
-        tracksTableView = 
-        		(TableView)tracksWindowSerializer.getNamespace().get("tracksTableView");
-        tracksTableViewHeader = 
-        		(TableViewHeader)tracksWindowSerializer.getNamespace().get("tracksTableViewHeader");
-        actionBorder = 
-        		(Border)tracksWindowSerializer.getNamespace().get("actionBorder");
-        actionBoxPane = 
-        		(BoxPane)tracksWindowSerializer.getNamespace().get("actionBoxPane");
-        tracksDoneButton = 
-        		(PushButton)tracksWindowSerializer.getNamespace().get("tracksDoneButton");
-        
-        if (filtered == true)
-        {
-        	trackPlaylistsTableView = (TableView)tracksWindowSerializer.getNamespace().
-        			get("trackPlaylistsTableView");
-        	trackPlaylistsTableViewHeader = (TableViewHeader)tracksWindowSerializer.getNamespace().
-        			get("trackPlaylistsTableViewHeader");
-        }
+		List<Component> components = new ArrayList<Component>();
+		initializeWindowBxmlVariables(filtered, components);
         
         /*
-         * Add listeners to handle the button presses.
+         * Listener to handle the done button press.
          */
         tracksDoneButton.getButtonPressListeners().add(new ButtonPressListener() 
         {
@@ -165,6 +132,9 @@ public class TracksWindow
             }
         });
         
+        /*
+         * Listener to handle track selection in a filtered view.
+         */
         if (filtered == true)
         {
             
@@ -193,7 +163,7 @@ public class TracksWindow
                 	logger.debug("track '" + trackName + "' selected");
                     
                 	/*
-                	 * Get the selected playlist ID.
+                	 * Get the playlists for the selected track.
                 	 */
                     String playlistInfo = rowData.get(Track.MAP_PLAYLISTS);
                     String[] playlists = playlistInfo.split(",");
@@ -208,6 +178,107 @@ public class TracksWindow
                 }
             });
         }
+
+    	/*
+    	 * Mouse click listener for the table view.
+    	 */
+        tracksTableView.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
+		{
+            @SuppressWarnings("unchecked")
+            @Override
+            public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
+            {
+            	
+            	/*
+            	 * For a right mouse click we pop up a dialog of all track info.
+            	 */
+            	if (button == Mouse.Button.RIGHT)
+            	{
+                	TableView table = (TableView) component;
+                	Display display = component.getDisplay();
+            		
+            		/*
+            		 * Get the index for the clicked row, then set that row as selected.
+            		 */
+                	int index = table.getRowAt(y);
+                	table.setSelectedIndex(index);
+                	
+                	/*
+                	 * Get the data for the selected row.
+                	 */
+					selectedTrackRowData = (HashMap<String, String>) table.getSelectedRow();
+                    
+                    /*
+                     * Get the track name and log it.
+                     */
+            		String trackName = 
+            				selectedTrackRowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+            		logger.debug("right clicked on track" + trackName);
+
+            		/*
+            		 * Get the base BXML information for the track info dialog, and start the list of 
+            		 * components to be skinned.
+            		 */
+        			List<Component> components = new ArrayList<Component>();
+            		try
+            		{
+            			initializeInfoDialogBxmlVariables(components);
+            		}
+            		catch (IOException | SerializationException e)
+            		{
+            			e.printStackTrace();
+            		}
+
+        			/*
+        			 * Get the skins singleton.
+        			 */
+        			Skins skins = Skins.getInstance();
+
+        			/*
+        			 * Register base track info dialog skin elements.
+        			 */
+        			Map<Skins.Element, List<Component>> windowElements = 
+        					new HashMap<Skins.Element, List<Component>>();
+
+        			/*
+        			 * Build table rows to represent the track details. This method also adds
+        			 * components that need to be skinned.
+        			 */
+        			List<TablePane.Row> detailRows = 
+        					buildTrackInfoRows(selectedTrackRowData, components);
+
+        			/*
+        			 * Add the generated rows to the table pane.
+        			 */
+        			Iterator<TablePane.Row> detailsRowsIter = detailRows.iterator();
+        			while (detailsRowsIter.hasNext())
+        			{
+        				TablePane.Row detailRow = detailsRowsIter.next();
+        				detailsTablePane.getRows().add(detailRow);
+        			}
+
+        			/*
+        			 * Register the window elements.
+        			 */
+        			windowElements = skins.mapComponentsToSkinElements(components);		
+        			skins.registerWindowElements(Skins.Window.TRACKINFO, windowElements);
+
+        			/*
+        			 * Skin the track info dialog.
+        			 */
+        			skins.skinMe(Skins.Window.TRACKINFO);
+
+        			/*
+        			 * Open the track info dialog. There is no close button, so the user has to 
+        			 * close the dialog using the host controls.
+        			 */
+        			logger.info("opening track info dialog");
+        			trackInfoDialog.open(display);
+            	}
+ 
+                return false;
+            }
+        });  
 		
 		/*
 		 * Get the skins object singleton.
@@ -218,32 +289,10 @@ public class TracksWindow
 		/*
 		 * Register the tracks window skin elements.
 		 */
-		List<Component> components = new ArrayList<Component>();
 		Map<Skins.Element, List<Component>> windowElements = 
 				new HashMap<Skins.Element, List<Component>>();
-
-		components.add(mainMenuBar);
-		components.add(mainFileMenu);
-		components.add(mainEditMenu);
-		components.add(primaryBorder);
-		components.add(infoBorder);
-		components.add(infoFillPane);
-		components.add(numTracksLabel);
-		components.add(tracksBorder);
-		components.add(tracksTableView);
-		components.add(tracksTableViewHeader);
-		components.add(actionBorder);
-		components.add(actionBoxPane);
-		components.add(tracksDoneButton);
-
-        if (filtered == true)
-        {
-    		components.add(trackPlaylistsTableView);
-    		components.add(trackPlaylistsTableViewHeader);
-        }
 		
 		windowElements = skins.mapComponentsToSkinElements(components);
-		
 		skins.registerWindowElements(Skins.Window.TRACKS, windowElements);
         
         /*
@@ -303,5 +352,198 @@ public class TracksWindow
          */
     	logger.info("opening tracks window");
         tracksWindow.open(display);
+    }
+
+    //---------------- Private methods -------------------------------------
+    
+    /*
+     * Build the track info data for the track "show all" dialog.
+     */
+    private List<TablePane.Row> buildTrackInfoRows (HashMap<String, String> rowData, 
+    		List<Component> components)
+    {
+    	List<TablePane.Row> result = new ArrayList<TablePane.Row>();
+    	int preferredWidth = 130;
+
+		/*
+		 * Track columns are used to contain the names of all possible track data. Loop through
+		 * all values.
+		 */
+    	for (TrackDisplayColumns.ColumnNames columns : TrackDisplayColumns.ColumnNames.values())
+    	{
+    		
+    		/*
+    		 * Get the column name, which is the name of the corresponding track datum.
+    		 */
+    		String columnName = columns.getDisplayValue();
+    		
+    		/*
+    		 * Since NUMBER is a generated value only used when displaying tracks for a playlist,
+    		 * skip it here.
+    		 */
+    		if (columns == TrackDisplayColumns.ColumnNames.NUMBER)
+    		{
+    			continue;
+    		}
+    		
+    		/*
+    		 * Get the track values from the input row that was selected.
+    		 */
+    		String value = rowData.get(columnName);
+    		
+    		/*
+    		 * Not all possible values exist for every track, so only continue if the value is not null.
+    		 */
+    		if (value != null)
+    		{
+    			
+    			/*
+    			 * Start building a table row to be returned.
+    			 */
+    			TablePane.Row infoRow = new TablePane.Row();
+    			infoRow.setHeight("1*");
+    			
+    			/*
+    			 * The track data are displayed in a box pane. Build it.
+    			 */
+    			BoxPane infoBox = new BoxPane(Orientation.HORIZONTAL);
+    			Map<String, Object> boxStyles = new HashMap<String, Object>();
+    			boxStyles.put("padding", 0);
+    			//boxStyles.put("verticalAlignment:", "center");
+    			infoBox.setStyles(boxStyles);
+    			
+    			/*
+    			 * Build a "static" label that contains the column name that identifies the track value.
+    			 */
+    			Label infoStaticLabel = new Label(columnName);
+    			Map<String, Object> infoStaticLabelStyles = new HashMap<String, Object>();
+    			Map<String, Object> infoStaticLabelFontStyles = new HashMap<String, Object>();
+    			infoStaticLabelFontStyles.put("bold", true);
+    			infoStaticLabelStyles.put("font", infoStaticLabelFontStyles);
+    			infoStaticLabelStyles.put("padding", 0);
+    			infoStaticLabel.setPreferredWidth(preferredWidth);
+    			infoStaticLabel.setStyles(infoStaticLabelStyles);
+    			
+    			/*
+    			 * Build the label that contains the actual track value.
+    			 */
+    			Label infoLabel = new Label(value);
+    			Map<String, Object> infoLabelStyles = new HashMap<String, Object>();
+    			infoLabelStyles.put("padding", 0);
+    			infoLabel.setStyles(infoLabelStyles);
+    			
+    			/*
+    			 * Add the labels to the box pane.
+    			 */
+    			infoBox.add(infoStaticLabel);
+    			infoBox.add(infoLabel);
+    			
+    			/*
+    			 * Add the box pane to the table row.
+    			 */
+    			infoRow.add(infoBox);
+    			
+    			/*
+    			 * Add the components we created so they can be skinned.
+    			 */
+    			components.add(infoBox);
+    			components.add(infoStaticLabel);
+    			components.add(infoLabel);
+    			
+    			/*
+    			 * Add the table row to the result.
+    			 */
+    			result.add(infoRow);
+    		}
+    	}
+    	
+    	return result;
+    }
+    
+    /*
+     * Initialize tracks window BXML variables and collect the list of components to be skinned.
+     */
+    private void initializeWindowBxmlVariables (boolean filtered, List<Component> components) 
+    		throws IOException, SerializationException
+    {
+        BXMLSerializer windowSerializer = new BXMLSerializer();
+        if (filtered == true)
+        {
+        	tracksWindow = (Window)windowSerializer.
+        			readObject(getClass().getResource("filteredTracksWindow.bxml"));
+        }
+        else
+        {
+        	tracksWindow = (Window)windowSerializer.
+        			readObject(getClass().getResource("tracksWindow.bxml"));
+        }
+
+        mainMenuBar = 
+        		(MenuBar)windowSerializer.getNamespace().get("mainMenuBar");
+		components.add(mainMenuBar);
+        mainFileMenu = 
+        		(Menu)windowSerializer.getNamespace().get("mainFileMenu");
+		components.add(mainFileMenu);
+        mainEditMenu = 
+        		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
+		components.add(mainEditMenu);
+        primaryBorder = 
+        		(Border)windowSerializer.getNamespace().get("primaryBorder");
+		components.add(primaryBorder);
+        infoBorder = 
+        		(Border)windowSerializer.getNamespace().get("infoBorder");
+		components.add(infoBorder);
+        infoFillPane = 
+        		(FillPane)windowSerializer.getNamespace().get("infoFillPane");
+		components.add(infoFillPane);
+        numTracksLabel = 
+        		(Label)windowSerializer.getNamespace().get("numTracksLabel");
+		components.add(numTracksLabel);
+        tracksBorder = 
+        		(Border)windowSerializer.getNamespace().get("tracksBorder");
+		components.add(tracksBorder);
+        tracksTableView = 
+        		(TableView)windowSerializer.getNamespace().get("tracksTableView");
+		components.add(tracksTableView);
+        tracksTableViewHeader = 
+        		(TableViewHeader)windowSerializer.getNamespace().get("tracksTableViewHeader");
+		components.add(tracksTableViewHeader);
+        actionBorder = 
+        		(Border)windowSerializer.getNamespace().get("actionBorder");
+		components.add(actionBorder);
+        actionBoxPane = 
+        		(BoxPane)windowSerializer.getNamespace().get("actionBoxPane");
+		components.add(actionBoxPane);
+        tracksDoneButton = 
+        		(PushButton)windowSerializer.getNamespace().get("tracksDoneButton");
+		components.add(tracksDoneButton);
+        
+        if (filtered == true)
+        {
+        	trackPlaylistsTableView = (TableView)windowSerializer.getNamespace().
+        			get("trackPlaylistsTableView");
+    		components.add(trackPlaylistsTableView);
+        	trackPlaylistsTableViewHeader = (TableViewHeader)windowSerializer.getNamespace().
+        			get("trackPlaylistsTableViewHeader");
+    		components.add(trackPlaylistsTableViewHeader);
+        }
+    }
+    
+    /*
+     * Initialize tracks info dialog BXML variables and collect the static components to be skinned.
+     */
+    private void initializeInfoDialogBxmlVariables (List<Component> components) 
+    		throws IOException, SerializationException
+    {
+        BXMLSerializer dialogSerializer = new BXMLSerializer();
+		trackInfoDialog = (Dialog)dialogSerializer.readObject(getClass().
+				getResource("trackInfoWindow.bxml"));
+
+		detailsPrimaryBorder = 
+        		(Border)dialogSerializer.getNamespace().get("detailsPrimaryBorder");
+		components.add(detailsPrimaryBorder);
+		detailsTablePane = 
+        		(TablePane)dialogSerializer.getNamespace().get("detailsTablePane");
+		components.add(detailsTablePane);
     }
 }

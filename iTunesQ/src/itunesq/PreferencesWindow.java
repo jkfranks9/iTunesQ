@@ -53,6 +53,7 @@ public class PreferencesWindow
 	private int plusButtonYCoordinate = -1;
 	private int minusButtonYCoordinate = -1;
 	private Preferences userPrefs = null;
+	private Dialog skinPreviewDialog = null;
 	private Logging logging = null;
 	
 	private boolean bypassPrefsUpdated;
@@ -167,15 +168,15 @@ public class PreferencesWindow
 	{
     	
     	/*
-    	 * Get the logging object singleton.
-    	 */
-    	logging = Logging.getInstance();
-    	
-    	/*
-    	 * The name of the logger is "classname_UI", since this class is all about UI management.
+    	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
     	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Get the logging object singleton.
+    	 */
+    	logging = Logging.getInstance();
     	
     	/*
     	 * Register our logger.
@@ -204,104 +205,22 @@ public class PreferencesWindow
     {
     	
     	/*
-    	 * Get the BXML information for the preferences display window.
+    	 * Get the BXML information for the playlists window, and generate the list of components
+    	 * to be skinned.
     	 */
+		List<Component> components = new ArrayList<Component>();
         BXMLSerializer prefsWindowSerializer = new BXMLSerializer();
-        preferencesSheet = 
-        		(Sheet)prefsWindowSerializer.readObject(getClass().getResource("preferencesWindow.bxml"));
-
-        primaryBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("primaryBorder");
-        tabPane = 
-        		(TabPane)prefsWindowSerializer.getNamespace().get("tabPane");
-        bypassPrefsBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("bypassPrefsBorder");
-        bypassPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("bypassPrefsBoxPane");
-        bypassPrefsBorderLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("bypassPrefsBorderLabel");
-        bypassPrefsTablePane = 
-        		(TablePane)prefsWindowSerializer.getNamespace().get("bypassPrefsTablePane");
-        filteredPrefsBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("filteredPrefsBorder");
-        filteredPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("filteredPrefsBoxPane");
-        filteredPrefsBorderLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("filteredPrefsBorderLabel");
-        filteredPrefsTablePane = 
-        		(TablePane)prefsWindowSerializer.getNamespace().get("filteredPrefsTablePane");
-        columnPrefsBorderLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
-        columnPrefsBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("columnPrefsBorder");
-        columnPrefsTablePane = 
-        		(TablePane)prefsWindowSerializer.getNamespace().get("columnPrefsTablePane");
-
-        fullColumnPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("fullColumnPrefsBoxPane");
-        fullColumnPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("fullColumnPrefsLabel");
-        filteredColumnPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("filteredColumnPrefsBoxPane");
-        filteredColumnPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("filteredColumnPrefsLabel");
-        playlistColumnPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("playlistColumnPrefsBoxPane");
-        playlistColumnPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("playlistColumnPrefsLabel");
-
-        skinPrefsBorderLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("skinPrefsBorderLabel");
-        skinPrefsBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("skinPrefsBorder");
-        skinPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("skinPrefsBoxPane");
-        skinPrefsSpinner = 
-        		(Spinner)prefsWindowSerializer.getNamespace().get("skinPrefsSpinner");
-        skinPrefsButton = 
-        		(PushButton)prefsWindowSerializer.getNamespace().get("skinPrefsButton");
-        logLevelPrefsBorderLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
-        logLevelPrefsBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("logLevelPrefsBorder");
-        logLevelPrefsTablePane = 
-        		(TablePane)prefsWindowSerializer.getNamespace().get("logLevelPrefsTablePane");
-        logLevelPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("logLevelPrefsBoxPane");
-        uiLogLevelPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsBoxPane");
-        uiLogLevelPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsLabel");
-        xmlLogLevelPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsBoxPane");
-        xmlLogLevelPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsLabel");
-        trackLogLevelPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsBoxPane");
-        trackLogLevelPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsLabel");
-        playlistLogLevelPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsBoxPane");
-        playlistLogLevelPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsLabel");
-        filterLogLevelPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsBoxPane");
-        filterLogLevelPrefsLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsLabel");
-        actionBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("actionBorder");
-        actionBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("actionBoxPane");
-        preferencesDoneButton = 
-        		(PushButton)prefsWindowSerializer.getNamespace().get("preferencesDoneButton");
+		initializeWindowBxmlVariables(prefsWindowSerializer, components);
         
         /*
          * Checkboxes and spinners have a lot of boilerplate to deal with, so do it elsewhere. 
          */
-        initializeTrackColumnStuff(prefsWindowSerializer);
-        initializeLogLevelStuff(prefsWindowSerializer);
+        initializeTrackColumnStuff(prefsWindowSerializer, components);
+        initializeLogLevelStuff(prefsWindowSerializer, components);
         
         /*
+         * Listener to handle the skin preview button press.
+         * 
          * When the skin preview button is pressed, we pop up a dialog that contains a sampling
          * of window elements. We skin this dialog with the selected skin.
          */
@@ -313,157 +232,120 @@ public class PreferencesWindow
 				logger.info("skin preview button pressed");
 				
             	Display display = button.getDisplay();
-                BXMLSerializer dialogSerializer = new BXMLSerializer();
-                try
-				{
-                	
-                	/*
-                	 * Get the BXML information for the skin preferences dialog.
-                	 */
-					Dialog dialog = (Dialog)dialogSerializer.readObject(getClass().
-							getResource("skinPreviewWindow.bxml"));
 
-					previewPrimaryBorder = 
-			        		(Border)dialogSerializer.getNamespace().get("previewPrimaryBorder");
-					previewTextBorder = 
-			        		(Border)dialogSerializer.getNamespace().get("previewTextBorder");
-					previewTextBoxPane = 
-			        		(BoxPane)dialogSerializer.getNamespace().get("previewTextBoxPane");
-					previewTextLabel = 
-			        		(Label)dialogSerializer.getNamespace().get("previewTextLabel");
-					previewTextInput = 
-			        		(TextInput)dialogSerializer.getNamespace().get("previewTextInput");
-					previewTableBorder = 
-			        		(Border)dialogSerializer.getNamespace().get("previewTableBorder");
-					previewTableView = 
-			        		(TableView)dialogSerializer.getNamespace().get("previewTableView");
-					previewTableViewHeader = 
-			        		(TableViewHeader)dialogSerializer.getNamespace().get("previewTableViewHeader");
-					previewButtonBorder = 
-			        		(Border)dialogSerializer.getNamespace().get("previewButtonBorder");
-					previewButtonBoxPane = 
-			        		(BoxPane)dialogSerializer.getNamespace().get("previewButtonBoxPane");
-					previewButton = 
-			        		(PushButton)dialogSerializer.getNamespace().get("previewButton");
+        		/*
+        		 * Get the BXML information for the skin preview dialog, and gather the list of 
+        		 * components to be skinned.
+        		 */
+    			List<Component> components = new ArrayList<Component>();
+        		try
+        		{
+        			initializePreviewDialogBxmlVariables(components);
+        		}
+        		catch (IOException | SerializationException e)
+        		{
+        			e.printStackTrace();
+        		}
 
-					/*
-					 * Add a text input listener to provide typing assistance in the text input box.
-					 */
-					previewTextInput.getTextInputContentListeners().add(
-							new TextInputContentListener.Adapter()
-			    	{
-			            @Override
-			            public void textInserted(TextInput textInput, int index, int count)
-			            {
-			            	
-			            	/*
-			            	 * We want to match weekdays in the text input box.
-			            	 */
-							ArrayList<String> weekdays = new ArrayList<String>(
-									"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
-									"Friday", "Saturday");
-							weekdays.setComparator(String.CASE_INSENSITIVE_ORDER);
-			            	boolean result = Utilities.typingAssistant(textInput, weekdays, 
-			            			textInput.getText(), Filter.Operator.IS);
-			            	
-			            	/*
-			            	 * We got a weekday match.
-			            	 */
-			            	if (result == true)
-			            	{
-			            		String text = textInput.getText();
-			            		
-			            		/*
-			            		 * Walk through the preview table, which contains weekdays.
-			            		 */
-			            		@SuppressWarnings("unchecked")
-								List<HashMap<String, String>> tableData = 
-			            				(List<HashMap<String, String>>) previewTableView.getTableData();
-			            		for (int i = 0; i < tableData.getLength(); i++)
-			            		{
-			            			HashMap<String, String> row = tableData.get(i);
-			            			
-			            			/*
-			            			 * If the entered weekday matches, select the corresponding weekday
-			            			 * in the table. To demonstrate our awesomeness.
-			            			 */
-			            			String weekday = row.get("weekday");
-			            			if (text.equals(weekday))
-			            			{
-			            				previewTableView.setSelectedIndex(i);
-			            				break;
-			            			}
-			            		}
-			            	}
-			            }    		
-			    	});
+				/*
+				 * Text input listener to provide typing assistance in the text input box.
+				 */
+				previewTextInput.getTextInputContentListeners().add(
+						new TextInputContentListener.Adapter()
+		    	{
+		            @Override
+		            public void textInserted(TextInput textInput, int index, int count)
+		            {
+		            	
+		            	/*
+		            	 * We want to match weekdays in the text input box.
+		            	 */
+						ArrayList<String> weekdays = new ArrayList<String>(
+								"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
+								"Friday", "Saturday");
+						weekdays.setComparator(String.CASE_INSENSITIVE_ORDER);
+		            	boolean result = Utilities.typingAssistant(textInput, weekdays, 
+		            			textInput.getText(), Filter.Operator.IS);
+		            	
+		            	/*
+		            	 * We got a weekday match.
+		            	 */
+		            	if (result == true)
+		            	{
+		            		String text = textInput.getText();
+		            		
+		            		/*
+		            		 * Walk through the preview table, which contains weekdays.
+		            		 */
+		            		@SuppressWarnings("unchecked")
+							List<HashMap<String, String>> tableData = 
+		            				(List<HashMap<String, String>>) previewTableView.getTableData();
+		            		for (int i = 0; i < tableData.getLength(); i++)
+		            		{
+		            			HashMap<String, String> row = tableData.get(i);
+		            			
+		            			/*
+		            			 * If the entered weekday matches, select the corresponding weekday
+		            			 * in the table. To demonstrate our awesomeness.
+		            			 */
+		            			String weekday = row.get("weekday");
+		            			if (text.equals(weekday))
+		            			{
+		            				previewTableView.setSelectedIndex(i);
+		            				break;
+		            			}
+		            		}
+		            	}
+		            }    		
+		    	});
 
-					/*
-					 * Get the skins singleton.
-					 */
-					Skins skins = Skins.getInstance();
+				/*
+				 * Get the skins singleton.
+				 */
+				Skins skins = Skins.getInstance();
 
-					/*
-					 * Register the preview dialog skin elements.
-					 */
-					List<Component> components = new ArrayList<Component>();
-					Map<Skins.Element, List<Component>> windowElements = 
-							new HashMap<Skins.Element, List<Component>>();
+				/*
+				 * Register the preview dialog skin elements.
+				 */
+				Map<Skins.Element, List<Component>> windowElements = 
+						new HashMap<Skins.Element, List<Component>>();
+				
+				windowElements = skins.mapComponentsToSkinElements(components);		
+				skins.registerWindowElements(Skins.Window.SKINPREVIEW, windowElements);
+				
+				/*
+				 * Save the current skin name so we can restore it after we've skinned the
+				 * preview dialog.
+				 */
+				String currentSkin = skins.getCurrentSkinName();
+				
+				/*
+				 * Get the selected skin name and initialize the skin elements.
+				 */
+        		String skinPref = (String) skinPrefsSpinner.getSelectedItem();
+        		skins.initializeSkinElements(skinPref);
 
-					components.add(previewPrimaryBorder);
-					components.add(previewTextBorder);
-					components.add(previewTextBoxPane);
-					components.add(previewTextLabel);
-					components.add(previewTextInput);
-					components.add(previewTableBorder);
-					components.add(previewTableView);
-					components.add(previewTableViewHeader);
-					components.add(previewButtonBorder);
-					components.add(previewButtonBoxPane);
-					components.add(previewButton);
-					
-					windowElements = skins.mapComponentsToSkinElements(components);		
-					skins.registerWindowElements(Skins.Window.SKINPREVIEW, windowElements);
-					
-					/*
-					 * Save the current skin name so we can restore it after we've skinned the
-					 * preview dialog.
-					 */
-					String currentSkin = skins.getCurrentSkinName();
-					
-					/*
-					 * Get the selected skin name and initialize the skin elements.
-					 */
-            		String skinPref = (String) skinPrefsSpinner.getSelectedItem();
-            		skins.initializeSkinElements(skinPref);
+        		/*
+        		 * Skin the preview dialog.
+        		 */
+				skins.skinMe(Skins.Window.SKINPREVIEW);
 
-            		/*
-            		 * Skin the preview dialog.
-            		 */
-					skins.skinMe(Skins.Window.SKINPREVIEW);
-
-					/*
-					 * Restore the current skin elements.
-					 */
-            		skins.initializeSkinElements(currentSkin);
-					
-            		/*
-            		 * Open the preview dialog. The close button action is included in the BXML.
-            		 */
-                	logger.info("opening preview dialog");
-					dialog.open(display);
-				} 
-                catch (IOException e)
-				{
-					e.printStackTrace();
-				} 
-                catch (SerializationException e)
-				{
-					e.printStackTrace();
-				}
+				/*
+				 * Restore the current skin elements.
+				 */
+        		skins.initializeSkinElements(currentSkin);
+				
+        		/*
+        		 * Open the preview dialog. The close button action is included in the BXML.
+        		 */
+            	logger.info("opening preview dialog");
+				skinPreviewDialog.open(display);
             }
         });
         
+        /*
+         * Listener to handle the done button press.
+         */
         preferencesDoneButton.getButtonPressListeners().add(new ButtonPressListener() 
         {
             @Override
@@ -602,7 +484,7 @@ public class PreferencesWindow
         });
         
         /*
-         * Add a listener for the skin preference spinner.
+         * Listener to handle the skin preference spinner.
          */
         skinPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
@@ -627,89 +509,8 @@ public class PreferencesWindow
 		/*
 		 * Start with the preferences window skin elements known from the BXML.
 		 */
-		List<Component> components = new ArrayList<Component>();
 		Map<Skins.Element, List<Component>> windowElements = 
 				new HashMap<Skins.Element, List<Component>>();
-		
-		components.add(primaryBorder);
-		components.add(tabPane);
-		components.add(bypassPrefsBorder);
-		components.add(bypassPrefsBoxPane);
-		components.add(bypassPrefsBorderLabel);
-		components.add(bypassPrefsTablePane);
-		components.add(filteredPrefsBorder);
-		components.add(filteredPrefsBoxPane);
-		components.add(filteredPrefsBorderLabel);
-		components.add(filteredPrefsTablePane);
-		components.add(columnPrefsBorderLabel);
-		components.add(columnPrefsBorder);
-		components.add(columnPrefsTablePane);
-		
-		components.add(fullColumnPrefsBoxPane);
-		components.add(fullColumnPrefsLabel);
-		components.add(fullNumberCheckbox);
-		components.add(fullNameCheckbox);
-		components.add(fullArtistCheckbox);
-		components.add(fullAlbumCheckbox);
-		components.add(fullKindCheckbox);
-		components.add(fullDurationCheckbox);
-		components.add(fullYearCheckbox);
-		components.add(fullAddedCheckbox);
-		components.add(fullRatingCheckbox);
-		
-		components.add(filteredColumnPrefsBoxPane);
-		components.add(filteredColumnPrefsLabel);
-		components.add(filteredNumberCheckbox);
-		components.add(filteredNameCheckbox);
-		components.add(filteredArtistCheckbox);
-		components.add(filteredAlbumCheckbox);
-		components.add(filteredKindCheckbox);
-		components.add(filteredDurationCheckbox);
-		components.add(filteredYearCheckbox);
-		components.add(filteredAddedCheckbox);
-		components.add(filteredRatingCheckbox);
-		
-		components.add(playlistColumnPrefsBoxPane);
-		components.add(playlistColumnPrefsLabel);
-		components.add(playlistNumberCheckbox);
-		components.add(playlistNameCheckbox);
-		components.add(playlistArtistCheckbox);
-		components.add(playlistAlbumCheckbox);
-		components.add(playlistKindCheckbox);
-		components.add(playlistDurationCheckbox);
-		components.add(playlistYearCheckbox);
-		components.add(playlistAddedCheckbox);
-		components.add(playlistRatingCheckbox);
-
-		components.add(skinPrefsBorderLabel);
-		components.add(skinPrefsBorder);
-		components.add(skinPrefsBoxPane);
-		components.add(skinPrefsSpinner);
-		components.add(skinPrefsButton);
-		components.add(logLevelPrefsBorderLabel);
-		components.add(logLevelPrefsBorder);
-		components.add(logLevelPrefsTablePane);
-		components.add(logLevelPrefsBoxPane);
-		components.add(logLevelPrefsSpinner);
-		components.add(logLevelPrefsCheckbox);
-		components.add(uiLogLevelPrefsBoxPane);
-		components.add(uiLogLevelPrefsLabel);
-		components.add(uiLogLevelPrefsSpinner);
-		components.add(xmlLogLevelPrefsBoxPane);
-		components.add(xmlLogLevelPrefsLabel);
-		components.add(xmlLogLevelPrefsSpinner);
-		components.add(trackLogLevelPrefsBoxPane);
-		components.add(trackLogLevelPrefsLabel);
-		components.add(trackLogLevelPrefsSpinner);
-		components.add(playlistLogLevelPrefsBoxPane);
-		components.add(playlistLogLevelPrefsLabel);
-		components.add(playlistLogLevelPrefsSpinner);
-		components.add(filterLogLevelPrefsBoxPane);
-		components.add(filterLogLevelPrefsLabel);
-		components.add(filterLogLevelPrefsSpinner);
-		components.add(actionBorder);
-		components.add(actionBoxPane);
-		components.add(preferencesDoneButton);
         
         /*
          * Add bypass playlist preference rows if such preferences exist. This populates the 
@@ -842,7 +643,6 @@ public class PreferencesWindow
     	 * Now register the preferences window skin elements.
     	 */
 		windowElements = skins.mapComponentsToSkinElements(components);
-		
 		skins.registerWindowElements(Skins.Window.PREFERENCES, windowElements);
         
         /*
@@ -1763,10 +1563,12 @@ public class PreferencesWindow
      * We have a large number of checkboxes to deal with. So do the brute force initialization
      * here so it doesn't clutter up displayPreferences().
      */
-    private void initializeTrackColumnStuff (BXMLSerializer prefsWindowSerializer)
+    private void initializeTrackColumnStuff (BXMLSerializer prefsWindowSerializer, 
+    		List<Component> components)
     {
     	fullNumberCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullNumberCheckbox");
+		components.add(fullNumberCheckbox);
         
     	fullNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1778,6 +1580,7 @@ public class PreferencesWindow
         });
     	fullNameCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullNameCheckbox");
+		components.add(fullNameCheckbox);
         
     	fullNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1790,6 +1593,7 @@ public class PreferencesWindow
         
         fullArtistCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullArtistCheckbox");
+		components.add(fullArtistCheckbox);
         
         fullArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1802,6 +1606,7 @@ public class PreferencesWindow
         
         fullAlbumCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullAlbumCheckbox");
+		components.add(fullAlbumCheckbox);
         
         fullAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1814,6 +1619,7 @@ public class PreferencesWindow
         
         fullKindCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullKindCheckbox");
+		components.add(fullKindCheckbox);
         
         fullKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1826,6 +1632,7 @@ public class PreferencesWindow
         
         fullDurationCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullDurationCheckbox");
+		components.add(fullDurationCheckbox);
         
         fullDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1838,6 +1645,7 @@ public class PreferencesWindow
         
         fullYearCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullYearCheckbox");
+		components.add(fullYearCheckbox);
         
         fullYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1850,6 +1658,7 @@ public class PreferencesWindow
         
         fullAddedCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullAddedCheckbox");
+		components.add(fullAddedCheckbox);
         
         fullAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1862,6 +1671,7 @@ public class PreferencesWindow
         
         fullRatingCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullRatingCheckbox");
+		components.add(fullRatingCheckbox);
         
         fullRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1874,6 +1684,7 @@ public class PreferencesWindow
         
         filteredNumberCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredNumberCheckbox");
+		components.add(filteredNumberCheckbox);
         
         filteredNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1886,6 +1697,7 @@ public class PreferencesWindow
         
         filteredNameCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredNameCheckbox");
+		components.add(filteredNameCheckbox);
         
         filteredNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1898,6 +1710,7 @@ public class PreferencesWindow
         
         filteredArtistCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredArtistCheckbox");
+		components.add(filteredArtistCheckbox);
         
         filteredArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1910,6 +1723,7 @@ public class PreferencesWindow
         
         filteredAlbumCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredAlbumCheckbox");
+		components.add(filteredAlbumCheckbox);
         
         filteredAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1922,6 +1736,7 @@ public class PreferencesWindow
         
         filteredKindCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredKindCheckbox");
+		components.add(filteredKindCheckbox);
         
         filteredKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1934,6 +1749,7 @@ public class PreferencesWindow
         
         filteredDurationCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredDurationCheckbox");
+		components.add(filteredDurationCheckbox);
         
         filteredDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1946,6 +1762,7 @@ public class PreferencesWindow
         
         filteredYearCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredYearCheckbox");
+		components.add(filteredYearCheckbox);
         
         filteredYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1958,6 +1775,7 @@ public class PreferencesWindow
         
         filteredAddedCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredAddedCheckbox");
+		components.add(filteredAddedCheckbox);
         
         filteredAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1970,6 +1788,7 @@ public class PreferencesWindow
         
         filteredRatingCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("filteredRatingCheckbox");
+		components.add(filteredRatingCheckbox);
         
         filteredRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1982,6 +1801,7 @@ public class PreferencesWindow
         
         playlistNumberCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistNumberCheckbox");
+		components.add(playlistNumberCheckbox);
         
         playlistNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -1994,6 +1814,7 @@ public class PreferencesWindow
         
         playlistNameCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistNameCheckbox");
+		components.add(playlistNameCheckbox);
         
         playlistNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2006,6 +1827,7 @@ public class PreferencesWindow
         
         playlistArtistCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistArtistCheckbox");
+		components.add(playlistArtistCheckbox);
         
         playlistArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2018,6 +1840,7 @@ public class PreferencesWindow
         
         playlistAlbumCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistAlbumCheckbox");
+		components.add(playlistAlbumCheckbox);
         
         playlistAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2030,6 +1853,7 @@ public class PreferencesWindow
         
         playlistKindCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistKindCheckbox");
+		components.add(playlistKindCheckbox);
         
         playlistKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2042,6 +1866,7 @@ public class PreferencesWindow
         
         playlistDurationCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistDurationCheckbox");
+		components.add(playlistDurationCheckbox);
         
         playlistDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2054,6 +1879,7 @@ public class PreferencesWindow
         
         playlistYearCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistYearCheckbox");
+		components.add(playlistYearCheckbox);
         
         playlistYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2066,6 +1892,7 @@ public class PreferencesWindow
         
         playlistAddedCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistAddedCheckbox");
+		components.add(playlistAddedCheckbox);
         
         playlistAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2078,6 +1905,7 @@ public class PreferencesWindow
         
         playlistRatingCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("playlistRatingCheckbox");
+		components.add(playlistRatingCheckbox);
         
         playlistRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2093,10 +1921,12 @@ public class PreferencesWindow
      * We have a large number of checkboxes to deal with. So do the brute force initialization
      * here so it doesn't clutter up displayPreferences().
      */
-    private void initializeLogLevelStuff (BXMLSerializer prefsWindowSerializer)
+    private void initializeLogLevelStuff (BXMLSerializer prefsWindowSerializer, 
+    		List<Component> components)
     {
     	logLevelPrefsSpinner = 
         		(Spinner)prefsWindowSerializer.getNamespace().get("logLevelPrefsSpinner");
+		components.add(logLevelPrefsSpinner);
         
     	logLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
@@ -2114,6 +1944,7 @@ public class PreferencesWindow
     	
         logLevelPrefsCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("logLevelPrefsCheckbox");
+		components.add(logLevelPrefsCheckbox);
         
         logLevelPrefsCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
@@ -2156,6 +1987,7 @@ public class PreferencesWindow
 
         uiLogLevelPrefsSpinner = 
         		(Spinner)prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsSpinner");
+		components.add(uiLogLevelPrefsSpinner);
         
         uiLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
@@ -2173,6 +2005,7 @@ public class PreferencesWindow
         
         xmlLogLevelPrefsSpinner = 
         		(Spinner)prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsSpinner");
+		components.add(xmlLogLevelPrefsSpinner);
         
         xmlLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
@@ -2190,6 +2023,7 @@ public class PreferencesWindow
         
         trackLogLevelPrefsSpinner = 
         		(Spinner)prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsSpinner");
+		components.add(trackLogLevelPrefsSpinner);
         
         trackLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
@@ -2207,6 +2041,7 @@ public class PreferencesWindow
         
         playlistLogLevelPrefsSpinner = 
         		(Spinner)prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsSpinner");
+		components.add(playlistLogLevelPrefsSpinner);
         
         playlistLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
@@ -2224,6 +2059,7 @@ public class PreferencesWindow
         
         filterLogLevelPrefsSpinner = 
         		(Spinner)prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsSpinner");
+		components.add(filterLogLevelPrefsSpinner);
         
         filterLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
@@ -2266,5 +2102,187 @@ public class PreferencesWindow
         spinner.setCircular(true);
         spinner.setPreferredWidth(spinnerWidth);
         spinner.setSelectedIndex(index);
+    }
+    
+    /*
+     * Initialize preferences window BXML variables and collect the list of components to be skinned.
+     */
+    private void initializeWindowBxmlVariables (BXMLSerializer prefsWindowSerializer, 
+    		List<Component> components)
+    		throws IOException, SerializationException
+    {
+        preferencesSheet = 
+        		(Sheet)prefsWindowSerializer.readObject(getClass().getResource("preferencesWindow.bxml"));
+
+        primaryBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("primaryBorder");
+		components.add(primaryBorder);
+        tabPane = 
+        		(TabPane)prefsWindowSerializer.getNamespace().get("tabPane");
+		components.add(tabPane);
+        bypassPrefsBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("bypassPrefsBorder");
+		components.add(bypassPrefsBorder);
+        bypassPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("bypassPrefsBoxPane");
+		components.add(bypassPrefsBoxPane);
+        bypassPrefsBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("bypassPrefsBorderLabel");
+		components.add(bypassPrefsBorderLabel);
+        bypassPrefsTablePane = 
+        		(TablePane)prefsWindowSerializer.getNamespace().get("bypassPrefsTablePane");
+		components.add(bypassPrefsTablePane);
+        filteredPrefsBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("filteredPrefsBorder");
+		components.add(filteredPrefsBorder);
+        filteredPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("filteredPrefsBoxPane");
+		components.add(filteredPrefsBoxPane);
+        filteredPrefsBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("filteredPrefsBorderLabel");
+		components.add(filteredPrefsBorderLabel);
+        filteredPrefsTablePane = 
+        		(TablePane)prefsWindowSerializer.getNamespace().get("filteredPrefsTablePane");
+		components.add(filteredPrefsTablePane);
+        columnPrefsBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
+		components.add(columnPrefsBorderLabel);
+        columnPrefsBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("columnPrefsBorder");
+		components.add(columnPrefsBorder);
+        columnPrefsTablePane = 
+        		(TablePane)prefsWindowSerializer.getNamespace().get("columnPrefsTablePane");
+		components.add(columnPrefsTablePane);
+
+        fullColumnPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("fullColumnPrefsBoxPane");
+		components.add(fullColumnPrefsBoxPane);
+        fullColumnPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("fullColumnPrefsLabel");
+		components.add(fullColumnPrefsLabel);
+        filteredColumnPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("filteredColumnPrefsBoxPane");
+		components.add(filteredColumnPrefsBoxPane);
+        filteredColumnPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("filteredColumnPrefsLabel");
+		components.add(filteredColumnPrefsLabel);
+        playlistColumnPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("playlistColumnPrefsBoxPane");
+		components.add(playlistColumnPrefsBoxPane);
+        playlistColumnPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("playlistColumnPrefsLabel");
+		components.add(playlistColumnPrefsLabel);
+
+        skinPrefsBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("skinPrefsBorderLabel");
+		components.add(skinPrefsBorderLabel);
+        skinPrefsBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("skinPrefsBorder");
+		components.add(skinPrefsBorder);
+        skinPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("skinPrefsBoxPane");
+		components.add(skinPrefsBoxPane);
+        skinPrefsSpinner = 
+        		(Spinner)prefsWindowSerializer.getNamespace().get("skinPrefsSpinner");
+		components.add(skinPrefsSpinner);
+        skinPrefsButton = 
+        		(PushButton)prefsWindowSerializer.getNamespace().get("skinPrefsButton");
+		components.add(skinPrefsButton);
+        logLevelPrefsBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
+		components.add(logLevelPrefsBorderLabel);
+        logLevelPrefsBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("logLevelPrefsBorder");
+		components.add(logLevelPrefsBorder);
+        logLevelPrefsTablePane = 
+        		(TablePane)prefsWindowSerializer.getNamespace().get("logLevelPrefsTablePane");
+		components.add(logLevelPrefsTablePane);
+        logLevelPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("logLevelPrefsBoxPane");
+		components.add(logLevelPrefsBoxPane);
+        uiLogLevelPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsBoxPane");
+		components.add(uiLogLevelPrefsBoxPane);
+        uiLogLevelPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsLabel");
+		components.add(uiLogLevelPrefsLabel);
+        xmlLogLevelPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsBoxPane");
+		components.add(xmlLogLevelPrefsBoxPane);
+        xmlLogLevelPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsLabel");
+		components.add(xmlLogLevelPrefsLabel);
+        trackLogLevelPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsBoxPane");
+		components.add(trackLogLevelPrefsBoxPane);
+        trackLogLevelPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsLabel");
+		components.add(trackLogLevelPrefsLabel);
+        playlistLogLevelPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsBoxPane");
+		components.add(playlistLogLevelPrefsBoxPane);
+        playlistLogLevelPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsLabel");
+		components.add(playlistLogLevelPrefsLabel);
+        filterLogLevelPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsBoxPane");
+		components.add(filterLogLevelPrefsBoxPane);
+        filterLogLevelPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsLabel");
+		components.add(filterLogLevelPrefsLabel);
+        actionBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("actionBorder");
+		components.add(actionBorder);
+        actionBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("actionBoxPane");
+		components.add(actionBoxPane);
+        preferencesDoneButton = 
+        		(PushButton)prefsWindowSerializer.getNamespace().get("preferencesDoneButton");
+		components.add(preferencesDoneButton);
+    }
+    
+    /*
+     * Initialize skin preview dialog BXML variables and collect the components to be skinned.
+     */
+    private void initializePreviewDialogBxmlVariables (List<Component> components) 
+    		throws IOException, SerializationException
+    {
+        BXMLSerializer dialogSerializer = new BXMLSerializer();
+    	skinPreviewDialog = (Dialog)dialogSerializer.readObject(getClass().
+				getResource("skinPreviewWindow.bxml"));
+
+		previewPrimaryBorder = 
+        		(Border)dialogSerializer.getNamespace().get("previewPrimaryBorder");
+		components.add(previewPrimaryBorder);
+		previewTextBorder = 
+        		(Border)dialogSerializer.getNamespace().get("previewTextBorder");
+		components.add(previewTextBorder);
+		previewTextBoxPane = 
+        		(BoxPane)dialogSerializer.getNamespace().get("previewTextBoxPane");
+		components.add(previewTextBoxPane);
+		previewTextLabel = 
+        		(Label)dialogSerializer.getNamespace().get("previewTextLabel");
+		components.add(previewTextLabel);
+		previewTextInput = 
+        		(TextInput)dialogSerializer.getNamespace().get("previewTextInput");
+		components.add(previewTextInput);
+		previewTableBorder = 
+        		(Border)dialogSerializer.getNamespace().get("previewTableBorder");
+		components.add(previewTableBorder);
+		previewTableView = 
+        		(TableView)dialogSerializer.getNamespace().get("previewTableView");
+		components.add(previewTableView);
+		previewTableViewHeader = 
+        		(TableViewHeader)dialogSerializer.getNamespace().get("previewTableViewHeader");
+		components.add(previewTableViewHeader);
+		previewButtonBorder = 
+        		(Border)dialogSerializer.getNamespace().get("previewButtonBorder");
+		components.add(previewButtonBorder);
+		previewButtonBoxPane = 
+        		(BoxPane)dialogSerializer.getNamespace().get("previewButtonBoxPane");
+		components.add(previewButtonBoxPane);
+		previewButton = 
+        		(PushButton)dialogSerializer.getNamespace().get("previewButton");
+		components.add(previewButton);
     }
 }

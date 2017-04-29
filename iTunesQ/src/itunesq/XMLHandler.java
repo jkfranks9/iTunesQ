@@ -462,12 +462,24 @@ public final class XMLHandler
 							trackObj.setArtist(getNextStringValue(trackChildIter, keyValue));
 							break;
 
+						case "Composer":
+							trackObj.setComposer(getNextStringValue(trackChildIter, keyValue));
+							break;
+
 						case "Album":
 							trackObj.setAlbum(getNextStringValue(trackChildIter, keyValue));
 							break;
 
+						case "Genre":
+							trackObj.setGenre(getNextStringValue(trackChildIter, keyValue));
+							break;
+
 						case "Kind":
 							trackObj.setKind(getNextStringValue(trackChildIter, keyValue));
+							break;
+
+						case "Size":
+							trackObj.setSize(getNextIntValue(trackChildIter, keyValue));
 							break;
 
 						case "Total Time":
@@ -478,8 +490,28 @@ public final class XMLHandler
 							trackObj.setYear(getNextIntValue(trackChildIter, keyValue));
 							break;
 
+						case "Date Modified":
+							trackObj.setModified(getNextDateValue(trackChildIter, keyValue));
+							break;
+
 						case "Date Added":
 							trackObj.setDateAdded(getNextDateValue(trackChildIter, keyValue));
+							break;
+
+						case "Bit Rate":
+							trackObj.setBitRate(getNextIntValue(trackChildIter, keyValue));
+							break;
+
+						case "Sample Rate":
+							trackObj.setSampleRate(getNextIntValue(trackChildIter, keyValue));
+							break;
+
+						case "Play Count":
+							trackObj.setPlayCount(getNextIntValue(trackChildIter, keyValue));
+							break;
+
+						case "Release Date":
+							trackObj.setReleased(getNextDateValue(trackChildIter, keyValue));
 							break;
 
 						case "Rating":

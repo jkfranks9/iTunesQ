@@ -33,8 +33,10 @@ public class TrackDisplayColumns
 	 */
 	public enum ColumnNames
 	{
-		NUMBER("Number"), NAME("Name"), ARTIST("Artist"), ALBUM("Album"), KIND("Kind"),
-		DURATION("Duration"), YEAR("Year"), ADDED("Added"), RATING("Rating");
+		NUMBER("Number"), ID("ID"), NAME("Name"), ARTIST("Artist"), COMPOSER("Composer"), ALBUM("Album"),
+		GENRE("Genre"), KIND("Kind"), SIZE("Size"), DURATION("Duration"), YEAR("Year"),
+		MODIFIED("Modified"), ADDED("Added"), BITRATE("Bit Rate"), SAMPLERATE("Sample Rate"),
+		PLAYCOUNT("Play Count"), RELEASED("Released"), RATING("Rating");
 		
 		private String displayValue;
 		
