@@ -15,9 +15,11 @@ import org.apache.pivot.wtk.BoxPane;
 import org.apache.pivot.wtk.Button;
 import org.apache.pivot.wtk.ButtonPressListener;
 import org.apache.pivot.wtk.Component;
+import org.apache.pivot.wtk.ComponentMouseButtonListener;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.Menu;
 import org.apache.pivot.wtk.MenuBar;
+import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TableViewHeader;
@@ -199,6 +201,44 @@ public class PlaylistsWindow
                  * Add the tracks to the window table view.
                  */
                 playlistTracksTableView.setTableData(displayTracks);
+            }
+        });
+        
+        playlistTracksTableView.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
+		{
+            @SuppressWarnings("unchecked")
+            @Override
+            public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
+            {
+            	
+            	/*
+            	 * For a right mouse click we pop up a dialog of all track info.
+            	 */
+            	if (button == Mouse.Button.RIGHT)
+            	{
+                	TableView table = (TableView) component;
+                	Display display = component.getDisplay();
+            		
+            		/*
+            		 * Get the index for the clicked row, then set that row as selected.
+            		 */
+                	int index = table.getRowAt(y);
+                	table.setSelectedIndex(index);
+                	
+                	/*
+                	 * Get the data for the selected row.
+                	 */
+                	HashMap<String, String> selectedTrackRowData = 
+                			(HashMap<String, String>) table.getSelectedRow();
+					
+					/*
+					 * Create and open the track details popup dialog.
+					 */
+                	TracksWindow tw = new TracksWindow();
+					tw.handleTrackDetailsPopup(selectedTrackRowData, display);
+            	}
+ 
+                return false;
             }
         });
         

@@ -376,8 +376,14 @@ public class Track
 				Integer.toString(trkSize));
 		result.put(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue(), 
 				Utilities.convertMillisecondTime(trkDuration));
+		
+		/*
+		 * If year is 0 then it doesn't exist, so use a value of null so it won't be seen in
+		 * track details.
+		 */
 		result.put(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue(), 
-				(trkYear > 0) ? Integer.toString(trkYear) : "");
+				(trkYear > 0) ? Integer.toString(trkYear) : null);
+		
 		result.put(TrackDisplayColumns.ColumnNames.MODIFIED.getDisplayValue(), 
 				Utilities.formatDate(trkModified));
 		result.put(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue(), 
@@ -388,8 +394,13 @@ public class Track
 				Integer.toString(trkSampleRate));
 		result.put(TrackDisplayColumns.ColumnNames.PLAYCOUNT.getDisplayValue(), 
 				Integer.toString(trkPlayCount));
+		
+		/*
+		 * Release date is optional, so use null if it doesn't exist.
+		 */
 		result.put(TrackDisplayColumns.ColumnNames.RELEASED.getDisplayValue(), 
-				Utilities.formatDate(trkReleased));
+				(trkReleased != null) ? Utilities.formatDate(trkReleased) : null);
+		
 		result.put(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue(), 
 				Integer.toString(trkRating / RATING_DIVISOR));
 		

@@ -50,7 +50,6 @@ public class TracksWindow
 	private Window tracksWindow = null;
 	private Dialog trackInfoDialog = null;
 	private Logger logger = null;
-	private HashMap<String, String> selectedTrackRowData = null;
 	
 	/*
 	 * BXML variables.
@@ -206,74 +205,13 @@ public class TracksWindow
                 	/*
                 	 * Get the data for the selected row.
                 	 */
-					selectedTrackRowData = (HashMap<String, String>) table.getSelectedRow();
-                    
-                    /*
-                     * Get the track name and log it.
-                     */
-            		String trackName = 
-            				selectedTrackRowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
-            		logger.debug("right clicked on track" + trackName);
-
-            		/*
-            		 * Get the base BXML information for the track info dialog, and start the list of 
-            		 * components to be skinned.
-            		 */
-        			List<Component> components = new ArrayList<Component>();
-            		try
-            		{
-            			initializeInfoDialogBxmlVariables(components);
-            		}
-            		catch (IOException | SerializationException e)
-            		{
-            			e.printStackTrace();
-            		}
-
-        			/*
-        			 * Get the skins singleton.
-        			 */
-        			Skins skins = Skins.getInstance();
-
-        			/*
-        			 * Register base track info dialog skin elements.
-        			 */
-        			Map<Skins.Element, List<Component>> windowElements = 
-        					new HashMap<Skins.Element, List<Component>>();
-
-        			/*
-        			 * Build table rows to represent the track details. This method also adds
-        			 * components that need to be skinned.
-        			 */
-        			List<TablePane.Row> detailRows = 
-        					buildTrackInfoRows(selectedTrackRowData, components);
-
-        			/*
-        			 * Add the generated rows to the table pane.
-        			 */
-        			Iterator<TablePane.Row> detailsRowsIter = detailRows.iterator();
-        			while (detailsRowsIter.hasNext())
-        			{
-        				TablePane.Row detailRow = detailsRowsIter.next();
-        				detailsTablePane.getRows().add(detailRow);
-        			}
-
-        			/*
-        			 * Register the window elements.
-        			 */
-        			windowElements = skins.mapComponentsToSkinElements(components);		
-        			skins.registerWindowElements(Skins.Window.TRACKINFO, windowElements);
-
-        			/*
-        			 * Skin the track info dialog.
-        			 */
-        			skins.skinMe(Skins.Window.TRACKINFO);
-
-        			/*
-        			 * Open the track info dialog. There is no close button, so the user has to 
-        			 * close the dialog using the host controls.
-        			 */
-        			logger.info("opening track info dialog");
-        			trackInfoDialog.open(display);
+                	HashMap<String, String> selectedTrackRowData = 
+                			(HashMap<String, String>) table.getSelectedRow();
+					
+					/*
+					 * Create and open the track details popup dialog.
+					 */
+					handleTrackDetailsPopup(selectedTrackRowData, display);
             	}
  
                 return false;
@@ -353,13 +291,89 @@ public class TracksWindow
     	logger.info("opening tracks window");
         tracksWindow.open(display);
     }
+    
+    /**
+     * Create the track info details dialog.
+     * 
+     * This is called when the user right clicks on a track in a table view, for example the filtered
+     * tracks window, or the list of tracks in a selected playlist. 
+     * 
+     * @param trackRowData Map of the track data from the table view row that was clicked.
+     * @param display Display for opening the dialog.
+     */
+    public void handleTrackDetailsPopup (Map<String, String> trackRowData, Display display)
+    {
+        
+        /*
+         * Get the track name and log it.
+         */
+		String trackName = 
+				trackRowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+		logger.debug("right clicked on track" + trackName);
+
+		/*
+		 * Get the base BXML information for the track info dialog, and start the list of 
+		 * components to be skinned.
+		 */
+		List<Component> components = new ArrayList<Component>();
+		try
+		{
+			initializeInfoDialogBxmlVariables(components);
+		}
+		catch (IOException | SerializationException e)
+		{
+			e.printStackTrace();
+		}
+
+		/*
+		 * Get the skins singleton.
+		 */
+		Skins skins = Skins.getInstance();
+		Map<Skins.Element, List<Component>> windowElements = 
+				new HashMap<Skins.Element, List<Component>>();
+
+		/*
+		 * Build table rows to represent the track details. This method also adds
+		 * components that need to be skinned.
+		 */
+		List<TablePane.Row> detailRows = 
+				buildTrackInfoRows(trackRowData, components);
+
+		/*
+		 * Add the generated rows to the owning table pane.
+		 */
+		Iterator<TablePane.Row> detailsRowsIter = detailRows.iterator();
+		while (detailsRowsIter.hasNext())
+		{
+			TablePane.Row detailRow = detailsRowsIter.next();
+			detailsTablePane.getRows().add(detailRow);
+		}
+
+		/*
+		 * Register the window elements.
+		 */
+		windowElements = skins.mapComponentsToSkinElements(components);		
+		skins.registerWindowElements(Skins.Window.TRACKINFO, windowElements);
+
+		/*
+		 * Skin the track info dialog.
+		 */
+		skins.skinMe(Skins.Window.TRACKINFO);
+
+		/*
+		 * Open the track info dialog. There is no close button, so the user has to 
+		 * close the dialog using the host controls.
+		 */
+		logger.info("opening track info dialog");
+		trackInfoDialog.open(display);
+    }
 
     //---------------- Private methods -------------------------------------
     
     /*
      * Build the track info data for the track "show all" dialog.
      */
-    private List<TablePane.Row> buildTrackInfoRows (HashMap<String, String> rowData, 
+    private List<TablePane.Row> buildTrackInfoRows (Map<String, String> rowData, 
     		List<Component> components)
     {
     	List<TablePane.Row> result = new ArrayList<TablePane.Row>();
