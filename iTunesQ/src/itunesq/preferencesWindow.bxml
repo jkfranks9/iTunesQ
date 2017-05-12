@@ -190,18 +190,31 @@
                 				<TablePane.Column width="1*"/>
             				</columns>
             
-            				<!-- Skin preferences row. -->
+            				<!-- Skin and save directory preferences row. -->
             				<TablePane.Row height="1*">
-            					<BoxPane orientation="vertical">
-            						<Label bxml:id="skinPrefsBorderLabel" text="Skin Name"
-            							styles="{font:{bold:true}, padding:5}"/>
-                					<Border bxml:id="skinPrefsBorder">
-                    					<BoxPane bxml:id="skinPrefsBoxPane" orientation="horizontal"
-                        					styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-                							<Spinner bxml:id="skinPrefsSpinner"/>
-                							<PushButton bxml:id="skinPrefsButton" buttonData="Preview"/>
-                    					</BoxPane>
-                					</Border>
+            					<BoxPane orientation="horizontal"
+            						styles="{spacing:100}">
+            						<BoxPane orientation="vertical">
+            							<Label bxml:id="skinPrefsBorderLabel" text="Skin Name"
+            								styles="{font:{bold:true}, padding:5}"/>
+                						<Border bxml:id="skinPrefsBorder">
+                    						<BoxPane bxml:id="skinPrefsBoxPane" orientation="horizontal"
+                        						styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                								<Spinner bxml:id="skinPrefsSpinner"/>
+                								<PushButton bxml:id="skinPrefsButton" buttonData="Preview"/>
+                    						</BoxPane>
+                						</Border>
+                					</BoxPane>
+            						<BoxPane orientation="vertical">
+            							<Label bxml:id="saveDirectoryBorderLabel" text="Save Preferences Directory"
+            								styles="{font:{bold:true}, padding:5}"/>
+                						<Border bxml:id="saveDirectoryBorder">
+                    						<BoxPane bxml:id="saveDirectoryBoxPane" orientation="horizontal"
+                        						styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                								<TextInput bxml:id="saveDirectoryTextInput"/>
+                    						</BoxPane>
+                						</Border>
+                					</BoxPane>
                 				</BoxPane>
             				</TablePane.Row>
             

@@ -19,6 +19,10 @@ import org.jdom2.JDOMException;
 public class Utilities
 {
 	
+    //---------------- Public variables ------------------------------------
+	
+	public static final String JAVA_PREFS_KEY_SAVEDIR = "SAVE_DIRECTORY";
+	
     //---------------- Private variables -----------------------------------
 
 	private static Label fileNameLabel = null;
@@ -265,5 +269,76 @@ public class Utilities
 	public static void setNumPlaylistsLabel (Label label)
 	{
 		numPlaylistsLabel = label;
+	}
+	
+	/**
+	 * Access the Java preference for a given key. This method also sets the preference in case it
+	 * was not currently set.
+	 * 
+	 * @param key Key that represents the preference.
+	 * @return Value for the specified key.
+	 */
+	public static String accessJavaPreference (String key)
+	{
+		String result;
+		
+		/*
+		 * Get the preferences object. We need this to get default values.
+		 */
+		Preferences userPrefs = Preferences.getInstance();
+		
+		/*
+		 * Get the Java preferences node.
+		 */
+		java.util.prefs.Preferences javaPrefs;
+		javaPrefs = java.util.prefs.Preferences.userRoot().node(Utilities.class.getName());
+		
+		/*
+		 * Get the default value in case the Java preference doesn't exist.
+		 * 
+		 * NOTE: We don't expect an unknown key so we don't bother checking it.
+		 */
+		String defaultValue = null;
+		switch (key)
+		{
+		case JAVA_PREFS_KEY_SAVEDIR:
+			defaultValue = userPrefs.getDefaultSaveDirectory();
+			break;
+			
+		default:
+		}
+		
+		/*
+		 * Get the Java preference value, or use the default.
+		 */
+		result = javaPrefs.get(key, defaultValue);
+		
+		/*
+		 * We have no way of knowing if the Java preference was set before, so unconditionally set it.
+		 */
+		javaPrefs.put(key, result);
+		
+        return result;
+	}
+	
+	/**
+	 * Save the Java preference for a given key.
+	 * 
+	 * @param key Key that represents the preference.
+	 * @param value Value for the specified key.
+	 */
+	public static void saveJavaPreference (String key, String value)
+	{
+		
+		/*
+		 * Get the Java preferences node.
+		 */
+		java.util.prefs.Preferences javaPrefs;
+		javaPrefs = java.util.prefs.Preferences.userRoot().node(Utilities.class.getName());
+
+		/*
+		 * Save the java preference value.
+		 */
+		javaPrefs.put(key, value);
 	}
 }

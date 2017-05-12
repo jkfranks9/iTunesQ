@@ -63,6 +63,7 @@ public class PreferencesWindow
 	private boolean playlistTrackColumnsUpdated;
 	private boolean skinPrefsUpdated;
 	private boolean logLevelPrefsUpdated;
+	private boolean saveDirectoryUpdated;
 	private Logger logger;
 	private String owningWindowTitle;
 
@@ -123,6 +124,11 @@ public class PreferencesWindow
 	@BXML private Border skinPrefsBorder = null;
 	@BXML private BoxPane skinPrefsBoxPane = null;
 	@BXML private Spinner skinPrefsSpinner = null;
+	@BXML private Label saveDirectoryBorderLabel = null;
+	@BXML private Border saveDirectoryBorder = null;
+	@BXML private BoxPane saveDirectoryBoxPane = null;
+	@BXML private TextInput saveDirectoryTextInput = null;
+	
 	@BXML private PushButton skinPrefsButton = null;
 	@BXML private Label logLevelPrefsBorderLabel = null;
 	@BXML private Border logLevelPrefsBorder = null;
@@ -342,6 +348,21 @@ public class PreferencesWindow
 				skinPreviewDialog.open(display);
             }
         });
+    	
+    	/*
+    	 * Listener to handle a change to the save directory text box. 
+    	 * 
+    	 * This is so we can indicate the save directory has been updated when the user inserts
+    	 * a directory name in the text box.
+    	 */
+        saveDirectoryTextInput.getTextInputContentListeners().add(new TextInputContentListener.Adapter()
+    	{
+            @Override
+            public void textInserted(TextInput textInput, int index, int count)
+            {
+            	saveDirectoryUpdated = true;
+            }    		
+    	});
         
         /*
          * Listener to handle the done button press.
@@ -437,6 +458,23 @@ public class PreferencesWindow
             		{
             			skins.skinMe(Skins.Window.MAIN);
             		}
+            	}
+            	
+            	if (saveDirectoryUpdated == true)
+            	{
+					logger.info("updating preferences save directory");
+					
+					/*
+					 * Save the directory in the user preferences. This is needed in order to read
+					 * or write the serialized preferences.
+					 */
+					String saveDirectory = saveDirectoryTextInput.getText();
+					userPrefs.setSaveDirectory(saveDirectory);
+					
+					/*
+					 * Update the Java preference with the new directory.
+					 */
+					Utilities.saveJavaPreference(Utilities.JAVA_PREFS_KEY_SAVEDIR, saveDirectory);
             	}
             	
             	if (logLevelPrefsUpdated == true)
@@ -597,6 +635,11 @@ public class PreferencesWindow
         skinPrefsSpinner.setSelectedIndex(index);
         
         /*
+         * Initialize the preferences save directory.
+         */
+        saveDirectoryTextInput.setText(userPrefs.getSaveDirectory());
+        
+        /*
          * Initialize the log level spinners.
          */
         setupLogLevelSpinner(Logging.Dimension.ALL, logLevelPrefsSpinner);
@@ -661,6 +704,7 @@ public class PreferencesWindow
     	filteredTrackColumnsUpdated = false;
     	playlistTrackColumnsUpdated = false;
     	skinPrefsUpdated = false;
+    	saveDirectoryUpdated = false;
     	logLevelPrefsUpdated = false;
 		
 		/*
@@ -2187,6 +2231,19 @@ public class PreferencesWindow
 		components.add(skinPrefsSpinner);
         skinPrefsButton = 
         		(PushButton)prefsWindowSerializer.getNamespace().get("skinPrefsButton");
+        saveDirectoryBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("saveDirectoryBorderLabel");
+		components.add(saveDirectoryBorderLabel);
+		saveDirectoryBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("saveDirectoryBorder");
+		components.add(saveDirectoryBorder);
+		saveDirectoryBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("saveDirectoryBoxPane");
+		components.add(saveDirectoryBoxPane);
+		saveDirectoryTextInput = 
+        		(TextInput)prefsWindowSerializer.getNamespace().get("saveDirectoryTextInput");
+		components.add(saveDirectoryTextInput);
+        
 		components.add(skinPrefsButton);
         logLevelPrefsBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");

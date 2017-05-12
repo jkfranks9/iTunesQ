@@ -225,6 +225,19 @@ public class MainWindow implements Application
 		 * Create the preferences object singleton.
 		 */
 		Preferences userPrefs = Preferences.getInstance();
+        
+		/*
+		 * Get the preferences file save directory using the Java preferences API. We have to save
+		 * this directory using the Java API instead of in our preferences file to avoid a
+		 * catch-22. In hindsight I would save all our preferences using the Java API, but I already
+		 * did it using a file and don't feel like rewriting a bunch of code.
+		 */
+        String saveDirectory = Utilities.accessJavaPreference(Utilities.JAVA_PREFS_KEY_SAVEDIR);
+        
+        /*
+         * Save the directory in the user preferences for reading and writing the serialized object.
+         */
+        userPrefs.setSaveDirectory(saveDirectory);
 		
 		/*
 		 * Read the preferences, if they exist, and update the running copy.

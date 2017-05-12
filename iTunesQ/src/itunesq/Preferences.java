@@ -1,5 +1,6 @@
 package itunesq;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -32,7 +33,7 @@ public final class Preferences implements Serializable
 	/*
 	 * Singleton class instance variable.
 	 */
-	private static Preferences instance = null;
+	private static transient Preferences instance = null;
 	
 	/**
 	 * Get the singleton instance.
@@ -54,45 +55,49 @@ public final class Preferences implements Serializable
 	/*
 	 * Variables for the actual preferences we want to serialize.
 	 * 
+	 * - iTunes XML file name
 	 * - list of bypass playlist preferences
 	 * - list of filtered playlist preferences
 	 * - various track column sets
 	 * - skin name
-	 * - iTunes XML file name
-	 * - preferences save directory
 	 * - global log level
 	 * - log levels
 	 */
+	private String xmlFileName;
 	private List<BypassPreference> bypassPrefs;
 	private List<String> filteredPrefs;
 	private List<List<String>> trackColumnsFullView;
 	private List<List<String>> trackColumnsFilteredView;
 	private List<List<String>> trackColumnsPlaylistView;
 	private String skinName;
-	private String xmlFileName;
-	private String prefsSaveDirectory;
 	private boolean globalLogLevel;
 	private Map<Logging.Dimension, Level> logLevels;
+	
+	/*
+	 * Other class variables.
+	 */
+	private transient String defaultSaveDirectory;
+	private transient String saveDirectory;
 	
     //---------------- Private variables -----------------------------------
 	
 	/*
 	 * Serialized file path constants.
 	 */
-	private static final String HOME_ENV     = System.getenv("HOME");
-	private static final String PREFS_PATH   = "itq";
-	private static final String PREFS_SUFFIX = ".ser";
+	private static transient final String HOME_ENV = System.getenv("HOME");
+	private static transient final String DEFAULT_PREFS_PATH = "itq";
+	private static transient final String PREFS_SUFFIX = ".ser";
 	
 	/*
 	 * Since I want to include the class name without hard-coding it, the remaining parts of the
 	 * path need to be initialized in the constructor.
 	 */
-	private static String prefsName;
-	private static String prefsFile;
+	private static transient String prefsName;
+	private static transient String prefsFile;
 
-	private static FileInputStream prefsInputStream;
-	private static FileOutputStream prefsOutputStream;
-	private Logger logger = null;
+	private static transient FileInputStream prefsInputStream;
+	private static transient FileOutputStream prefsOutputStream;
+	private transient Logger logger = null;
 	
 	private static final long serialVersionUID = -543909365447180812L;
 	
@@ -126,8 +131,14 @@ public final class Preferences implements Serializable
     	 */
 		bypassPrefs = new ArrayList<BypassPreference>();
 		filteredPrefs = new ArrayList<String>(Playlist.DEFAULT_FILTERED_PLAYLISTS);
+		
+		/*
+		 * Initialize the default save directory and file name. The directory can be changed with a
+		 * preference.
+		 */
 		prefsName = this.getClass().getName();
-		prefsFile = HOME_ENV + "/" + PREFS_PATH + "/" + prefsName + PREFS_SUFFIX;
+		defaultSaveDirectory = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
+		prefsFile = defaultSaveDirectory + "/" + prefsName + PREFS_SUFFIX;
 		
 		logLevels = new HashMap<Logging.Dimension, Level>();
 		globalLogLevel = true;
@@ -371,7 +382,71 @@ public final class Preferences implements Serializable
 		logLevels.put(dimension, level);
 	}
 	
+	/**
+	 * Get the default preferences save directory.
+	 * 
+	 * @return Default preferences save directory.
+	 */
+	public String getDefaultSaveDirectory ()
+	{
+		return defaultSaveDirectory;
+	}
+	
+	/**
+	 * Get the preferences save directory.
+	 * 
+	 * @return Preferences save directory.
+	 */
+	public String getSaveDirectory ()
+	{
+		return saveDirectory;
+	}
+	
     //---------------- Public methods --------------------------------------
+	
+	/**
+	 * Set the preferences save directory, and move the existing preferences file to the new
+	 * directory.
+	 * 
+	 * @param saveDirectory Preferences save directory.
+	 */
+	public void setSaveDirectory (String saveDirectory)
+	{
+		String savePathSuffix = "/" + prefsName + PREFS_SUFFIX;
+		
+		/*
+		 * Create File objects for the existing and new files. It's possible we don't have an
+		 * existing file or directory.
+		 */
+		File existingFile;
+		if (this.saveDirectory != null)
+		{
+			existingFile = new File(this.saveDirectory + savePathSuffix);
+		}
+		else
+		{
+			existingFile = new File(this.defaultSaveDirectory + savePathSuffix);
+		}
+		File newFile = new File(saveDirectory + savePathSuffix);
+		
+		/*
+		 * Rename (move) the existing file to the new directory if it exists.
+		 */
+		if (existingFile.exists())
+		{
+			existingFile.renameTo(newFile);
+		}
+		
+		/*
+		 * Update our saved directory name.
+		 */
+		this.saveDirectory = saveDirectory;
+
+		/*
+		 * Rebuild the preferences file path name.
+		 */
+		prefsFile = saveDirectory + "/" + prefsName + PREFS_SUFFIX;
+	}
 	
 	/**
 	 * Update the preferences from a preferences object. This is expected to be called after reading
