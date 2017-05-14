@@ -91,7 +91,8 @@
                 <Border bxml:id="actionBorder">
                     <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
                         styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-            	        <PushButton bxml:id="showResultsButton" buttonData="Show Me"/>
+            	        <PushButton bxml:id="showResultsButton" buttonData="Show Me"
+            	        	tooltipText="Show the result of applying the above set of filters."/>
             	        <PushButton bxml:id="queryDoneButton" buttonData="Done"/>
                     </BoxPane>
                 </Border>

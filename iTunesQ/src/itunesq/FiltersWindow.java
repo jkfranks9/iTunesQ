@@ -267,6 +267,7 @@ public class FiltersWindow
     	logic.setCircular(true);
     	logic.setSpinnerData(Filter.getLogicLabels());
     	logic.setSelectedIndex(0);
+    	logic.setTooltipText("You can match 'All' or 'Any' of the following filters.");
     	
     	/*
     	 * Create the 'subject' spinner.
@@ -275,6 +276,7 @@ public class FiltersWindow
     	subject.setCircular(true);
     	subject.setSpinnerData(Filter.getSubjectLabels());
         subject.setSelectedIndex(0);
+        subject.setTooltipText("What is the subject of this filter?");
         
         /*
          * Create the 'operator' spinner.
@@ -283,11 +285,15 @@ public class FiltersWindow
     	operator.setCircular(true);
     	operator.setSpinnerData(Filter.getOperatorLabels());
         operator.setSelectedIndex(0);
+        operator.setTooltipText("What operator should be applied? "
+        		+ "Note that not all operators apply to all subjects. "
+        		+ "For example 'Artist' 'greater than or equal' does not make sense.");
         
         /*
          * Create the text input box.
          */
     	TextInput text = new TextInput();
+    	text.setTooltipText("Enter the value that applies to the subject of this filter.");
     	
     	/*
     	 * Text input listener for the text input. We call the typing assistant to fill in the 
@@ -355,12 +361,16 @@ public class FiltersWindow
     	 */
     	PushButton plusButton = new PushButton();
     	plusButton.setButtonData("+");
+    	plusButton.setTooltipText("Add a new filter of the same type ('All' or 'Any').");
     	
     	PushButton minusButton = new PushButton();
     	minusButton.setButtonData("-");
+    	minusButton.setTooltipText("Remove this filter.");
     	
     	PushButton complexButton = new PushButton();
     	complexButton.setButtonData("Complex");
+    	complexButton.setTooltipText("Switch the type of filter from 'All' to 'Any' or vice versa. "
+    			+ "You can only include 2 such switches in the set of filters.");
     	
     	/*
     	 * Mouse click listener for the + button.

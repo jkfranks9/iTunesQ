@@ -149,9 +149,12 @@
 			    <Border bxml:id="actionBorder">
 	                <BoxPane bxml:id="actionBoxPane" orientation="horizontal" 
 	                    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-	            	    <PushButton bxml:id="viewTracksButton" buttonData="View Tracks"/>
-	                	<PushButton bxml:id="viewPlaylistsButton" buttonData="View Playlists"/>
-	                	<PushButton bxml:id="queryButton" buttonData="Query Library"/>
+	            	    <PushButton bxml:id="viewTracksButton" buttonData="View Tracks"
+	            	    	tooltipText="Show all tracks."/>
+	                	<PushButton bxml:id="viewPlaylistsButton" buttonData="View Playlists"
+	            	    	tooltipText="Show all playlists."/>
+	                	<PushButton bxml:id="queryButton" buttonData="Query Library"
+	            	    	tooltipText="Query the library using filters."/>
 	            	    <ActivityIndicator bxml:id="activityIndicator"
                         	preferredWidth="48" preferredHeight="48"/>
 	        	    </BoxPane>

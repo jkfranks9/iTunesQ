@@ -228,7 +228,6 @@
                     					<TablePane bxml:id="logLevelPrefsTablePane"
                     						styles="{horizontalSpacing:10, padding:5}">
             								<columns>
-                								<TablePane.Column width="3*"/>
                 								<TablePane.Column width="1*"/>
             								</columns>
             			

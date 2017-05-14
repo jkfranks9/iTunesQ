@@ -537,6 +537,50 @@ public class PreferencesWindow
 			{
 			}
         });
+        
+        /*
+         * Add tooltip texts.
+         */
+        bypassPrefsBorderLabel.setTooltipText("Playlist counts are accumulated for every track, "
+        		+ "but you can bypass the counts for certain playlists.");
+        filteredPrefsBorderLabel.setTooltipText("iTunes includes built-in playlists that might be "
+        		+ "considered clutter. You can ignore them if you want, and also add your own "
+        		+ "playlists to completely ignore.");
+        columnPrefsBorderLabel.setTooltipText("Select the columns you want to be displayed when "
+        		+ "displaying all tracks, filtered tracks, and the tracks shown for a "
+        		+ "selected playlist.");
+        skinPrefsBorderLabel.setTooltipText("Select a skin name and click the 'Preview' "
+        		+ "button to see how it looks.");
+        saveDirectoryBorderLabel.setTooltipText("Select the directory in which to save your "
+        		+ "user preferences.");
+        logLevelPrefsBorderLabel.setTooltipText("Log levels determine how much information is "
+        		+ "logged for debugging purposes. These should only be changed if directed by "
+        		+ "support personnel.");
+        
+        final String globalLogLevelTooltip = "This is the global log level, if '" 
+        		+ logLevelPrefsCheckbox.getButtonData() + "' is checked.";
+        logLevelPrefsSpinner.setTooltipText(globalLogLevelTooltip);
+        logLevelPrefsCheckbox.setTooltipText(globalLogLevelTooltip);
+        
+        final String uiLogLevelTooltip = "This is the log level for the user interface component.";
+        uiLogLevelPrefsLabel.setTooltipText(uiLogLevelTooltip);
+        uiLogLevelPrefsSpinner.setTooltipText(uiLogLevelTooltip);
+        
+        final String xmlLogLevelTooltip = "This is the log level for the XML management component.";
+        xmlLogLevelPrefsLabel.setTooltipText(xmlLogLevelTooltip);
+        xmlLogLevelPrefsSpinner.setTooltipText(xmlLogLevelTooltip);
+        
+        final String trackLogLevelTooltip = "This is the log level for the track management component.";
+        trackLogLevelPrefsLabel.setTooltipText(trackLogLevelTooltip);
+        trackLogLevelPrefsSpinner.setTooltipText(trackLogLevelTooltip);
+        
+        final String playlistLogLevelTooltip = "This is the log level for the playlist management component.";
+        playlistLogLevelPrefsLabel.setTooltipText(playlistLogLevelTooltip);
+        playlistLogLevelPrefsSpinner.setTooltipText(playlistLogLevelTooltip);
+        
+        final String filterLogLevelTooltip = "This is the log level for the filter management component.";
+        filterLogLevelPrefsLabel.setTooltipText(filterLogLevelTooltip);
+        filterLogLevelPrefsSpinner.setTooltipText(filterLogLevelTooltip);
 		
 		/*
 		 * Get the skins object singleton.
@@ -782,6 +826,7 @@ public class PreferencesWindow
     	 * playlist preference object.
     	 */
     	Checkbox includeChildren = new Checkbox("Include Children?");
+    	includeChildren.setTooltipText("Should counts also be bypassed for children playlists?");
 		if (bypassPref != null)
 		{
 			includeChildren.setSelected((bypassPref.getIncludeChildren()));
@@ -795,9 +840,11 @@ public class PreferencesWindow
     	 */
     	PushButton plusButton = new PushButton();
     	plusButton.setButtonData("+");
+    	plusButton.setTooltipText("Add a new playlist for which counts should be bypassed.");
     	
     	PushButton minusButton = new PushButton();
     	minusButton.setButtonData("-");
+    	minusButton.setTooltipText("Remove this playlist from the bypass counts list.");
         
     	/*
     	 * We need the ability to insert and remove playlist preference rows based on the specific 
@@ -977,9 +1024,11 @@ public class PreferencesWindow
     	 */
     	PushButton plusButton = new PushButton();
     	plusButton.setButtonData("+");
+    	plusButton.setTooltipText("Add a new playlist to be completely ignored.");
     	
     	PushButton minusButton = new PushButton();
     	minusButton.setButtonData("-");
+    	minusButton.setTooltipText("Remove this playlist from being completely ignored.");
         
     	/*
     	 * We need the ability to insert and remove playlist preference rows based on the specific 
