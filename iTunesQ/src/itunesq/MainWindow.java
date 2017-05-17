@@ -49,6 +49,7 @@ public class MainWindow implements Application
 	private boolean xmlFileExists = false;
 	private Logger logger = null;
 	private Logging logging = null;
+	private Preferences userPrefs = null;
 	
 	/*
 	 * BXML variables.
@@ -82,6 +83,38 @@ public class MainWindow implements Application
     {
     	
     	/*
+    	 * The order of events in the startup sequence is important:
+    	 * 
+    	 * 1) We have to get the save directory from the Java preferences, in order to start
+    	 *    logging in the correct directory.
+    	 *    
+    	 * 2) We then have to set the save directory in the user preferences, because it's
+    	 *    obtained from there when we register the first logger. Note that this is a static
+    	 *    method, because we haven't done step 3 yet.
+    	 *    
+    	 * 3) Create the user preferences singleton. Its constructor will create and register 
+    	 *    the first logger, which relies on steps 1 and 2.
+    	 */
+        
+		/*
+		 * Get the save directory using the Java preferences API. We have to maintain this
+		 * directory using the Java API instead of in our preferences file to avoid a catch-22.
+		 * In hindsight I would save all our preferences using the Java API, but I already
+		 * did it using a file and don't feel like rewriting a bunch of code.
+		 */
+        String saveDirectory = Utilities.accessJavaPreference(Utilities.JAVA_PREFS_KEY_SAVEDIR);
+        
+        /*
+         * Save the save directory in the user preferences.
+         */
+        Preferences.setSaveDirectory(saveDirectory);
+		
+		/*
+		 * Create the preferences object singleton.
+		 */
+		userPrefs = Preferences.getInstance();
+    	
+    	/*
     	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
@@ -97,6 +130,12 @@ public class MainWindow implements Application
     	 */
     	logging.registerLogger(Logging.Dimension.UI, logger);
     	logging.setDefaultLogLevel(logger.getEffectiveLevel());
+    	
+    	/*
+    	 * Initialize the Preferences logger. This could not be done in the Preferences constructor,
+    	 * because doing so would result in an endless loop between Preferences and Logging.
+    	 */
+    	userPrefs.initLogger();
     	
     	/*
     	 * Initialize loggers in static classes. 
@@ -220,24 +259,6 @@ public class MainWindow implements Application
         });
         
         //---------------- Start of Initialization -----------------------------
-		
-		/*
-		 * Create the preferences object singleton.
-		 */
-		Preferences userPrefs = Preferences.getInstance();
-        
-		/*
-		 * Get the preferences file save directory using the Java preferences API. We have to save
-		 * this directory using the Java API instead of in our preferences file to avoid a
-		 * catch-22. In hindsight I would save all our preferences using the Java API, but I already
-		 * did it using a file and don't feel like rewriting a bunch of code.
-		 */
-        String saveDirectory = Utilities.accessJavaPreference(Utilities.JAVA_PREFS_KEY_SAVEDIR);
-        
-        /*
-         * Save the directory in the user preferences for reading and writing the serialized object.
-         */
-        userPrefs.setSaveDirectory(saveDirectory);
 		
 		/*
 		 * Read the preferences, if they exist, and update the running copy.

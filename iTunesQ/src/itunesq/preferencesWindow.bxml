@@ -190,10 +190,10 @@
                 				<TablePane.Column width="1*"/>
             				</columns>
             
-            				<!-- Skin and save directory preferences row. -->
+            				<!-- Miscellaneous preferences row. -->
             				<TablePane.Row height="1*">
             					<BoxPane orientation="horizontal"
-            						styles="{spacing:100}">
+            						styles="{spacing:90}">
             						<BoxPane orientation="vertical">
             							<Label bxml:id="skinPrefsBorderLabel" text="Skin Name"
             								styles="{font:{bold:true}, padding:5}"/>
@@ -206,12 +206,23 @@
                 						</Border>
                 					</BoxPane>
             						<BoxPane orientation="vertical">
-            							<Label bxml:id="saveDirectoryBorderLabel" text="Save Preferences Directory"
+            							<Label bxml:id="saveDirectoryBorderLabel" text="Save Directory"
             								styles="{font:{bold:true}, padding:5}"/>
                 						<Border bxml:id="saveDirectoryBorder">
                     						<BoxPane bxml:id="saveDirectoryBoxPane" orientation="horizontal"
                         						styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
                 								<TextInput bxml:id="saveDirectoryTextInput"/>
+                    						</BoxPane>
+                						</Border>
+                					</BoxPane>
+            						<BoxPane orientation="vertical">
+            							<Label bxml:id="logHistoryPrefsBorderLabel" 
+            								text="Maximum Log History (days)"
+            								styles="{font:{bold:true}, padding:5}"/>
+                						<Border bxml:id="logHistoryPrefsBorder">
+                    						<BoxPane bxml:id="logHistoryPrefsBoxPane" orientation="horizontal"
+                        						styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                								<TextInput bxml:id="logHistoryPrefsTextInput"/>
                     						</BoxPane>
                 						</Border>
                 					</BoxPane>

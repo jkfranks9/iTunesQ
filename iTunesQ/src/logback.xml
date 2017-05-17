@@ -1,14 +1,9 @@
 <configuration>
 
-  <appender name="FILE" class="ch.qos.logback.core.FileAppender">
-    <file>iTunesQ.log</file>
-
-    <encoder>
-      <pattern>%date %level [%thread] [%file:%line] %msg%n</pattern>
-    </encoder>
-  </appender>
-
+	<!-- 
+	Ridiculously simple configuration. We do everything in code so we can control the directory
+	for log files.
+	-->
   <root level="info">
-    <appender-ref ref="FILE" />
   </root>
 </configuration>

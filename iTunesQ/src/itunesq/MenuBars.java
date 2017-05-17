@@ -56,15 +56,15 @@ public class MenuBars extends Frame implements Bindable
 	{
     	
     	/*
-    	 * Get the logging object singleton.
-    	 */
-    	Logging logging = Logging.getInstance();
-    	
-    	/*
-    	 * The name of the logger is "classname_UI", since this class is all about UI management.
+    	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
     	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Get the logging object singleton.
+    	 */
+    	Logging logging = Logging.getInstance();
     	
     	/*
     	 * Register our logger.

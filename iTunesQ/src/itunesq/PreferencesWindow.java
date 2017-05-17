@@ -11,6 +11,7 @@ import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.collections.Sequence;
 import org.apache.pivot.serialization.SerializationException;
+import org.apache.pivot.wtk.Alert;
 import org.apache.pivot.wtk.Border;
 import org.apache.pivot.wtk.BoxPane;
 import org.apache.pivot.wtk.Button;
@@ -21,6 +22,7 @@ import org.apache.pivot.wtk.ComponentMouseButtonListener;
 import org.apache.pivot.wtk.Dialog;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.Label;
+import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.Sheet;
@@ -64,6 +66,7 @@ public class PreferencesWindow
 	private boolean skinPrefsUpdated;
 	private boolean logLevelPrefsUpdated;
 	private boolean saveDirectoryUpdated;
+	private boolean logHistoryPrefsUpdated;
 	private Logger logger;
 	private String owningWindowTitle;
 
@@ -128,6 +131,10 @@ public class PreferencesWindow
 	@BXML private Border saveDirectoryBorder = null;
 	@BXML private BoxPane saveDirectoryBoxPane = null;
 	@BXML private TextInput saveDirectoryTextInput = null;
+	@BXML private Label logHistoryPrefsBorderLabel = null;
+	@BXML private Border logHistoryPrefsBorder = null;
+	@BXML private BoxPane logHistoryPrefsBoxPane = null;
+	@BXML private TextInput logHistoryPrefsTextInput = null;
 	
 	@BXML private PushButton skinPrefsButton = null;
 	@BXML private Label logLevelPrefsBorderLabel = null;
@@ -363,6 +370,43 @@ public class PreferencesWindow
             	saveDirectoryUpdated = true;
             }    		
     	});
+    	
+    	/*
+    	 * Listener to handle a change to the log history preferences text box. 
+    	 * 
+    	 * This is so we can indicate the log history preferences have been updated when the user inserts
+    	 * text in the text box.
+    	 */
+        logHistoryPrefsTextInput.getTextInputContentListeners().add(new TextInputContentListener.Adapter()
+    	{
+            @Override
+            public void textInserted(TextInput textInput, int index, int count)
+            {
+            	logHistoryPrefsUpdated = true;
+            	
+            	boolean badInput = false;
+            	int maxHistory = -1;
+            	
+            	/*
+            	 * Make sure the input is a positive numerical value.
+            	 */
+                try
+                {
+                	maxHistory = Integer.parseInt(textInput.getText());
+                }
+                catch (NumberFormatException e)
+                {
+                	badInput = true;
+                }
+                
+                if (badInput == true || maxHistory <= 0)
+                {
+                	Alert.alert(MessageType.WARNING, 
+        					"You must specify a positive numeric value for the log history.", 
+        					textInput.getWindow());
+                }
+            }    		
+    	});
         
         /*
          * Listener to handle the done button press.
@@ -437,7 +481,7 @@ public class PreferencesWindow
             	
             	if (skinPrefsUpdated == true)
             	{
-					logger.info("updating skin preferences");
+					logger.info("updating skin preference");
 					
             		prefsUpdated = true;
             		
@@ -462,19 +506,45 @@ public class PreferencesWindow
             	
             	if (saveDirectoryUpdated == true)
             	{
-					logger.info("updating preferences save directory");
+					logger.info("updating save directory");
 					
-					/*
-					 * Save the directory in the user preferences. This is needed in order to read
-					 * or write the serialized preferences.
-					 */
 					String saveDirectory = saveDirectoryTextInput.getText();
-					userPrefs.setSaveDirectory(saveDirectory);
 					
 					/*
-					 * Update the Java preference with the new directory.
+					 * Remove trailing slash if present.
+					 */
+	            	if (saveDirectory.endsWith("/"))
+	            	{
+	            		String correctedDirectory = saveDirectory.substring(0, saveDirectory.length() - 2);
+	            		saveDirectory = correctedDirectory;
+	            	}
+					
+					/*
+					 * Save the save directory in the user preferences.
+					 */
+					Preferences.setSaveDirectory(saveDirectory);
+					
+					/*
+					 * Update the Java preference with the new save directory.
 					 */
 					Utilities.saveJavaPreference(Utilities.JAVA_PREFS_KEY_SAVEDIR, saveDirectory);
+            	}
+            	
+            	if (logHistoryPrefsUpdated == true)
+            	{
+					logger.info("updating log history preference");
+					
+            		prefsUpdated = true;
+					
+            		/*
+            		 * Save the maximum log history in the user preferences.
+            		 */
+					userPrefs.setMaxLogHistory(Integer.valueOf(logHistoryPrefsTextInput.getText()));
+					
+					/*
+					 * Update all loggers with the new maximum log history.
+					 */
+					logging.setMaxHistoryFromPref();
             	}
             	
             	if (logLevelPrefsUpdated == true)
@@ -551,8 +621,9 @@ public class PreferencesWindow
         		+ "selected playlist.");
         skinPrefsBorderLabel.setTooltipText("Select a skin name and click the 'Preview' "
         		+ "button to see how it looks.");
-        saveDirectoryBorderLabel.setTooltipText("Select the directory in which to save your "
-        		+ "user preferences.");
+        saveDirectoryBorderLabel.setTooltipText("Select the directory keeping files such as "
+        		+ "user preferences and log files.");
+        logHistoryPrefsBorderLabel.setTooltipText("Select the number of days to keep log file history.");
         logLevelPrefsBorderLabel.setTooltipText("Log levels determine how much information is "
         		+ "logged for debugging purposes. These should only be changed if directed by "
         		+ "support personnel.");
@@ -679,9 +750,14 @@ public class PreferencesWindow
         skinPrefsSpinner.setSelectedIndex(index);
         
         /*
-         * Initialize the preferences save directory.
+         * Initialize the save directory.
          */
-        saveDirectoryTextInput.setText(userPrefs.getSaveDirectory());
+        saveDirectoryTextInput.setText(Preferences.getSaveDirectory());
+        
+        /*
+         * Initialize the log history preference.
+         */
+        logHistoryPrefsTextInput.setText(Integer.toString(userPrefs.getMaxLogHistory()));
         
         /*
          * Initialize the log level spinners.
@@ -749,6 +825,7 @@ public class PreferencesWindow
     	playlistTrackColumnsUpdated = false;
     	skinPrefsUpdated = false;
     	saveDirectoryUpdated = false;
+    	logHistoryPrefsUpdated = false;
     	logLevelPrefsUpdated = false;
 		
 		/*
@@ -2173,7 +2250,7 @@ public class PreferencesWindow
     {
         int spinnerWidth = 70;
     	Logging logging = Logging.getInstance();
-        Sequence<String> levelNames = logging.getLogLevels();
+        Sequence<String> levelNames = logging.getLogLevelValues();
         List<String> levelArray = new ArrayList<String>(levelNames);
 
         /*
@@ -2280,6 +2357,7 @@ public class PreferencesWindow
 		components.add(skinPrefsSpinner);
         skinPrefsButton = 
         		(PushButton)prefsWindowSerializer.getNamespace().get("skinPrefsButton");
+		components.add(skinPrefsButton);
         saveDirectoryBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("saveDirectoryBorderLabel");
 		components.add(saveDirectoryBorderLabel);
@@ -2292,8 +2370,19 @@ public class PreferencesWindow
 		saveDirectoryTextInput = 
         		(TextInput)prefsWindowSerializer.getNamespace().get("saveDirectoryTextInput");
 		components.add(saveDirectoryTextInput);
+		logHistoryPrefsBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("logHistoryPrefsBorderLabel");
+		components.add(logHistoryPrefsBorderLabel);
+		logHistoryPrefsBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("logHistoryPrefsBorder");
+		components.add(logHistoryPrefsBorder);
+		logHistoryPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("logHistoryPrefsBoxPane");
+		components.add(logHistoryPrefsBoxPane);
+		logHistoryPrefsTextInput = 
+        		(TextInput)prefsWindowSerializer.getNamespace().get("logHistoryPrefsTextInput");
+		components.add(logHistoryPrefsTextInput);
         
-		components.add(skinPrefsButton);
         logLevelPrefsBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
 		components.add(logLevelPrefsBorderLabel);

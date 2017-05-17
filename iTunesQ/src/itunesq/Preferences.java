@@ -50,6 +50,20 @@ public final class Preferences implements Serializable
 		return instance;
 	}
 
+    //---------------- Public variables ------------------------------------
+	
+	/*
+	 * Serialized file directory constants.
+	 * 
+	 * (Of course only of these is public, but I like to put public variables first, and I need to
+	 * define the private variables before the public one.) 
+	 */
+	
+	private static transient final String HOME_ENV = System.getenv("HOME");
+	private static transient final String DEFAULT_PREFS_PATH = "itq";
+	
+	public static transient final String DEFAULT_SAVE_DIRECTORY = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
+
     //---------------- Class variables -------------------------------------
 	
 	/*
@@ -60,6 +74,7 @@ public final class Preferences implements Serializable
 	 * - list of filtered playlist preferences
 	 * - various track column sets
 	 * - skin name
+	 * - maximum log file history
 	 * - global log level
 	 * - log levels
 	 */
@@ -70,31 +85,36 @@ public final class Preferences implements Serializable
 	private List<List<String>> trackColumnsFilteredView;
 	private List<List<String>> trackColumnsPlaylistView;
 	private String skinName;
+	private int maxLogHistory;
 	private boolean globalLogLevel;
 	private Map<Logging.Dimension, Level> logLevels;
-	
-	/*
-	 * Other class variables.
-	 */
-	private transient String defaultSaveDirectory;
-	private transient String saveDirectory;
 	
     //---------------- Private variables -----------------------------------
 	
 	/*
-	 * Serialized file path constants.
+	 * Save directory name.
 	 */
-	private static transient final String HOME_ENV = System.getenv("HOME");
-	private static transient final String DEFAULT_PREFS_PATH = "itq";
+	private static transient String saveDirectory;
+	
+	/*
+	 * Serialized file name suffix.
+	 */
 	private static transient final String PREFS_SUFFIX = ".ser";
 	
 	/*
-	 * Since I want to include the class name without hard-coding it, the remaining parts of the
-	 * path need to be initialized in the constructor.
+	 * Default maximum log history.
 	 */
-	private static transient String prefsName;
+	private static transient final int DEFAULT_MAX_HISTORY = 30;
+	
+	/*
+	 * The serialized file name includes the class name. That's initialized in setSaveDirectory(),
+	 * which is called by MainWindow() before our constructor.
+	 */
 	private static transient String prefsFile;
 
+	/*
+	 * Other variables.
+	 */
 	private static transient FileInputStream prefsInputStream;
 	private static transient FileOutputStream prefsOutputStream;
 	private transient Logger logger = null;
@@ -108,22 +128,6 @@ public final class Preferences implements Serializable
 	{
     	
     	/*
-    	 * Get the logging object singleton.
-    	 */
-    	Logging logging = Logging.getInstance();
-    	
-    	/*
-    	 * The name of the logger is "classname_UI", since this class is all about UI management.
-    	 */
-    	String className = getClass().getSimpleName();
-    	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
-    	
-    	/*
-    	 * Register our logger.
-    	 */
-    	logging.registerLogger(Logging.Dimension.UI, logger);
-    	
-    	/*
     	 * Initialize variables.
     	 * 
     	 * NOTE: We initialize the filtered playlists with the default value. They get replaced when
@@ -132,13 +136,7 @@ public final class Preferences implements Serializable
 		bypassPrefs = new ArrayList<BypassPreference>();
 		filteredPrefs = new ArrayList<String>(Playlist.DEFAULT_FILTERED_PLAYLISTS);
 		
-		/*
-		 * Initialize the default save directory and file name. The directory can be changed with a
-		 * preference.
-		 */
-		prefsName = this.getClass().getName();
-		defaultSaveDirectory = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
-		prefsFile = defaultSaveDirectory + "/" + prefsName + PREFS_SUFFIX;
+		maxLogHistory = DEFAULT_MAX_HISTORY;
 		
 		logLevels = new HashMap<Logging.Dimension, Level>();
 		globalLogLevel = true;
@@ -175,21 +173,6 @@ public final class Preferences implements Serializable
 	{
 		return bypassPrefs;
 	}
-	
-	/**
-	 * Replace the list of bypass playlist preferences.
-	 * 
-	 * @param bypassPrefs List of new bypass playlist preferences.
-	 */
-	public void replaceBypassPrefs (List<BypassPreference> bypassPrefs)
-	{
-		this.bypassPrefs.clear();
-		Iterator<BypassPreference> bypassPrefsIter = bypassPrefs.iterator();
-		while (bypassPrefsIter.hasNext())
-		{
-			this.bypassPrefs.add(bypassPrefsIter.next());
-		}
-	}
 
 	/**
 	 * Get the list of filtered playlist preferences.
@@ -199,21 +182,6 @@ public final class Preferences implements Serializable
 	public List<String> getFilteredPrefs ()
 	{
 		return filteredPrefs;
-	}
-	
-	/**
-	 * Replace the list of filtered playlist preferences.
-	 * 
-	 * @param filteredPrefs List of new filtered playlist preferences.
-	 */
-	public void replaceFilteredPrefs (List<String> filteredPrefs)
-	{
-		this.filteredPrefs.clear();
-		Iterator<String> filteredPrefsIter = filteredPrefs.iterator();
-		while (filteredPrefsIter.hasNext())
-		{
-			this.filteredPrefs.add(filteredPrefsIter.next());
-		}
 	}
 	
 	/**
@@ -237,21 +205,6 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Replace the list of full tracks column preferences.
-	 * 
-	 * @param trackColumnsPrefs List of new tracks column preferences.
-	 */
-	public void replaceTrackColumnsFullView (List<List<String>> trackColumnsPrefs)
-	{
-		this.trackColumnsFullView.clear();
-		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
-		while (trackColumnsPrefsIter.hasNext())
-		{
-			this.trackColumnsFullView.add(trackColumnsPrefsIter.next());
-		}
-	}
-	
-	/**
 	 * Get the filtered tracks column preferences.
 	 * 
 	 * @return List of filtered tracks column preferences.
@@ -269,21 +222,6 @@ public final class Preferences implements Serializable
 	public void setTrackColumnsFilteredView(List<List<String>> trackColumnsFilteredView)
 	{
 		this.trackColumnsFilteredView = trackColumnsFilteredView;
-	}
-	
-	/**
-	 * Replace the list of filtered tracks column preferences.
-	 * 
-	 * @param trackColumnsPrefs List of new tracks column preferences.
-	 */
-	public void replaceTrackColumnsFilteredView (List<List<String>> trackColumnsPrefs)
-	{
-		this.trackColumnsFilteredView.clear();
-		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
-		while (trackColumnsPrefsIter.hasNext())
-		{
-			this.trackColumnsFilteredView.add(trackColumnsPrefsIter.next());
-		}
 	}
 	
 	/**
@@ -307,21 +245,6 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Replace the list of playlist tracks column preferences.
-	 * 
-	 * @param trackColumnsPrefs List of new tracks column preferences.
-	 */
-	public void replaceTrackColumnsPlaylistView (List<List<String>> trackColumnsPrefs)
-	{
-		this.trackColumnsPlaylistView.clear();
-		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
-		while (trackColumnsPrefsIter.hasNext())
-		{
-			this.trackColumnsPlaylistView.add(trackColumnsPrefsIter.next());
-		}
-	}
-	
-	/**
 	 * Get the skin name.
 	 * 
 	 * @return Skin name.
@@ -339,6 +262,26 @@ public final class Preferences implements Serializable
 	public void setSkinName (String skin)
 	{
 		this.skinName = skin;
+	}
+	
+	/**
+	 * Get the maximum log history.
+	 * 
+	 * @return Maximum log history.
+	 */
+	public int getMaxLogHistory ()
+	{
+		return maxLogHistory;
+	}
+	
+	/**
+	 * Set the maximum log history.
+	 * 
+	 * @param maxLogHistory Maximum log history.
+	 */
+	public void setMaxLogHistory (int maxHistory)
+	{
+		this.maxLogHistory = maxHistory;
 	}
 	
 	/**
@@ -383,21 +326,11 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the default preferences save directory.
-	 * 
-	 * @return Default preferences save directory.
-	 */
-	public String getDefaultSaveDirectory ()
-	{
-		return defaultSaveDirectory;
-	}
-	
-	/**
 	 * Get the preferences save directory.
 	 * 
 	 * @return Preferences save directory.
 	 */
-	public String getSaveDirectory ()
+	public static String getSaveDirectory ()
 	{
 		return saveDirectory;
 	}
@@ -405,13 +338,97 @@ public final class Preferences implements Serializable
     //---------------- Public methods --------------------------------------
 	
 	/**
+	 * Replace the list of bypass playlist preferences.
+	 * 
+	 * @param bypassPrefs List of new bypass playlist preferences.
+	 */
+	public void replaceBypassPrefs (List<BypassPreference> bypassPrefs)
+	{
+		this.bypassPrefs.clear();
+		Iterator<BypassPreference> bypassPrefsIter = bypassPrefs.iterator();
+		while (bypassPrefsIter.hasNext())
+		{
+			this.bypassPrefs.add(bypassPrefsIter.next());
+		}
+	}
+	
+	/**
+	 * Replace the list of filtered playlist preferences.
+	 * 
+	 * @param filteredPrefs List of new filtered playlist preferences.
+	 */
+	public void replaceFilteredPrefs (List<String> filteredPrefs)
+	{
+		this.filteredPrefs.clear();
+		Iterator<String> filteredPrefsIter = filteredPrefs.iterator();
+		while (filteredPrefsIter.hasNext())
+		{
+			this.filteredPrefs.add(filteredPrefsIter.next());
+		}
+	}
+	
+	/**
+	 * Replace the list of full tracks column preferences.
+	 * 
+	 * @param trackColumnsPrefs List of new tracks column preferences.
+	 */
+	public void replaceTrackColumnsFullView (List<List<String>> trackColumnsPrefs)
+	{
+		this.trackColumnsFullView.clear();
+		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
+		while (trackColumnsPrefsIter.hasNext())
+		{
+			this.trackColumnsFullView.add(trackColumnsPrefsIter.next());
+		}
+	}
+	
+	/**
+	 * Replace the list of filtered tracks column preferences.
+	 * 
+	 * @param trackColumnsPrefs List of new tracks column preferences.
+	 */
+	public void replaceTrackColumnsFilteredView (List<List<String>> trackColumnsPrefs)
+	{
+		this.trackColumnsFilteredView.clear();
+		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
+		while (trackColumnsPrefsIter.hasNext())
+		{
+			this.trackColumnsFilteredView.add(trackColumnsPrefsIter.next());
+		}
+	}
+	
+	/**
+	 * Replace the list of playlist tracks column preferences.
+	 * 
+	 * @param trackColumnsPrefs List of new tracks column preferences.
+	 */
+	public void replaceTrackColumnsPlaylistView (List<List<String>> trackColumnsPrefs)
+	{
+		this.trackColumnsPlaylistView.clear();
+		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
+		while (trackColumnsPrefsIter.hasNext())
+		{
+			this.trackColumnsPlaylistView.add(trackColumnsPrefsIter.next());
+		}
+	}
+	
+	/**
 	 * Set the preferences save directory, and move the existing preferences file to the new
 	 * directory.
 	 * 
-	 * @param saveDirectory Preferences save directory.
+	 * Note that this method is called during initialization before our constructor. That's because
+	 * the constructor registers a logger, which in turn requires the correct save directory to be
+	 * set.
+	 * 
+	 * @param directory Preferences save directory.
 	 */
-	public void setSaveDirectory (String saveDirectory)
+	public static void setSaveDirectory (String directory)
 	{
+		
+		/*
+		 * Initialize the save path suffix (everything after the directory name).
+		 */
+		String prefsName = Preferences.class.getName();
 		String savePathSuffix = "/" + prefsName + PREFS_SUFFIX;
 		
 		/*
@@ -419,15 +436,15 @@ public final class Preferences implements Serializable
 		 * existing file or directory.
 		 */
 		File existingFile;
-		if (this.saveDirectory != null)
+		if (saveDirectory != null)
 		{
-			existingFile = new File(this.saveDirectory + savePathSuffix);
+			existingFile = new File(saveDirectory + savePathSuffix);
 		}
 		else
 		{
-			existingFile = new File(this.defaultSaveDirectory + savePathSuffix);
+			existingFile = new File(DEFAULT_SAVE_DIRECTORY + savePathSuffix);
 		}
-		File newFile = new File(saveDirectory + savePathSuffix);
+		File newFile = new File(directory + savePathSuffix);
 		
 		/*
 		 * Rename (move) the existing file to the new directory if it exists.
@@ -438,14 +455,49 @@ public final class Preferences implements Serializable
 		}
 		
 		/*
+		 * Move all log files to the new directory as well.
+		 */
+		if (saveDirectory != null)
+		{
+			Logging.saveDirectoryUpdated(saveDirectory, directory);
+		}
+		
+		/*
 		 * Update our saved directory name.
 		 */
-		this.saveDirectory = saveDirectory;
+		saveDirectory = directory;
 
 		/*
 		 * Rebuild the preferences file path name.
 		 */
-		prefsFile = saveDirectory + "/" + prefsName + PREFS_SUFFIX;
+		prefsFile = directory + savePathSuffix;
+	}
+	
+	/**
+	 * Initialize the logger for this class.
+	 * 
+	 * This cannot be done in the constructor, because calling registerLogger() from the
+	 * constructor would cause an endless loop, in turn because registerLogger() needs to
+	 * access this class.
+	 */
+	public void initLogger ()
+	{
+    	
+    	/*
+    	 * Create a UI logger.
+    	 */
+    	String className = getClass().getSimpleName();
+    	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Get the logging object singleton.
+    	 */
+    	Logging logging = Logging.getInstance();
+    	
+    	/*
+    	 * Register our logger.
+    	 */
+    	logging.registerLogger(Logging.Dimension.UI, logger);
 	}
 	
 	/**
@@ -471,6 +523,7 @@ public final class Preferences implements Serializable
 		this.trackColumnsFilteredView = prefs.trackColumnsFilteredView;
 		this.trackColumnsPlaylistView = prefs.trackColumnsPlaylistView;
 		this.skinName = prefs.skinName;
+		this.maxLogHistory = prefs.maxLogHistory;
 		this.globalLogLevel = prefs.globalLogLevel;
 		this.logLevels = prefs.logLevels;
 	}

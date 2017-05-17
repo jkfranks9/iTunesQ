@@ -1,15 +1,22 @@
 package itunesq;
 
+import java.io.File;
 import java.util.Iterator;
-
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.collections.Sequence;
+import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
+import ch.qos.logback.classic.LoggerContext;
+import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.Appender;
+import ch.qos.logback.core.rolling.RollingFileAppender;
+import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 
 /**
  * Class that provides some assistance to using logback/SLF4J for logging. This is a singleton class.
@@ -122,11 +129,17 @@ public class Logging
 	        }
 	    }
 	}
+
+    //---------------- Private variables -----------------------------------
 	
-	/**
-	 * Constructor.
+	private static final String logFileName = "iTunesQ";
+	private static final String logFileSuffix = ".log";
+	private static final String fileNamePattern = "%date %level [%thread] [%file:%line] %msg%n";
+	
+	/*
+	 * Constructor. Making it private prevents instantiation by any other class.
 	 */
-	public Logging ()
+	private Logging ()
 	{
 		loggerRegistry = new HashMap<Dimension, List<Logger>>();
 	}
@@ -145,6 +158,71 @@ public class Logging
 	 */
 	public void registerLogger (Dimension dimension, Logger logger)
 	{
+		
+		/*
+		 * Get the preferences object singleton.
+		 */
+		Preferences userPrefs = Preferences.getInstance();
+		
+        /*
+         * We want to create a rolling file appender for every logger. We do this programmatically
+         * instead of in the logback configuration file so we can control the log file path with
+         * a preference.
+         * 
+         * First get the logger context for the ILoggerFactory. This gets attached to the various
+         * rolling file appender components.
+         */
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		
+		/*
+		 * Create the rolling file appender.
+		 */
+		RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<ILoggingEvent>();
+		appender.setContext(loggerContext);
+
+		/*
+		 * Create a time based rolling policy. This rolls over the log every day, keeping maxHistory
+		 * days worth in the history. Since we're a short running application, setCleanHistoryOnStart
+		 * ensures that we perform the rollover check on every invocation.
+		 */
+		TimeBasedRollingPolicy<ILoggingEvent> policy = new TimeBasedRollingPolicy<ILoggingEvent>();
+		policy.setContext(loggerContext);
+		policy.setParent(appender);
+		
+		String saveDirectory = Preferences.getSaveDirectory();
+		if (saveDirectory == null)
+		{
+			saveDirectory = Preferences.DEFAULT_SAVE_DIRECTORY;
+		}
+		policy.setFileNamePattern(saveDirectory + "/" + logFileName + "-%d" + logFileSuffix);
+		policy.setMaxHistory(userPrefs.getMaxLogHistory());
+		policy.setCleanHistoryOnStart(true);
+		policy.start();
+
+		/*
+		 * Create a pattern layout encoder that describes the format of log records.
+		 */
+		PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+		encoder.setContext(loggerContext);
+		encoder.setPattern(fileNamePattern);
+		encoder.start();
+		
+		/*
+		 * Add the policy and encoder to the rolling file appender.
+		 */
+		appender.setRollingPolicy(policy);
+		appender.setEncoder(encoder);
+		appender.start();
+		
+		/*
+		 * Finally, add the appender to the input logger.
+		 */
+		logger.addAppender(appender);
+		
+		/*
+		 * We have a simple logging system, so there is no need for additivity.
+		 */
+		logger.setAdditive(false);
 		
 		/*
 		 * If no loggers exist for the specified dimension, initialize a new array list.
@@ -178,27 +256,71 @@ public class Logging
 		}
 	}
 	
+	/**
+	 * Move all log files when the save directory has been changed.
+	 * 
+	 * @param oldDirectory Directory where log files are currently located.
+	 * @param newDirectory New save directory.
+	 */
+	public static void saveDirectoryUpdated (String oldDirectory, String newDirectory)
+	{
+		
+		/*
+		 * Loop through all files in the old directory.
+		 */
+		File[] files = new File(oldDirectory).listFiles();
+	    for (File file : files)
+	    {
+	    	
+	    	/*
+	    	 * We only care about regular files.
+	    	 */
+	        if (file.isFile())
+	        {
+	        	
+	        	/*
+	        	 * We only care about our log files.
+	        	 */
+	        	String fileName = file.getName();
+	        	if (fileName.startsWith(logFileName) && fileName.endsWith(logFileSuffix))
+	        	{
+	        		
+	        		/*
+	        		 * Rename (move) the file to the new directory.
+	        		 */
+	        		File newFile = new File(newDirectory + "/" + fileName);
+	        		file.renameTo(newFile);
+	        	}
+	        }
+	    }
+	}
+	
+	/**
+	 * Set the default log level.
+	 * 
+	 * @param level Default log level.
+	 */
 	public void setDefaultLogLevel (Level level)
 	{
 		this.defaultLevel = level;
 	}
 	
 	/**
-	 * Get the list of log levels.
+	 * Get the list of log level values.
 	 * 
-	 * @return List of log levels.
+	 * @return List of log level values.
 	 */
-	public Sequence<String> getLogLevels ()
+	public Sequence<String> getLogLevelValues ()
 	{
-		Sequence<String> levels = new ArrayList<String>();
+		Sequence<String> levelValues = new ArrayList<String>();
 		
-		levels.add(Level.ERROR.toString());
-		levels.add(Level.WARN.toString());
-		levels.add(Level.INFO.toString());
-		levels.add(Level.DEBUG.toString());
-		levels.add(Level.TRACE.toString());
+		levelValues.add(Level.ERROR.toString());
+		levelValues.add(Level.WARN.toString());
+		levelValues.add(Level.INFO.toString());
+		levelValues.add(Level.DEBUG.toString());
+		levelValues.add(Level.TRACE.toString());
 		
-		return levels;
+		return levelValues;
 	}
 	
 	/**
@@ -251,6 +373,70 @@ public class Logging
         			else
         			{
         				logger.setLevel(level);
+        			}
+        		}
+        	}
+        }
+	}
+	
+	/**
+	 * Set the maximum log history from the preference.
+	 */
+	public void setMaxHistoryFromPref ()
+	{
+		
+		/*
+		 * Get the preferences object singleton.
+		 */
+		Preferences userPrefs = Preferences.getInstance();
+        
+        /*
+         * Get the current maximum log history.
+         */
+        int maxHistory = userPrefs.getMaxLogHistory();
+    	
+        /*
+         * Loop through all dimensions.
+         */
+        for (Dimension dimension : Dimension.values())
+        {
+        	List<Logger> loggers = loggerRegistry.get(dimension);
+        	if (loggers != null)
+        	{
+        		
+        		/*
+        		 * Loop through all loggers for this dimension.
+        		 */
+        		Iterator<Logger> loggersIter = loggers.iterator();
+        		while (loggersIter.hasNext())
+        		{
+        			Logger logger = loggersIter.next();
+        			
+        			/*
+        			 * Loop through all appenders for this logger. Should only be one.
+        			 */
+        			Iterator<Appender<ILoggingEvent>> appenderIter = logger.iteratorForAppenders();
+        			while (appenderIter.hasNext())
+        			{
+        				RollingFileAppender<ILoggingEvent> appender = 
+        						(RollingFileAppender<ILoggingEvent>) appenderIter.next();
+        				
+        				/*
+        				 * Get the policy for this appender.
+        				 */
+        				@SuppressWarnings("unchecked")
+						TimeBasedRollingPolicy<ILoggingEvent> policy = 
+        						(TimeBasedRollingPolicy<ILoggingEvent>) appender.getRollingPolicy();
+        				
+        				/*
+        				 * Update the maximum history, then restart the policy so it takes effect.
+        				 */
+        				policy.setMaxHistory(maxHistory);
+        				if (policy.isStarted())
+        				{
+        					policy.stop();
+        				}
+        				policy.start();
         			}
         		}
         	}

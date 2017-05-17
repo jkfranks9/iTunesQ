@@ -283,11 +283,6 @@ public class Utilities
 		String result;
 		
 		/*
-		 * Get the preferences object. We need this to get default values.
-		 */
-		Preferences userPrefs = Preferences.getInstance();
-		
-		/*
 		 * Get the Java preferences node.
 		 */
 		java.util.prefs.Preferences javaPrefs;
@@ -302,7 +297,7 @@ public class Utilities
 		switch (key)
 		{
 		case JAVA_PREFS_KEY_SAVEDIR:
-			defaultValue = userPrefs.getDefaultSaveDirectory();
+			defaultValue = Preferences.DEFAULT_SAVE_DIRECTORY;
 			break;
 			
 		default:
