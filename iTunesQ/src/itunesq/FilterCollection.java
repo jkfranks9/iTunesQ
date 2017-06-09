@@ -67,6 +67,8 @@ public class FilterCollection
     	 * Initialize variables.
     	 */
 		filters = new ArrayList<Filter>();
+		
+		logger.trace("FilterCollection constructor: " + this);
 	}
 
     //---------------- Getters and setters ---------------------------------
@@ -114,6 +116,8 @@ public class FilterCollection
 		int startSubIndex = -1;
 		int stopSubIndex = -1;
 		int subRange = -1;
+		
+		logger.trace("executeFilterList: " + this);
 		
 		/*
 		 * Get the initial filter logic (AND = true, OR = false).
@@ -211,6 +215,8 @@ public class FilterCollection
 			throws FilterException
 	{
 		boolean result;
+		
+		logger.trace("evaluateFilters: " + this);
 
         /*
          * Create a list suitable for the setTableData() method. This holds the tracks to be
@@ -268,8 +274,6 @@ public class FilterCollection
         			 */
         			if ((filter.getFilterLogic() == Filter.Logic.AND) != currentAnd)
         			{
-        				logger.debug("switching logic from AND to OR at filter index " + index);
-        				
         				logicSwitch = true;
         				currentAnd = !currentAnd;
         				break;
@@ -334,8 +338,6 @@ public class FilterCollection
         			 */
         			if ((filter.getFilterLogic() == Filter.Logic.AND) != currentAnd)
         			{
-        				logger.debug("switching logic from OR to AND atfilter index " + index);
-        				
         				logicSwitch = true;
         				currentAnd = !currentAnd;
         				break;
@@ -379,7 +381,6 @@ public class FilterCollection
         	 */
         	if (result == true)
         	{
-        		//TODO dump track data ... check if trace log enabled first ?
             	filteredTracks.add(track);
         	}
         }
@@ -432,6 +433,13 @@ public class FilterCollection
 						"' operator not applicable to " + 
 						filter.getFilterSubject().getDisplayValue());
 			}
+			
+			if (result == true)
+			{
+				logger.debug("Artist '" + filter.getFilterOperator().getDisplayValue() 
+						+ "' match: " + artist);
+			}
+			
 			break;
 
 		case KIND:
@@ -466,6 +474,13 @@ public class FilterCollection
 						"' operator not applicable to " + 
 						filter.getFilterSubject().getDisplayValue());
 			}
+			
+			if (result == true)
+			{
+				logger.debug("Kind '" + filter.getFilterOperator().getDisplayValue() 
+						+ "' match: " + kind);
+			}
+			
 			break;
 			
 		case PLAYLIST_COUNT:
@@ -510,6 +525,13 @@ public class FilterCollection
 						"' operator not applicable to " + 
 						filter.getFilterSubject().getDisplayValue());
 			}
+			
+			if (result == true)
+			{
+				logger.debug("Playlist count '" + filter.getFilterOperator().getDisplayValue() 
+						+ "' match: " + playlistCount);
+			}
+			
 			break;
 			
 		case RATING:
@@ -554,6 +576,13 @@ public class FilterCollection
 						"' operator not applicable to " + 
 						filter.getFilterSubject().getDisplayValue());
 			}
+			
+			if (result == true)
+			{
+				logger.debug("Rating '" + filter.getFilterOperator().getDisplayValue() 
+						+ "' match: " + rating);
+			}
+			
 			break;
 			
 		case YEAR:
@@ -598,6 +627,13 @@ public class FilterCollection
 						"' operator not applicable to " + 
 						filter.getFilterSubject().getDisplayValue());
 			}
+			
+			if (result == true)
+			{
+				logger.debug("Year '" + filter.getFilterOperator().getDisplayValue() 
+						+ "' match: " + year);
+			}
+			
 			break;
 			
 		case NAME:
@@ -632,6 +668,13 @@ public class FilterCollection
 						"' operator not applicable to " + 
 						filter.getFilterSubject().getDisplayValue());
 			}
+			
+			if (result == true)
+			{
+				logger.debug("Name '" + filter.getFilterOperator().getDisplayValue() 
+						+ "' match: " + name);
+			}
+			
 			break;
 			
 		default:

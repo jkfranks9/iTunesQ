@@ -49,7 +49,8 @@ public class FiltersWindow
 	private int minusButtonYCoordinate = -1;
 	private int complexButtonYCoordinate = -1;
 	private FilterCollection filterCollection = null;
-	private Logger logger = null;
+	private Logger uiLogger = null;
+	private Logger filterLogger = null;
 	
 	/*
 	 * BXML variables.
@@ -75,7 +76,12 @@ public class FiltersWindow
     	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
-    	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	uiLogger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Create a filter logger.
+    	 */
+    	filterLogger = (Logger) LoggerFactory.getLogger(className + "_Filter");
     	
     	/*
     	 * Get the logging object singleton.
@@ -83,9 +89,12 @@ public class FiltersWindow
     	Logging logging = Logging.getInstance();
     	
     	/*
-    	 * Register our logger.
+    	 * Register our loggers.
     	 */
-    	logging.registerLogger(Logging.Dimension.UI, logger);
+    	logging.registerLogger(Logging.Dimension.UI, uiLogger);
+    	logging.registerLogger(Logging.Dimension.FILTER, filterLogger);
+		
+    	uiLogger.trace("FiltersWindow constructor: " + this);
     }
 
     //---------------- Public methods --------------------------------------
@@ -100,6 +109,7 @@ public class FiltersWindow
     public void displayFilters (Display display) 
     		throws IOException, SerializationException
     {
+    	uiLogger.trace("displayFilters: " + this);
     	
     	/*
     	 * Get the BXML information for the filters window, and generate the list of components
@@ -116,7 +126,7 @@ public class FiltersWindow
             @Override
             public void buttonPressed(Button button) 
             {
-            	logger.info("show results button pressed");
+            	uiLogger.info("show results button pressed");
             	
             	/*
             	 * Collect the filters from the filter window.
@@ -141,8 +151,10 @@ public class FiltersWindow
 						 */
 						List<Track> filteredTracks = filterCollection.getFilteredTracks();
 						int numTracks = filteredTracks.getLength();
-						logger.info((Integer.toString(numTracks) + ((numTracks == 1) ? " track" : " tracks") +
-								" match the set of filters"));
+						
+						filterLogger.info((Integer.toString(numTracks) 
+								+ ((numTracks == 1) ? " track matches" : " tracks match") 
+								+ " the set of filters"));
 						
 						/*
 						 * If anything is to be displayed, uh, display it.
@@ -160,15 +172,18 @@ public class FiltersWindow
 					} 
             		catch (FilterException e)
 					{
+            			filterLogger.error("caught FilterException");
 						Alert.alert(MessageType.ERROR, 
 	        					"Filter error: " + e.getMessage(), filtersWindow);
 					} 
             		catch (IOException e)
 					{
+            			filterLogger.error("caught IOException");
 						e.printStackTrace();
 					} 
             		catch (SerializationException e)
 					{
+            			filterLogger.error("caught SerializationException");
 						e.printStackTrace();
 					}
             	}
@@ -183,7 +198,7 @@ public class FiltersWindow
             @Override
             public void buttonPressed(Button button) 
             {
-            	logger.info("done button pressed");
+            	uiLogger.info("done button pressed");
             	filtersWindow.close();
             }
         });
@@ -203,7 +218,7 @@ public class FiltersWindow
         /*
          * Add the initial filter row. This populates the component list with table row components.
          */
-    	TablePane.Row newRow = addFilterTableRow(true, components);
+    	TablePane.Row newRow = createFilterTableRow(true, components);
     	filterTablePane.getRows().add(newRow);
 		
     	/*
@@ -220,7 +235,7 @@ public class FiltersWindow
     	/*
     	 * Open the filters window.
     	 */
-    	logger.info("opening filters window");
+    	uiLogger.info("opening filters window");
         filtersWindow.open(display);
     }
 
@@ -231,8 +246,9 @@ public class FiltersWindow
      * 
      * NOTE: This method populates the input list of components with the components of a row.
      */
-    private TablePane.Row addFilterTableRow (boolean includeLogicSpinner, List<Component> components)
+    private TablePane.Row createFilterTableRow (boolean includeLogicSpinner, List<Component> components)
     {
+		uiLogger.trace("createFilterTableRow: " + this);
         
     	/*
     	 * NOTE:
@@ -385,13 +401,13 @@ public class FiltersWindow
             	{
             		TablePane tablePane = (TablePane) parent;
                     int filterRowIndex = tablePane.getRowAt(plusButtonYCoordinate);
-                    logger.info("plus button pressed for filter index " + filterRowIndex);
+                    uiLogger.info("plus button pressed for filter index " + filterRowIndex);
                     
                     /*
                      * Add the table row and collect the components that need to be skinned.
                      */
                     List<Component> rowComponents = new ArrayList<Component>();
-                	TablePane.Row tableRow = addFilterTableRow(false, rowComponents);
+                	TablePane.Row tableRow = createFilterTableRow(false, rowComponents);
                 	filterTablePane.getRows().insert(tableRow, filterRowIndex + 1);
             		
                 	/*
@@ -435,7 +451,7 @@ public class FiltersWindow
             	{
             		TablePane tablePane = (TablePane) parent;
                     int filterRowIndex = tablePane.getRowAt(minusButtonYCoordinate);
-                    logger.info("minus button pressed for filter index " + filterRowIndex);
+                    uiLogger.info("minus button pressed for filter index " + filterRowIndex);
                 	filterTablePane.getRows().remove(filterRowIndex, 1);
                 	
                 	filtersWindow.repaint();
@@ -470,13 +486,13 @@ public class FiltersWindow
             	{
             		TablePane tablePane = (TablePane) parent;
                     int filterRowIndex = tablePane.getRowAt(complexButtonYCoordinate);
-                    logger.info("complex button pressed for filter index " + filterRowIndex);
+                    uiLogger.info("complex button pressed for filter index " + filterRowIndex);
                     
                     /*
                      * Add the table row and collect the components that need to be skinned.
                      */
                     List<Component> rowComponents = new ArrayList<Component>();
-                	TablePane.Row tableRow = addFilterTableRow(true, rowComponents);
+                	TablePane.Row tableRow = createFilterTableRow(true, rowComponents);
                 	filterTablePane.getRows().insert(tableRow, filterRowIndex + 1); 
             		
                 	/*
@@ -542,6 +558,7 @@ public class FiltersWindow
      */
     private void collectFilters ()
     {
+		filterLogger.trace("collectFilters: " + this);
     	
     	/*
     	 * Indexes into the row elements.
@@ -617,6 +634,8 @@ public class FiltersWindow
     private void initializeBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
+		uiLogger.trace("initializeBxmlVariables: " + this);
+		
         BXMLSerializer windowSerializer = new BXMLSerializer();
         filtersWindow = (Window)windowSerializer.
         		readObject(getClass().getResource("filtersWindow.bxml"));

@@ -309,7 +309,7 @@ public class TracksWindow
          */
 		String trackName = 
 				trackRowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
-		logger.debug("right clicked on track" + trackName);
+		logger.info("right clicked on track" + trackName);
 
 		/*
 		 * Get the base BXML information for the track info dialog, and start the list of 

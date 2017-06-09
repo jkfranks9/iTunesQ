@@ -352,6 +352,8 @@ public class Skins
 		return currentSkin;
 	}
 	
+    //---------------- Public methods --------------------------------------
+	
 	/**
 	 * Get the list of skin names.
 	 * 
@@ -368,8 +370,6 @@ public class Skins
 		}
 		return skinNames;
 	}
-	
-    //---------------- Public methods --------------------------------------
 	
 	/**
 	 * Initialize the skin element values from a named skin.

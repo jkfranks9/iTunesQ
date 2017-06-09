@@ -231,42 +231,42 @@ public class Utilities
 	}
 	
 	/**
-	 * Set the file name label for the main window. This and the following methods are here because
+	 * Save the file name label for the main window. This and the following methods are here because
 	 * they are used at startup, and by the File - Open menu.
 	 * 
 	 * @param label The file name label.
 	 */
-	public static void setFileNameLabel (Label label)
+	public static void saveFileNameLabel (Label label)
 	{
 		fileNameLabel = label;
 	}
 	
 	/**
-	 * Set the file date label for the main window.
+	 * Save the file date label for the main window.
 	 * 
 	 * @param label The file date label.
 	 */
-	public static void setFileDateLabel (Label label)
+	public static void saveFileDateLabel (Label label)
 	{
 		fileDateLabel = label;
 	}
 
 	/**
-	 * Set the number of tracks label for the main window.
+	 * Save the number of tracks label for the main window.
 	 * 
 	 * @param label The number of tracks label.
 	 */
-	public static void setNumTracksLabel (Label label)
+	public static void saveNumTracksLabel (Label label)
 	{
 		numTracksLabel = label;
 	}
 
 	/**
-	 * Set the number of playlists label for the main window.
+	 * Save the number of playlists label for the main window.
 	 * 
 	 * @param label The number of playlists label.
 	 */
-	public static void setNumPlaylistsLabel (Label label)
+	public static void saveNumPlaylistsLabel (Label label)
 	{
 		numPlaylistsLabel = label;
 	}

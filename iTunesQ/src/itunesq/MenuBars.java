@@ -70,6 +70,8 @@ public class MenuBars extends Frame implements Bindable
     	 * Register our logger.
     	 */
     	logging.registerLogger(Logging.Dimension.UI, logger);
+		
+    	logger.trace("MenuBars constructor: " + this);
 
 		/*
 		 * Create the file open action. This opens a file browser sheet so a file can be selected.
@@ -119,6 +121,7 @@ public class MenuBars extends Frame implements Bindable
 							}							
 							catch (JDOMException e)
 							{
+				        		logger.error("caught JDOMException");
 								Alert.alert(MessageType.ERROR, 
 										"Unable to read and process XML file: " + 
 										xmlFileName, MenuBars.this);
@@ -171,6 +174,7 @@ public class MenuBars extends Frame implements Bindable
 				} 
         		catch (IOException | SerializationException e)
 				{
+            		logger.error("caught " + e.getClass().getSimpleName());
 					e.printStackTrace();
 				}
 			}

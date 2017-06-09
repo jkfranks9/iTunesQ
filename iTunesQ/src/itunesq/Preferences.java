@@ -422,7 +422,7 @@ public final class Preferences implements Serializable
 	 * 
 	 * @param directory Preferences save directory.
 	 */
-	public static void setSaveDirectory (String directory)
+	public static void updateSaveDirectory (String directory)
 	{
 		
 		/*
@@ -480,7 +480,7 @@ public final class Preferences implements Serializable
 	 * constructor would cause an endless loop, in turn because registerLogger() needs to
 	 * access this class.
 	 */
-	public void initLogger ()
+	public void initializeLogging ()
 	{
     	
     	/*

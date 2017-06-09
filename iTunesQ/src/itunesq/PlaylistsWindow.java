@@ -43,7 +43,8 @@ public class PlaylistsWindow
     //---------------- Private variables -----------------------------------
 
 	private Window playlistsWindow = null;
-	private Logger logger = null;
+	private Logger uiLogger = null;
+	private Logger playlistLogger = null;
 	
 	/*
 	 * BXML variables.
@@ -70,7 +71,12 @@ public class PlaylistsWindow
     	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
-    	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	uiLogger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Create a playlist logger.
+    	 */
+    	playlistLogger = (Logger) LoggerFactory.getLogger(className + "_Playlist");
     	
     	/*
     	 * Get the logging object singleton.
@@ -78,9 +84,12 @@ public class PlaylistsWindow
     	Logging logging = Logging.getInstance();
     	
     	/*
-    	 * Register our logger.
+    	 * Register our loggers.
     	 */
-    	logging.registerLogger(Logging.Dimension.UI, logger);
+    	logging.registerLogger(Logging.Dimension.UI, uiLogger);
+    	logging.registerLogger(Logging.Dimension.PLAYLIST, playlistLogger);
+		
+		uiLogger.trace("PlaylistsWindow constructor: " + this);
     }
 	
     //---------------- Public methods --------------------------------------
@@ -111,7 +120,7 @@ public class PlaylistsWindow
             @Override
             public void buttonPressed(Button button) 
             {
-            	logger.info("done button pressed");
+            	uiLogger.info("done button pressed");
             	playlistsWindow.close();
             }
         });
@@ -162,7 +171,7 @@ public class PlaylistsWindow
             	 * Get the selected playlist object.
             	 */
             	Playlist playlist = XMLHandler.getPlaylists().get(playlistID);
-            	logger.debug("playlist '" + playlist.getName() + "' selected");
+            	uiLogger.info("playlist '" + playlist.getName() + "' selected");
             	
             	/*
             	 * Get the track IDs for the selected playlist into a set.
@@ -186,7 +195,7 @@ public class PlaylistsWindow
             			 */
             			Integer trackIndex = XMLHandler.getTracksMap().get(trackID);
             			Track track = XMLHandler.getTracks().get(trackIndex);
-            			logger.debug("track ID " + trackID + ", index " + trackIndex +
+            			playlistLogger.debug("track ID " + trackID + ", index " + trackIndex +
             					", name " + track.getName() + " found");
 
             			/*
@@ -255,7 +264,7 @@ public class PlaylistsWindow
         /*
          * Open the playlists window.
          */
-    	logger.info("opening playlists window");
+		uiLogger.info("opening playlists window");
         playlistsWindow.open(display);
     }
 
@@ -267,6 +276,8 @@ public class PlaylistsWindow
     private void initializeBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
+		uiLogger.trace("initializeBxmlVariables: " + this);
+		
         BXMLSerializer windowSerializer = new BXMLSerializer();
         playlistsWindow = (Window)windowSerializer.
         		readObject(getClass().getResource("playlistsWindow.bxml"));

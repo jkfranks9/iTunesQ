@@ -107,7 +107,7 @@ public class MainWindow implements Application
         /*
          * Save the save directory in the user preferences.
          */
-        Preferences.setSaveDirectory(saveDirectory);
+        Preferences.updateSaveDirectory(saveDirectory);
 		
 		/*
 		 * Create the preferences object singleton.
@@ -135,7 +135,7 @@ public class MainWindow implements Application
     	 * Initialize the Preferences logger. This could not be done in the Preferences constructor,
     	 * because doing so would result in an endless loop between Preferences and Logging.
     	 */
-    	userPrefs.initLogger();
+    	userPrefs.initializeLogging();
     	
     	/*
     	 * Initialize loggers in static classes. 
@@ -143,6 +143,8 @@ public class MainWindow implements Application
     	PlaylistCollection.initializeLogging();
     	PlaylistTree.initializeLogging();
     	XMLHandler.initializeLogging();
+		
+		logger.trace("MainWindow constructor: " + this);
     }
 
     //---------------- Public methods --------------------------------------
@@ -171,6 +173,7 @@ public class MainWindow implements Application
 		} 
     	catch (IOException | SerializationException e)
 		{
+    		logger.error("caught " + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}
         
@@ -191,6 +194,7 @@ public class MainWindow implements Application
 				} 
             	catch (IOException | SerializationException e)
 				{
+            		logger.error("caught " + e.getClass().getSimpleName());
 					e.printStackTrace();
 				}
             }
@@ -213,6 +217,7 @@ public class MainWindow implements Application
 				} 
             	catch (IOException | SerializationException e)
 				{
+            		logger.error("caught " + e.getClass().getSimpleName());
 					e.printStackTrace();
 				}
             }
@@ -235,6 +240,7 @@ public class MainWindow implements Application
 				} 
             	catch (IOException | SerializationException e)
 				{
+            		logger.error("caught " + e.getClass().getSimpleName());
 					e.printStackTrace();
 				}
             }
@@ -251,6 +257,8 @@ public class MainWindow implements Application
         	{
         		if (xmlFileExists == false)
         		{
+        			logger.info("XML file does not exist");
+        			
         			Alert.alert(MessageType.INFO, 
         					"No XML file has been saved. Use the File ... Open menu to select a file.", 
         					mainWindow);
@@ -272,7 +280,7 @@ public class MainWindow implements Application
 		/*
 		 * Set the log levels from any existing preferences.
 		 */
-		logging.setLogLevelsFromPrefs();
+		logging.updateLogLevelsFromPrefs();
 		
 		/*
 		 * Create the skins object singleton.
@@ -295,10 +303,10 @@ public class MainWindow implements Application
 		/*
 		 * Save the main window information labels so they can be used from other windows.
 		 */
-        Utilities.setFileNameLabel(fileNameLabel);
-        Utilities.setFileDateLabel(fileDateLabel);
-        Utilities.setNumTracksLabel(numTracksLabel);
-        Utilities.setNumPlaylistsLabel(numPlaylistsLabel);
+        Utilities.saveFileNameLabel(fileNameLabel);
+        Utilities.saveFileDateLabel(fileDateLabel);
+        Utilities.saveNumTracksLabel(numTracksLabel);
+        Utilities.saveNumPlaylistsLabel(numPlaylistsLabel);
 		
 		/*
 		 * Initialize the tracks display column defaults.
@@ -312,6 +320,7 @@ public class MainWindow implements Application
 		xmlFileName = userPrefs.getXMLFileName();
 		if (xmlFileName != null)
 		{
+			logger.info("using XML file " + xmlFileName);
 			xmlFileExists = true;
 		}
 		
@@ -350,6 +359,7 @@ public class MainWindow implements Application
 			} 
         	catch (InterruptedException e)
 			{
+        		logger.error("caught InterruptedException");
 				e.printStackTrace();
 			}
         	
@@ -428,6 +438,8 @@ public class MainWindow implements Application
     private void initializeBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
+    	logger.trace("initializeBxmlVariables: " + this);
+    	
         BXMLSerializer windowSerializer = new BXMLSerializer();
         mainWindow = 
         		(Window)windowSerializer.readObject(getClass().getResource("mainWindow.bxml"));

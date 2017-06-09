@@ -522,7 +522,7 @@ public class PreferencesWindow
 					/*
 					 * Save the save directory in the user preferences.
 					 */
-					Preferences.setSaveDirectory(saveDirectory);
+					Preferences.updateSaveDirectory(saveDirectory);
 					
 					/*
 					 * Update the Java preference with the new save directory.
@@ -544,7 +544,7 @@ public class PreferencesWindow
 					/*
 					 * Update all loggers with the new maximum log history.
 					 */
-					logging.setMaxHistoryFromPref();
+					logging.updateMaxHistoryFromPref();
             	}
             	
             	if (logLevelPrefsUpdated == true)
@@ -575,7 +575,7 @@ public class PreferencesWindow
             		/*
             		 * Update the actual log levels from the preferences.
             		 */
-            		logging.setLogLevelsFromPrefs();
+            		logging.updateLogLevelsFromPrefs();
             	}
             	
             	/*
@@ -678,7 +678,7 @@ public class PreferencesWindow
         	{
         		BypassPreference bypassPref = bypassPrefsIter.next();
         		
-            	TablePane.Row newRow = addBypassPrefsTableRow(bypassPref, components);
+            	TablePane.Row newRow = createBypassPrefsTableRow(bypassPref, components);
             	bypassPrefsTablePane.getRows().add(newRow);
         	}
         }
@@ -688,7 +688,7 @@ public class PreferencesWindow
          */
         else
         {
-        	TablePane.Row newRow = addBypassPrefsTableRow(null, components);
+        	TablePane.Row newRow = createBypassPrefsTableRow(null, components);
         	bypassPrefsTablePane.getRows().add(newRow);
         }
         
@@ -705,7 +705,7 @@ public class PreferencesWindow
         	{
         		String filteredPref = filteredPrefsIter.next();
         		
-            	TablePane.Row newRow = addFilteredPrefsTableRow(filteredPref, components);
+            	TablePane.Row newRow = createFilteredPrefsTableRow(filteredPref, components);
             	filteredPrefsTablePane.getRows().add(newRow);
         	}
         }
@@ -719,7 +719,7 @@ public class PreferencesWindow
         	while (defaultFilteredIter.hasNext())
         	{
         		String playlist = defaultFilteredIter.next();
-            	TablePane.Row newRow = addFilteredPrefsTableRow(playlist, components);
+            	TablePane.Row newRow = createFilteredPrefsTableRow(playlist, components);
             	filteredPrefsTablePane.getRows().add(newRow);
         	}
         }
@@ -811,9 +811,9 @@ public class PreferencesWindow
         /*
          * Fill in the column checkboxes if preferences exist.
          */
-        addFullTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFullView());
-        addFilteredTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFilteredView());
-        addPlaylistTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsPlaylistView());
+        createFullTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFullView());
+        createFilteredTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFilteredView());
+        createPlaylistTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsPlaylistView());
         
         /*
          * Reset the updated indicators.
@@ -854,7 +854,7 @@ public class PreferencesWindow
      * is used. So I have no choice but to duplicate a lot of code. The next two methods are very close
      * cousins.
      */
-    private TablePane.Row addBypassPrefsTableRow (BypassPreference bypassPref, 
+    private TablePane.Row createBypassPrefsTableRow (BypassPreference bypassPref, 
     		List<Component> components)
     {
     	
@@ -957,7 +957,7 @@ public class PreferencesWindow
                      * Add the table row and collect the components that need to be skinned.
                      */
                     List<Component> rowComponents = new ArrayList<Component>();
-                	TablePane.Row tableRow = addBypassPrefsTableRow(null, rowComponents);
+                	TablePane.Row tableRow = createBypassPrefsTableRow(null, rowComponents);
             		bypassPrefsTablePane.getRows().insert(tableRow, playlistPrefsRowIndex + 1);
             		
                 	/*
@@ -1049,7 +1049,7 @@ public class PreferencesWindow
     /*
      * Create and add a filtered playlist preferences row.
      */
-    private TablePane.Row addFilteredPrefsTableRow (String filteredPref, 
+    private TablePane.Row createFilteredPrefsTableRow (String filteredPref, 
     		List<Component> components)
     {
     	
@@ -1142,7 +1142,7 @@ public class PreferencesWindow
                      */
                     List<Component> rowComponents = new ArrayList<Component>();
                 	TablePane.Row tableRow = 
-                			addFilteredPrefsTableRow(null, rowComponents);
+                			createFilteredPrefsTableRow(null, rowComponents);
             		filteredPrefsTablePane.getRows().insert(tableRow, playlistPrefsRowIndex + 1);
             		
                 	/*
@@ -1569,7 +1569,7 @@ public class PreferencesWindow
      * for the full column set. This involves more brute force code to check each preference,
      * so we know which checkboxes to select.
      */
-    private void addFullTrackColumnPrefsCheckboxes (List<List<String>> columnPrefs)
+    private void createFullTrackColumnPrefsCheckboxes (List<List<String>> columnPrefs)
     {
     	Iterator<List<String>> columnPrefsIter = columnPrefs.iterator();
     	while (columnPrefsIter.hasNext())
@@ -1624,7 +1624,7 @@ public class PreferencesWindow
      * for the filtered column set. This involves more brute force code to check each preference,
      * so we know which checkboxes to select.
      */
-    private void addFilteredTrackColumnPrefsCheckboxes (List<List<String>> columnPrefs)
+    private void createFilteredTrackColumnPrefsCheckboxes (List<List<String>> columnPrefs)
     {
     	Iterator<List<String>> columnPrefsIter = columnPrefs.iterator();
     	while (columnPrefsIter.hasNext())
@@ -1679,7 +1679,7 @@ public class PreferencesWindow
      * for the playlist column set. This involves more brute force code to check each preference,
      * so we know which checkboxes to select.
      */
-    private void addPlaylistTrackColumnPrefsCheckboxes (List<List<String>> columnPrefs)
+    private void createPlaylistTrackColumnPrefsCheckboxes (List<List<String>> columnPrefs)
     {
     	Iterator<List<String>> columnPrefsIter = columnPrefs.iterator();
     	while (columnPrefsIter.hasNext())
@@ -2246,6 +2246,9 @@ public class PreferencesWindow
         });
     }
     
+    /*
+     * Set up a given log level spinner.
+     */
     private void setupLogLevelSpinner (Logging.Dimension dimension, Spinner spinner)
     {
         int spinnerWidth = 70;
@@ -2255,7 +2258,7 @@ public class PreferencesWindow
 
         /*
          * Set the spinner selected index to the current preference if one exists. Otherwise set it
-         * to the current value in Logging, which should always be set to a valid value..
+         * to the current value in Logging, which should always be set to a valid value.
          */
         Level level;
     	int index;

@@ -41,6 +41,8 @@ public final class PlaylistCollection
 	 */
 	public static boolean isPlaylistFiltered (String playlistName)
 	{
+    	logger.trace("isPlaylistFiltered");
+    	
 		boolean result = false;
         
         /*
@@ -73,6 +75,7 @@ public final class PlaylistCollection
 	 */
 	public static void markPlaylists ()
 	{
+    	logger.trace("markPlaylists");
 		
 		/*
 		 * Walk through all playlists.
@@ -120,6 +123,7 @@ public final class PlaylistCollection
 	 */
 	public static void updateTrackPlaylistInfo ()
 	{
+    	logger.trace("updateTrackPlaylistInfo");
 		
 		/*
 		 * Walk through all playlists.
@@ -177,6 +181,7 @@ public final class PlaylistCollection
 	 */
 	private static boolean[] checkBypassedPlaylist (Playlist playlistObj)
 	{
+    	logger.trace("checkBypassedPlaylist");
 		
 		/*
 		 * The result is 2 booleans:

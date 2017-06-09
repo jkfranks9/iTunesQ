@@ -326,7 +326,7 @@ public class Logging
 	/**
 	 * Set the log levels from the preferences.
 	 */
-	public void setLogLevelsFromPrefs ()
+	public void updateLogLevelsFromPrefs ()
 	{
 		
         /*
@@ -382,7 +382,7 @@ public class Logging
 	/**
 	 * Set the maximum log history from the preference.
 	 */
-	public void setMaxHistoryFromPref ()
+	public void updateMaxHistoryFromPref ()
 	{
 		
 		/*

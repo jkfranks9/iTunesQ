@@ -207,7 +207,7 @@ public final class XMLHandler
 	    	logger.info("looking for root elements");
 	    	
 	        Element root = jdomDocument.getRootElement();
-	        Element mainDict = getNextSibling(root);
+	        Element mainDict = nextSibling(root);
 	        if (mainDict == null || !mainDict.getName().equals(ELEM_DICT))
 	        {
 	        	throw new JDOMException("could not find main <" + ELEM_DICT + "> element");
@@ -259,7 +259,7 @@ public final class XMLHandler
 	         */
 	        if (dateKey != null)
 	        {
-	        	dateValue = getNextSibling(dateKey);
+	        	dateValue = nextSibling(dateKey);
 		        if (dateValue != null && dateValue.getName().equals(ELEM_DATE))
 		        {
 		        	try
@@ -288,7 +288,7 @@ public final class XMLHandler
 	         */
 	        if (trackKey != null)
 	        {
-	        	tracksHolder = getNextSibling(trackKey);
+	        	tracksHolder = nextSibling(trackKey);
 		        if (tracksHolder == null || !tracksHolder.getName().equals(ELEM_DICT))
 		        {
 		        	throw new JDOMException(
@@ -306,7 +306,7 @@ public final class XMLHandler
 	         */
 	        if (playlistKey != null)
 	        {
-	        	playlistsHolder = getNextSibling(playlistKey);
+	        	playlistsHolder = nextSibling(playlistKey);
 		        if (playlistsHolder == null || !playlistsHolder.getName().equals(ELEM_ARRAY))
 		        {
 		        	throw new JDOMException(
@@ -455,67 +455,67 @@ public final class XMLHandler
 						switch (keyValue)
 						{
 						case "Name":
-							trackObj.setName(getNextStringValue(trackChildIter, keyValue));
+							trackObj.setName(nextStringValue(trackChildIter, keyValue));
 							break;
 
 						case "Artist":
-							trackObj.setArtist(getNextStringValue(trackChildIter, keyValue));
+							trackObj.setArtist(nextStringValue(trackChildIter, keyValue));
 							break;
 
 						case "Composer":
-							trackObj.setComposer(getNextStringValue(trackChildIter, keyValue));
+							trackObj.setComposer(nextStringValue(trackChildIter, keyValue));
 							break;
 
 						case "Album":
-							trackObj.setAlbum(getNextStringValue(trackChildIter, keyValue));
+							trackObj.setAlbum(nextStringValue(trackChildIter, keyValue));
 							break;
 
 						case "Genre":
-							trackObj.setGenre(getNextStringValue(trackChildIter, keyValue));
+							trackObj.setGenre(nextStringValue(trackChildIter, keyValue));
 							break;
 
 						case "Kind":
-							trackObj.setKind(getNextStringValue(trackChildIter, keyValue));
+							trackObj.setKind(nextStringValue(trackChildIter, keyValue));
 							break;
 
 						case "Size":
-							trackObj.setSize(getNextIntValue(trackChildIter, keyValue));
+							trackObj.setSize(nextIntValue(trackChildIter, keyValue));
 							break;
 
 						case "Total Time":
-							trackObj.setDuration(getNextIntValue(trackChildIter, keyValue));
+							trackObj.setDuration(nextIntValue(trackChildIter, keyValue));
 							break;
 
 						case "Year":
-							trackObj.setYear(getNextIntValue(trackChildIter, keyValue));
+							trackObj.setYear(nextIntValue(trackChildIter, keyValue));
 							break;
 
 						case "Date Modified":
-							trackObj.setModified(getNextDateValue(trackChildIter, keyValue));
+							trackObj.setModified(nextDateValue(trackChildIter, keyValue));
 							break;
 
 						case "Date Added":
-							trackObj.setDateAdded(getNextDateValue(trackChildIter, keyValue));
+							trackObj.setDateAdded(nextDateValue(trackChildIter, keyValue));
 							break;
 
 						case "Bit Rate":
-							trackObj.setBitRate(getNextIntValue(trackChildIter, keyValue));
+							trackObj.setBitRate(nextIntValue(trackChildIter, keyValue));
 							break;
 
 						case "Sample Rate":
-							trackObj.setSampleRate(getNextIntValue(trackChildIter, keyValue));
+							trackObj.setSampleRate(nextIntValue(trackChildIter, keyValue));
 							break;
 
 						case "Play Count":
-							trackObj.setPlayCount(getNextIntValue(trackChildIter, keyValue));
+							trackObj.setPlayCount(nextIntValue(trackChildIter, keyValue));
 							break;
 
 						case "Release Date":
-							trackObj.setReleased(getNextDateValue(trackChildIter, keyValue));
+							trackObj.setReleased(nextDateValue(trackChildIter, keyValue));
 							break;
 
 						case "Rating":
-							trackObj.setRating(getNextIntValue(trackChildIter, keyValue));
+							trackObj.setRating(nextIntValue(trackChildIter, keyValue));
 							break;
 							
 						/*
@@ -649,7 +649,7 @@ public final class XMLHandler
     				switch (keyValue)
     				{
     				case "Name":
-    					String plName = getNextStringValue(playlistChildIter, keyValue);
+    					String plName = nextStringValue(playlistChildIter, keyValue);
     					playlistObj.setName(plName);
     					
     					/*
@@ -663,15 +663,15 @@ public final class XMLHandler
     					break;
 
     				case "Playlist Persistent ID":
-    					playlistObj.setPersistentID(getNextStringValue(playlistChildIter, keyValue));
+    					playlistObj.setPersistentID(nextStringValue(playlistChildIter, keyValue));
     					break;
 
     				case "Folder":
-    					playlistObj.setIsFolder(getNextBooleanValue(playlistChildIter, keyValue));
+    					playlistObj.setIsFolder(nextBooleanValue(playlistChildIter, keyValue));
     					break;
 
     				case "Parent Persistent ID":
-    					playlistObj.setParentPersistentID(getNextStringValue(playlistChildIter, keyValue));
+    					playlistObj.setParentPersistentID(nextStringValue(playlistChildIter, keyValue));
     					break;
 
     				case "Playlist Items":
@@ -742,7 +742,7 @@ public final class XMLHandler
 		/*
 		 * Get the next sibling, which should be the <array> element.
 		 */
-    	Element playlistTracksHolder = getNextSibling(playlistTracksKeyElem);
+    	Element playlistTracksHolder = nextSibling(playlistTracksKeyElem);
         if (playlistTracksHolder == null || !playlistTracksHolder.getName().equals(ELEM_ARRAY))
         {
         	throw new JDOMException(
@@ -795,7 +795,7 @@ public final class XMLHandler
     					 * So we finally have the track ID. Add it to the collection we will return.
     					 */
     					Integer playlistTrackID = 
-    							new Integer(getNextIntValue(playlistTrackAttrsIter, keyValue));
+    							new Integer(nextIntValue(playlistTrackAttrsIter, keyValue));
     					playlistTracks.add(playlistTrackID);    					
     				}
             		else
@@ -837,7 +837,7 @@ public final class XMLHandler
 	 * JDOM doesn't include a method to find sibling elements. But we need to locate the next
 	 * sibling in many cases, due to the weird structure of the iTunes XML. 
 	 */
-	private static Element getNextSibling (Element current) 
+	private static Element nextSibling (Element current) 
 			throws JDOMException
 	{
 		Element nextSibling = null;
@@ -889,7 +889,7 @@ public final class XMLHandler
 	 * 
 	 * Note that getNextSibling() is still needed for cases when we don't have an iterator.
 	 */
-	private static String getNextStringValue (Iterator<Element> trackChildIter, String keyName) 
+	private static String nextStringValue (Iterator<Element> trackChildIter, String keyName) 
 			throws JDOMException
 	{
 		Element nextTrackAttr = trackChildIter.next();
@@ -905,7 +905,7 @@ public final class XMLHandler
 	/*
 	 * See getNextStringValue() for more information.
 	 */
-	private static int getNextIntValue (Iterator<Element> trackChildIter, String keyName) 
+	private static int nextIntValue (Iterator<Element> trackChildIter, String keyName) 
 			throws JDOMException
 	{
 		Element nextTrackAttr = trackChildIter.next();
@@ -921,7 +921,7 @@ public final class XMLHandler
 	/*
 	 * See getNextStringValue() for more information.
 	 */
-	private static boolean getNextBooleanValue (Iterator<Element> trackChildIter, String keyName) 
+	private static boolean nextBooleanValue (Iterator<Element> trackChildIter, String keyName) 
 			throws JDOMException
 	{
 		Element nextTrackAttr = trackChildIter.next();
@@ -943,7 +943,7 @@ public final class XMLHandler
 	/*
 	 * See getNextStringValue() for more information.
 	 */
-	private static Date getNextDateValue (Iterator<Element> trackChildIter, String keyName) 
+	private static Date nextDateValue (Iterator<Element> trackChildIter, String keyName) 
 			throws JDOMException
 	{
 		Element nextTrackAttr = trackChildIter.next();
