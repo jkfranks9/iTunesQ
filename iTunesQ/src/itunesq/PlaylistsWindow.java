@@ -89,7 +89,7 @@ public class PlaylistsWindow
     	logging.registerLogger(Logging.Dimension.UI, uiLogger);
     	logging.registerLogger(Logging.Dimension.PLAYLIST, playlistLogger);
 		
-		uiLogger.trace("PlaylistsWindow constructor: " + this);
+		uiLogger.trace("PlaylistsWindow constructor: " + this.hashCode());
     }
 	
     //---------------- Public methods --------------------------------------
@@ -104,6 +104,7 @@ public class PlaylistsWindow
     public void displayPlaylists (Display display) 
     		throws IOException, SerializationException
     {
+    	uiLogger.trace("displayPlaylists: " + this.hashCode());
     	
     	/*
     	 * Get the BXML information for the playlists window, and generate the list of components
@@ -276,7 +277,7 @@ public class PlaylistsWindow
     private void initializeBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
-		uiLogger.trace("initializeBxmlVariables: " + this);
+		uiLogger.trace("initializeBxmlVariables: " + this.hashCode());
 		
         BXMLSerializer windowSerializer = new BXMLSerializer();
         playlistsWindow = (Window)windowSerializer.

@@ -42,6 +42,7 @@ public final class XMLHandler
 	private static List<Track> Tracks = null;
 	private static Map<Integer, Integer> TracksMap = null;
 	private static Map<String, Playlist> Playlists = null;
+	private static Map<String, String> PlaylistsMap = null;
 	
 	/*
 	 * List of playlist names. This is to provide typing assistance when the user wants to enter a
@@ -110,6 +111,16 @@ public final class XMLHandler
 	public static Map<String, Playlist> getPlaylists ()
 	{
 		return Playlists;
+	}
+	
+	/**
+	 * Get the mapping of playlist names to playlist IDs.
+	 *  
+	 * @return Mapping of playlist names to IDs.
+	 */
+	public static Map<String, String> getPlaylistsMap ()
+	{
+		return PlaylistsMap;
 	}
 
 	/**
@@ -182,6 +193,7 @@ public final class XMLHandler
 	public static void processXML (String xmlFileName)
 		throws JDOMException
 	{
+		logger.trace("processXML");
 		
         /*
          * Create a SAXBuilder to read the XML file.
@@ -268,6 +280,7 @@ public final class XMLHandler
 		    		}		        	
 		        	catch (ParseException e)
 		    		{
+		        		logger.error("caught " + e.getClass().getSimpleName());
 		            	throw new JDOMException("unable to parse date value " + dateValue.getValue());
 		    		}
 		        }
@@ -342,6 +355,7 @@ public final class XMLHandler
 		
 		catch (IOException | JDOMException e)
 		{
+    		logger.error("caught " + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}
     }
@@ -354,6 +368,7 @@ public final class XMLHandler
 	private static void generateTracks (Element tracksHolder) 
 			throws JDOMException
 	{
+		logger.trace("generateTracks");
 		
 		/*
 		 * Get a list of the XML tracks to work with.
@@ -361,7 +376,7 @@ public final class XMLHandler
         List<Element> tracksXML = javaListToPivotList(tracksHolder);
 		
 		/*
-		 * We collect all the tracks into a ArrayList of type itqTrack. Initialize it now. Also,
+		 * We collect all the tracks into a ArrayList of type Track. Initialize it now. Also,
 		 * make sure it's sorted by track name.
 		 */
 		Tracks = new ArrayList<Track>();
@@ -587,6 +602,7 @@ public final class XMLHandler
 	private static void generatePlaylists (Element playlistsHolder) 
 			throws JDOMException
 	{
+		logger.trace("generatePlaylists");
 		
 		/*
 		 * Reset the playlist filtered count, so it doesn't keep growing if we reread the XML file.
@@ -599,9 +615,15 @@ public final class XMLHandler
         List<Element> playlistsXML = javaListToPivotList(playlistsHolder);
 		
 		/*
-		 * We collect all the playlists into a HashMap of type itqPlaylist. Initialize it now.
+		 * We collect all the playlists into a HashMap of type Playlist. Initialize it now.
 		 */
 		Playlists = new HashMap<String, Playlist>();
+		
+		/*
+		 * To be able to find a given playlist by name, we also create a HashMap of the playlist
+		 * name to ID.
+		 */
+		PlaylistsMap = new HashMap<String, String>();
 		
 		/*
 		 * Initialize the list of playlist names, and set a case-insensitive comparator.
@@ -709,6 +731,8 @@ public final class XMLHandler
         	 * Add the playlist object to the collection.
         	 */
         	Playlists.put(playlistObj.getPersistentID(), playlistObj);
+        	PlaylistsMap.put(playlistObj.getName(), playlistObj.getPersistentID());
+	    	logger.debug("found playlist name " + playlistObj.getName());
         	
         	/*
         	 * If the playlist is not filtered out, add its name to the playlist name list.
@@ -737,6 +761,8 @@ public final class XMLHandler
 	private static List<Integer> gatherPlaylistTracks (Element playlistTracksKeyElem) 
 			throws JDOMException
 	{
+		logger.trace("gatherPlaylistTracks");
+		
 		List<Integer> playlistTracks = new LinkedList<Integer>();
 		
 		/*
@@ -871,6 +897,7 @@ public final class XMLHandler
 		}
 		catch (IndexOutOfBoundsException e)
 		{
+    		logger.error("caught " + e.getClass().getSimpleName());
         	throw new JDOMException(
         			"expected sibling element not found after " + current.getTextTrim());
 		}
@@ -959,6 +986,7 @@ public final class XMLHandler
 		}		        	
     	catch (ParseException e)
 		{
+    		logger.error("caught " + e.getClass().getSimpleName());
         	throw new JDOMException("unable to parse date value " + nextTrackAttr.getTextTrim());
 		}
 	}

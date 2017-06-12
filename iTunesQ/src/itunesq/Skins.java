@@ -204,9 +204,10 @@ public class Skins
 	 */
 	public enum Window
 	{
-		MAIN("iTunes Query Tool"), TRACKS("Tracks"), PLAYLISTS("Playlists"), FILTERS("Query Filters"), 
-		PREFERENCES("Preferences"), SKINPREVIEW("Preview"), TRACKPOPUP("Track Popup"),
-		TRACKINFO("Track Info");
+		MAIN("iTunes Query Tool"), TRACKS("Tracks"), PLAYLISTS("Playlists"), 
+		FILTERS("Query Tracks"), QUERYPLAYLISTS("Query Playlists"),  
+		PREFERENCES("Preferences"), SKINPREVIEW("Preview"), 
+		TRACKPOPUP("Track Popup"), TRACKINFO("Track Info");
 		
 		private String displayValue;
 		

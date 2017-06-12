@@ -94,6 +94,8 @@ public class TracksWindow
     	 * Register our logger.
     	 */
     	logging.registerLogger(Logging.Dimension.UI, logger);
+    	
+    	logger.trace("TracksWindow constructor: " + this.hashCode());
     }
 	
     //---------------- Public methods --------------------------------------
@@ -110,6 +112,7 @@ public class TracksWindow
     public void displayTracks (Display display, List<Track> tracks, boolean filtered) 
     		throws IOException, SerializationException
     {
+    	logger.trace("displayTracks: " + this.hashCode());
     	
     	/*
     	 * Get the BXML information for the tracks window, and generate the list of components
@@ -303,13 +306,14 @@ public class TracksWindow
      */
     public void handleTrackDetailsPopup (Map<String, String> trackRowData, Display display)
     {
+    	logger.trace("handleTrackDetailsPopup: " + this.hashCode());
         
         /*
          * Get the track name and log it.
          */
 		String trackName = 
 				trackRowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
-		logger.info("right clicked on track" + trackName);
+		logger.info("right clicked on track '" + trackName + "'");
 
 		/*
 		 * Get the base BXML information for the track info dialog, and start the list of 
@@ -322,6 +326,7 @@ public class TracksWindow
 		}
 		catch (IOException | SerializationException e)
 		{
+    		logger.error("caught " + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}
 
@@ -376,6 +381,8 @@ public class TracksWindow
     private List<TablePane.Row> buildTrackInfoRows (Map<String, String> rowData, 
     		List<Component> components)
     {
+    	logger.trace("buildTrackInfoRows: " + this.hashCode());
+    	
     	List<TablePane.Row> result = new ArrayList<TablePane.Row>();
     	int preferredWidth = 130;
 
@@ -480,6 +487,8 @@ public class TracksWindow
     private void initializeWindowBxmlVariables (boolean filtered, List<Component> components) 
     		throws IOException, SerializationException
     {
+    	logger.trace("initializeWindowBxmlVariables: " + this.hashCode());
+    	
         BXMLSerializer windowSerializer = new BXMLSerializer();
         if (filtered == true)
         {
@@ -549,6 +558,8 @@ public class TracksWindow
     private void initializeInfoDialogBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
+    	logger.trace("initializeInfoDialogBxmlVariables: " + this.hashCode());
+    	
         BXMLSerializer dialogSerializer = new BXMLSerializer();
 		trackInfoDialog = (Dialog)dialogSerializer.readObject(getClass().
 				getResource("trackInfoWindow.bxml"));

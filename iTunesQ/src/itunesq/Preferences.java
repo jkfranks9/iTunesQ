@@ -87,7 +87,7 @@ public final class Preferences implements Serializable
 	private String skinName;
 	private int maxLogHistory;
 	private boolean globalLogLevel;
-	private Map<Logging.Dimension, Level> logLevels;
+	private Map<String, Level> logLevels;
 	
     //---------------- Private variables -----------------------------------
 	
@@ -138,7 +138,7 @@ public final class Preferences implements Serializable
 		
 		maxLogHistory = DEFAULT_MAX_HISTORY;
 		
-		logLevels = new HashMap<Logging.Dimension, Level>();
+		logLevels = new HashMap<String, Level>();
 		globalLogLevel = true;
 	}
 	
@@ -311,7 +311,7 @@ public final class Preferences implements Serializable
 	 */
 	public Level getLogLevel (Logging.Dimension dimension)
 	{
-		return logLevels.get(dimension);
+		return logLevels.get(dimension.getDisplayValue());
 		
 	}
 	
@@ -322,7 +322,7 @@ public final class Preferences implements Serializable
 	 */
 	public void setLogLevel (Logging.Dimension dimension, Level level)
 	{
-		logLevels.put(dimension, level);
+		logLevels.put(dimension.getDisplayValue(), level);
 	}
 	
 	/**
@@ -344,6 +344,8 @@ public final class Preferences implements Serializable
 	 */
 	public void replaceBypassPrefs (List<BypassPreference> bypassPrefs)
 	{
+		logger.trace("replaceBypassPrefs: " + this.hashCode());
+		
 		this.bypassPrefs.clear();
 		Iterator<BypassPreference> bypassPrefsIter = bypassPrefs.iterator();
 		while (bypassPrefsIter.hasNext())
@@ -359,6 +361,8 @@ public final class Preferences implements Serializable
 	 */
 	public void replaceFilteredPrefs (List<String> filteredPrefs)
 	{
+		logger.trace("replaceFilteredPrefs: " + this.hashCode());
+		
 		this.filteredPrefs.clear();
 		Iterator<String> filteredPrefsIter = filteredPrefs.iterator();
 		while (filteredPrefsIter.hasNext())
@@ -374,6 +378,8 @@ public final class Preferences implements Serializable
 	 */
 	public void replaceTrackColumnsFullView (List<List<String>> trackColumnsPrefs)
 	{
+		logger.trace("replaceTrackColumnsFullView: " + this.hashCode());
+		
 		this.trackColumnsFullView.clear();
 		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
 		while (trackColumnsPrefsIter.hasNext())
@@ -389,6 +395,8 @@ public final class Preferences implements Serializable
 	 */
 	public void replaceTrackColumnsFilteredView (List<List<String>> trackColumnsPrefs)
 	{
+		logger.trace("replaceTrackColumnsFilteredView: " + this.hashCode());
+		
 		this.trackColumnsFilteredView.clear();
 		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
 		while (trackColumnsPrefsIter.hasNext())
@@ -404,6 +412,8 @@ public final class Preferences implements Serializable
 	 */
 	public void replaceTrackColumnsPlaylistView (List<List<String>> trackColumnsPrefs)
 	{
+		logger.trace("replaceTrackColumnsPlaylistView: " + this.hashCode());
+		
 		this.trackColumnsPlaylistView.clear();
 		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
 		while (trackColumnsPrefsIter.hasNext())
@@ -498,6 +508,8 @@ public final class Preferences implements Serializable
     	 * Register our logger.
     	 */
     	logging.registerLogger(Logging.Dimension.UI, logger);
+    	
+    	logger.trace("initializeLogging: " + this.hashCode());
 	}
 	
 	/**
@@ -552,6 +564,7 @@ public final class Preferences implements Serializable
 		} 
 		catch (IOException | ClassNotFoundException e)
 		{
+			logger.error("caught " + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}
 		
@@ -575,6 +588,7 @@ public final class Preferences implements Serializable
 		} 
 		catch (IOException e)
 		{
+			logger.error("caught " + e.getClass().getSimpleName());
 			e.printStackTrace();
 		}
 	}

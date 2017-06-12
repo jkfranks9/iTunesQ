@@ -73,7 +73,8 @@ public class MainWindow implements Application
 	@BXML private BoxPane actionBoxPane = null;
     @BXML private PushButton viewTracksButton = null;
     @BXML private PushButton viewPlaylistsButton = null;
-    @BXML private PushButton queryButton = null;
+    @BXML private PushButton queryTracksButton = null;
+    @BXML private PushButton queryPlaylistsButton = null;
     @BXML private ActivityIndicator activityIndicator = null;
     
     /**
@@ -144,7 +145,7 @@ public class MainWindow implements Application
     	PlaylistTree.initializeLogging();
     	XMLHandler.initializeLogging();
 		
-		logger.trace("MainWindow constructor: " + this);
+		logger.trace("MainWindow constructor: " + this.hashCode());
     }
 
     //---------------- Public methods --------------------------------------
@@ -224,19 +225,42 @@ public class MainWindow implements Application
         });
 
         /*
-         * Listener to handle the query button press.
+         * Listener to handle the query tracks button press.
          */
-        queryButton.getButtonPressListeners().add(new ButtonPressListener() 
+        queryTracksButton.getButtonPressListeners().add(new ButtonPressListener() 
         {
             @Override
             public void buttonPressed(Button button) 
             {
-            	logger.info("query button pressed");
+            	logger.info("query tracks button pressed");
             	
             	try
 				{
             		FiltersWindow filtersWindowHandler = new FiltersWindow();
             		filtersWindowHandler.displayFilters(display);
+				} 
+            	catch (IOException | SerializationException e)
+				{
+            		logger.error("caught " + e.getClass().getSimpleName());
+					e.printStackTrace();
+				}
+            }
+        });
+
+        /*
+         * Listener to handle the query playlists button press.
+         */
+        queryPlaylistsButton.getButtonPressListeners().add(new ButtonPressListener() 
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	logger.info("query playlists button pressed");
+            	
+            	try
+				{
+            		QueryPlaylistsWindow queryPlaylistsWindowHandler = new QueryPlaylistsWindow();
+            		queryPlaylistsWindowHandler.displayQueryPlaylists(display);
 				} 
             	catch (IOException | SerializationException e)
 				{
@@ -320,7 +344,7 @@ public class MainWindow implements Application
 		xmlFileName = userPrefs.getXMLFileName();
 		if (xmlFileName != null)
 		{
-			logger.info("using XML file " + xmlFileName);
+			logger.info("using XML file '" + xmlFileName + "'");
 			xmlFileExists = true;
 		}
 		
@@ -438,7 +462,7 @@ public class MainWindow implements Application
     private void initializeBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
-    	logger.trace("initializeBxmlVariables: " + this);
+    	logger.trace("initializeBxmlVariables: " + this.hashCode());
     	
         BXMLSerializer windowSerializer = new BXMLSerializer();
         mainWindow = 
@@ -501,9 +525,12 @@ public class MainWindow implements Application
         viewPlaylistsButton = 
         		(PushButton)windowSerializer.getNamespace().get("viewPlaylistsButton");
 		components.add(viewPlaylistsButton);
-        queryButton = 
-        		(PushButton)windowSerializer.getNamespace().get("queryButton");
-		components.add(queryButton);
+        queryTracksButton = 
+        		(PushButton)windowSerializer.getNamespace().get("queryTracksButton");
+		components.add(queryTracksButton);
+		queryPlaylistsButton = 
+        		(PushButton)windowSerializer.getNamespace().get("queryPlaylistsButton");
+		components.add(queryPlaylistsButton);
         activityIndicator = 
         		(ActivityIndicator)windowSerializer.getNamespace().get("activityIndicator");
 		components.add(activityIndicator);

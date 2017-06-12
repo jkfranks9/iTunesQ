@@ -71,7 +71,7 @@ public class MenuBars extends Frame implements Bindable
     	 */
     	logging.registerLogger(Logging.Dimension.UI, logger);
 		
-    	logger.trace("MenuBars constructor: " + this);
+    	logger.trace("MenuBars constructor: " + this.hashCode());
 
 		/*
 		 * Create the file open action. This opens a file browser sheet so a file can be selected.

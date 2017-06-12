@@ -202,6 +202,8 @@ public class PreferencesWindow
 		preferencesSheet = preferences;
 		owningWindow = owner;
 		userPrefs = Preferences.getInstance();
+		
+		logger.trace("PreferencesWindow constructor: " + this.hashCode());
 	}
 	
     //---------------- Public methods --------------------------------------
@@ -216,6 +218,7 @@ public class PreferencesWindow
     public void displayPreferences (Display display) 
     		throws IOException, SerializationException
     {
+    	logger.trace("displayPreferences: " + this.hashCode());
     	
     	/*
     	 * Get the BXML information for the playlists window, and generate the list of components
@@ -257,6 +260,7 @@ public class PreferencesWindow
         		}
         		catch (IOException | SerializationException e)
         		{
+            		logger.error("caught " + e.getClass().getSimpleName());
         			e.printStackTrace();
         		}
 
@@ -857,6 +861,7 @@ public class PreferencesWindow
     private TablePane.Row createBypassPrefsTableRow (BypassPreference bypassPref, 
     		List<Component> components)
     {
+    	logger.trace("createBypassPrefsTableRow: " + this.hashCode());
     	
     	/*
     	 * New table row object.
@@ -1052,6 +1057,7 @@ public class PreferencesWindow
     private TablePane.Row createFilteredPrefsTableRow (String filteredPref, 
     		List<Component> components)
     {
+    	logger.trace("createFilteredPrefsTableRow: " + this.hashCode());
     	
     	/*
     	 * New table row object.
@@ -1736,6 +1742,8 @@ public class PreferencesWindow
     private void initializeTrackColumnStuff (BXMLSerializer prefsWindowSerializer, 
     		List<Component> components)
     {
+    	logger.trace("initializeTrackColumnStuff: " + this.hashCode());
+    	
     	fullNumberCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullNumberCheckbox");
 		components.add(fullNumberCheckbox);
@@ -2094,6 +2102,8 @@ public class PreferencesWindow
     private void initializeLogLevelStuff (BXMLSerializer prefsWindowSerializer, 
     		List<Component> components)
     {
+    	logger.trace("initializeLogLevelStuff: " + this.hashCode());
+    	
     	logLevelPrefsSpinner = 
         		(Spinner)prefsWindowSerializer.getNamespace().get("logLevelPrefsSpinner");
 		components.add(logLevelPrefsSpinner);
@@ -2251,6 +2261,8 @@ public class PreferencesWindow
      */
     private void setupLogLevelSpinner (Logging.Dimension dimension, Spinner spinner)
     {
+    	logger.trace("setupLogLevelSpinner: " + this.hashCode());
+    	
         int spinnerWidth = 70;
     	Logging logging = Logging.getInstance();
         Sequence<String> levelNames = logging.getLogLevelValues();
@@ -2284,6 +2296,8 @@ public class PreferencesWindow
     		List<Component> components)
     		throws IOException, SerializationException
     {
+    	logger.trace("initializeWindowBxmlVariables: " + this.hashCode());
+    	
         preferencesSheet = 
         		(Sheet)prefsWindowSerializer.readObject(getClass().getResource("preferencesWindow.bxml"));
 
@@ -2445,6 +2459,8 @@ public class PreferencesWindow
     private void initializePreviewDialogBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
+    	logger.trace("initializePreviewDialogBxmlVariables: " + this.hashCode());
+    	
         BXMLSerializer dialogSerializer = new BXMLSerializer();
     	skinPreviewDialog = (Dialog)dialogSerializer.readObject(getClass().
 				getResource("skinPreviewWindow.bxml"));

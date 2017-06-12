@@ -153,8 +153,10 @@
 	            	    	tooltipText="Show all tracks."/>
 	                	<PushButton bxml:id="viewPlaylistsButton" buttonData="View Playlists"
 	            	    	tooltipText="Show all playlists."/>
-	                	<PushButton bxml:id="queryButton" buttonData="Query Library"
-	            	    	tooltipText="Query the library using filters."/>
+	                	<PushButton bxml:id="queryTracksButton" buttonData="Query Tracks"
+	            	    	tooltipText="Use filters to select a group of tracks to display."/>
+	                	<PushButton bxml:id="queryPlaylistsButton" buttonData="Query Playlists"
+	            	    	tooltipText="Perform operations such as comparing playlist contents."/>
 	            	    <ActivityIndicator bxml:id="activityIndicator"
                         	preferredWidth="48" preferredHeight="48"/>
 	        	    </BoxPane>

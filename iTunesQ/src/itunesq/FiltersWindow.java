@@ -94,7 +94,7 @@ public class FiltersWindow
     	logging.registerLogger(Logging.Dimension.UI, uiLogger);
     	logging.registerLogger(Logging.Dimension.FILTER, filterLogger);
 		
-    	uiLogger.trace("FiltersWindow constructor: " + this);
+    	uiLogger.trace("FiltersWindow constructor: " + this.hashCode());
     }
 
     //---------------- Public methods --------------------------------------
@@ -109,7 +109,7 @@ public class FiltersWindow
     public void displayFilters (Display display) 
     		throws IOException, SerializationException
     {
-    	uiLogger.trace("displayFilters: " + this);
+    	uiLogger.trace("displayFilters: " + this.hashCode());
     	
     	/*
     	 * Get the BXML information for the filters window, and generate the list of components
@@ -176,14 +176,9 @@ public class FiltersWindow
 						Alert.alert(MessageType.ERROR, 
 	        					"Filter error: " + e.getMessage(), filtersWindow);
 					} 
-            		catch (IOException e)
+            		catch (IOException | SerializationException e)
 					{
-            			filterLogger.error("caught IOException");
-						e.printStackTrace();
-					} 
-            		catch (SerializationException e)
-					{
-            			filterLogger.error("caught SerializationException");
+            			filterLogger.error("caught " + e.getClass().getSimpleName());
 						e.printStackTrace();
 					}
             	}
@@ -248,7 +243,7 @@ public class FiltersWindow
      */
     private TablePane.Row createFilterTableRow (boolean includeLogicSpinner, List<Component> components)
     {
-		uiLogger.trace("createFilterTableRow: " + this);
+		uiLogger.trace("createFilterTableRow: " + this.hashCode());
         
     	/*
     	 * NOTE:
@@ -558,7 +553,7 @@ public class FiltersWindow
      */
     private void collectFilters ()
     {
-		filterLogger.trace("collectFilters: " + this);
+		filterLogger.trace("collectFilters: " + this.hashCode());
     	
     	/*
     	 * Indexes into the row elements.
@@ -634,7 +629,7 @@ public class FiltersWindow
     private void initializeBxmlVariables (List<Component> components) 
     		throws IOException, SerializationException
     {
-		uiLogger.trace("initializeBxmlVariables: " + this);
+		uiLogger.trace("initializeBxmlVariables: " + this.hashCode());
 		
         BXMLSerializer windowSerializer = new BXMLSerializer();
         filtersWindow = (Window)windowSerializer.

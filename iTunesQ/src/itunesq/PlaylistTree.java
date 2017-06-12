@@ -56,6 +56,7 @@ public final class PlaylistTree
 	 */
 	public static TreeBranch createPlaylistTree ()
 	{
+		logger.trace("createPlaylistTree");
 		
 		/*
 		 * Initialize the top branch.
@@ -151,6 +152,8 @@ public final class PlaylistTree
 	 */
 	private static TreeBranch addOrUpdateParent (TreeBranch enclosingBranch, Playlist playlistObj)
 	{
+		logger.trace("addOrUpdateParent");
+		
 		TreeBranch searchBranch = enclosingBranch;
 		
 		/*
@@ -242,6 +245,8 @@ public final class PlaylistTree
 	 */
     private static int indexOfBranchParent (TreeBranch searchBranch, TreeBranch parentBranch) 
     {
+		logger.trace("indexOfBranchParent");
+		
         int index = 0;
         
         /*

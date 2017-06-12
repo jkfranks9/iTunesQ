@@ -68,7 +68,7 @@ public class FilterCollection
     	 */
 		filters = new ArrayList<Filter>();
 		
-		logger.trace("FilterCollection constructor: " + this);
+		logger.trace("FilterCollection constructor: " + this.hashCode());
 	}
 
     //---------------- Getters and setters ---------------------------------
@@ -117,7 +117,7 @@ public class FilterCollection
 		int stopSubIndex = -1;
 		int subRange = -1;
 		
-		logger.trace("executeFilterList: " + this);
+		logger.trace("executeFilterList: " + this.hashCode());
 		
 		/*
 		 * Get the initial filter logic (AND = true, OR = false).
@@ -216,7 +216,7 @@ public class FilterCollection
 	{
 		boolean result;
 		
-		logger.trace("evaluateFilters: " + this);
+		logger.trace("evaluateFilters: " + this.hashCode());
 
         /*
          * Create a list suitable for the setTableData() method. This holds the tracks to be
