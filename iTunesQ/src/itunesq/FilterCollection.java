@@ -205,6 +205,63 @@ public class FilterCollection
 		 */
 		evaluateFilters();
 	}
+	
+	/**
+	 * Return the set of filters as a string.
+	 * 
+	 * @return String representation of the set of filters.
+	 */
+	public String getFiltersAsString ()
+	{
+		StringBuilder result = new StringBuilder();
+		
+		/*
+		 * Get the initial filter logic (AND = true, OR = false).
+		 */
+		Filter.Logic logic = filters.get(0).getFilterLogic();
+		boolean currentAnd = (logic == Filter.Logic.AND);
+
+		/*
+		 * Walk through all filters.
+		 */
+		for (int index = 0; index < filters.getLength(); index++)
+		{
+			Filter filter = filters.get(index);
+
+			/*
+			 * Detect a logic switch and update the current logic if so.
+			 */
+			logic = filter.getFilterLogic();
+			if (logic != null && (logic == Filter.Logic.AND) != currentAnd)
+			{
+				currentAnd = !currentAnd;
+			}
+			
+			/*
+			 * Get the subject and operator.
+			 */
+			Filter.Subject subject = filter.getFilterSubject();
+			Filter.Operator operator = filter.getFilterOperator();
+			
+			/*
+			 * Append the current logic for all but the first filter.
+			 */
+			if (index != 0)
+			{
+				result.append(" [" + ((currentAnd == true) ? 
+						Filter.Logic.AND.getDisplayValue() + "] " : Filter.Logic.OR.getDisplayValue() + "] "));
+			}
+			
+			/*
+			 * Append the filter data.
+			 */
+			result.append(subject.getDisplayValue() + " ");
+			result.append(operator.getDisplayValue() + " ");
+			result.append(filter.getFilterText());
+		}
+		
+		return result.toString();
+	}
 
     //---------------- Private methods -------------------------------------
 	
@@ -272,7 +329,8 @@ public class FilterCollection
         			/*
         			 * A change in logic means we found a subgroup.
         			 */
-        			if ((filter.getFilterLogic() == Filter.Logic.AND) != currentAnd)
+        			Filter.Logic logic = filter.getFilterLogic();
+        			if (logic != null && (logic == Filter.Logic.AND) != currentAnd)
         			{
         				logicSwitch = true;
         				currentAnd = !currentAnd;
@@ -336,7 +394,8 @@ public class FilterCollection
         			/*
         			 * A change in logic means we found a subgroup.
         			 */
-        			if ((filter.getFilterLogic() == Filter.Logic.AND) != currentAnd)
+        			Filter.Logic logic = filter.getFilterLogic();
+        			if (logic != null && (logic == Filter.Logic.AND) != currentAnd)
         			{
         				logicSwitch = true;
         				currentAnd = !currentAnd;
@@ -381,6 +440,7 @@ public class FilterCollection
         	 */
         	if (result == true)
         	{
+        		logger.debug("track ID " + track.getID() + " matched all filters");
             	filteredTracks.add(track);
         	}
         }

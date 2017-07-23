@@ -52,6 +52,7 @@ public class PreferencesWindow
 	
     private Sheet preferencesSheet = null;
     private MenuBars owningWindow = null;
+    private Skins skins = null;
 	private int plusButtonYCoordinate = -1;
 	private int minusButtonYCoordinate = -1;
 	private Preferences userPrefs = null;
@@ -59,7 +60,7 @@ public class PreferencesWindow
 	private Logging logging = null;
 	
 	private boolean bypassPrefsUpdated;
-	private boolean filteredPrefsUpdated;
+	private boolean ignoredPrefsUpdated;
 	private boolean fullTrackColumnsUpdated;
 	private boolean filteredTrackColumnsUpdated;
 	private boolean playlistTrackColumnsUpdated;
@@ -79,10 +80,10 @@ public class PreferencesWindow
 	@BXML private BoxPane bypassPrefsBoxPane = null;
 	@BXML private Label bypassPrefsBorderLabel = null;
 	@BXML private TablePane bypassPrefsTablePane = null;
-	@BXML private Border filteredPrefsBorder = null;
-	@BXML private BoxPane filteredPrefsBoxPane = null;
-	@BXML private Label filteredPrefsBorderLabel = null;
-	@BXML private TablePane filteredPrefsTablePane = null;
+	@BXML private Border ignoredPrefsBorder = null;
+	@BXML private BoxPane ignoredPrefsBoxPane = null;
+	@BXML private Label ignoredPrefsBorderLabel = null;
+	@BXML private TablePane ignoredPrefsTablePane = null;
 	@BXML private Label columnPrefsBorderLabel = null;
 	@BXML private Border columnPrefsBorder = null;
 	@BXML private TablePane columnPrefsTablePane = null;
@@ -176,6 +177,9 @@ public class PreferencesWindow
 	
 	/**
 	 * Constructor.
+	 * 
+	 * @param preferences Preferences sheet.
+	 * @param owner Owning window.
 	 */
 	public PreferencesWindow (Sheet preferences, MenuBars owner)
 	{
@@ -202,6 +206,7 @@ public class PreferencesWindow
 		preferencesSheet = preferences;
 		owningWindow = owner;
 		userPrefs = Preferences.getInstance();
+		skins = Skins.getInstance();
 		
 		logger.trace("PreferencesWindow constructor: " + this.hashCode());
 	}
@@ -317,17 +322,10 @@ public class PreferencesWindow
 		    	});
 
 				/*
-				 * Get the skins singleton.
-				 */
-				Skins skins = Skins.getInstance();
-
-				/*
 				 * Register the preview dialog skin elements.
 				 */
 				Map<Skins.Element, List<Component>> windowElements = 
-						new HashMap<Skins.Element, List<Component>>();
-				
-				windowElements = skins.mapComponentsToSkinElements(components);		
+						skins.mapComponentsToSkinElements(components);		
 				skins.registerWindowElements(Skins.Window.SKINPREVIEW, windowElements);
 				
 				/*
@@ -437,14 +435,14 @@ public class PreferencesWindow
             		userPrefs.replaceBypassPrefs(bypassPrefs);
             	}
             	
-            	if (filteredPrefsUpdated == true)
+            	if (ignoredPrefsUpdated == true)
             	{
-					logger.info("updating filtered playlist preferences");
+					logger.info("updating ignored playlist preferences");
 					
             		prefsUpdated = true;
             		
-            		List<String> filteredPrefs = collectFilteredPrefs();
-            		userPrefs.replaceFilteredPrefs(filteredPrefs);
+            		List<String> ignoredPrefs = collectIgnoredPrefs();
+            		userPrefs.replaceIgnoredPrefs(ignoredPrefs);
             	}
             	
             	if (fullTrackColumnsUpdated == true)
@@ -492,20 +490,12 @@ public class PreferencesWindow
             		String skinPref = (String) skinPrefsSpinner.getSelectedItem();
             		userPrefs.setSkinName(skinPref);
             		
-            		Skins skins = Skins.getInstance();
             		skins.initializeSkinElements(skinPref);
 
             		/*
-            		 * Since the skin has been updated, re-skin the main window and the owning
-            		 * window if different.
+            		 * Since the skin has been updated, re-skin all the currently stacked windows.
             		 */
-            		Skins.Window skinWindow = Skins.Window.getEnum(owningWindowTitle);
-            		skins.skinMe(skinWindow);
-            		
-            		if (skinWindow != Skins.Window.MAIN)
-            		{
-            			skins.skinMe(Skins.Window.MAIN);
-            		}
+            		skins.reskinWindowStack();
             	}
             	
             	if (saveDirectoryUpdated == true)
@@ -615,10 +605,10 @@ public class PreferencesWindow
         /*
          * Add tooltip texts.
          */
-        bypassPrefsBorderLabel.setTooltipText("Playlist counts are accumulated for every track, "
-        		+ "but you can bypass the counts for certain playlists.");
-        filteredPrefsBorderLabel.setTooltipText("iTunes includes built-in playlists that might be "
-        		+ "considered clutter. You can ignore them if you want, and also add your own "
+        bypassPrefsBorderLabel.setTooltipText("Playlist info is accumulated for every track, "
+        		+ "but you can bypass this info for certain playlists.");
+        ignoredPrefsBorderLabel.setTooltipText("iTunes includes built-in playlists that might be "
+        		+ "considered clutter. \nYou can ignore them if you want, and also add your own "
         		+ "playlists to completely ignore.");
         columnPrefsBorderLabel.setTooltipText("Select the columns you want to be displayed when "
         		+ "displaying all tracks, filtered tracks, and the tracks shown for a "
@@ -629,7 +619,7 @@ public class PreferencesWindow
         		+ "user preferences and log files.");
         logHistoryPrefsBorderLabel.setTooltipText("Select the number of days to keep log file history.");
         logLevelPrefsBorderLabel.setTooltipText("Log levels determine how much information is "
-        		+ "logged for debugging purposes. These should only be changed if directed by "
+        		+ "logged for debugging purposes. \nThese should only be changed if directed by "
         		+ "support personnel.");
         
         final String globalLogLevelTooltip = "This is the global log level, if '" 
@@ -658,16 +648,9 @@ public class PreferencesWindow
         filterLogLevelPrefsSpinner.setTooltipText(filterLogLevelTooltip);
 		
 		/*
-		 * Get the skins object singleton.
+		 * Set the window title.
 		 */
-		Skins skins = Skins.getInstance();
 		preferencesSheet.setTitle(Skins.Window.PREFERENCES.getDisplayValue());
-		
-		/*
-		 * Start with the preferences window skin elements known from the BXML.
-		 */
-		Map<Skins.Element, List<Component>> windowElements = 
-				new HashMap<Skins.Element, List<Component>>();
         
         /*
          * Add bypass playlist preference rows if such preferences exist. This populates the 
@@ -688,7 +671,7 @@ public class PreferencesWindow
         }
         
         /*
-         * No bypass playlist preferences exist, so add an empty playlist preferences row.
+         * No bypass playlist preferences exist, so add an empty bypass playlist preferences row.
          */
         else
         {
@@ -697,34 +680,34 @@ public class PreferencesWindow
         }
         
         /*
-         * Add filtered playlist preference rows if such preferences exist. This populates the 
+         * Add ignored playlist preference rows if such preferences exist. This populates the 
          * component list with table row components.
          */
-        List<String> filteredPrefs = userPrefs.getFilteredPrefs();
+        List<String> ignoredPrefs = userPrefs.getIgnoredPrefs();
         
-        if (filteredPrefs != null && filteredPrefs.getLength() > 0)
+        if (ignoredPrefs != null && ignoredPrefs.getLength() > 0)
         {
-        	Iterator<String> filteredPrefsIter = filteredPrefs.iterator();
-        	while (filteredPrefsIter.hasNext())
+        	Iterator<String> ignoredPrefsIter = ignoredPrefs.iterator();
+        	while (ignoredPrefsIter.hasNext())
         	{
-        		String filteredPref = filteredPrefsIter.next();
+        		String ignoredPref = ignoredPrefsIter.next();
         		
-            	TablePane.Row newRow = createFilteredPrefsTableRow(filteredPref, components);
-            	filteredPrefsTablePane.getRows().add(newRow);
+            	TablePane.Row newRow = createIgnoredPrefsTableRow(ignoredPref, components);
+            	ignoredPrefsTablePane.getRows().add(newRow);
         	}
         }
         
         /*
-         * No filtered playlist preferences exist, so add the default filtered playlist rows.
+         * No ignored playlist preferences exist, so add the default ignored playlist rows.
          */
         else
         {
-        	Iterator<String> defaultFilteredIter = Playlist.DEFAULT_FILTERED_PLAYLISTS.iterator();
-        	while (defaultFilteredIter.hasNext())
+        	Iterator<String> defaultIgnoredIter = Playlist.DEFAULT_IGNORED_PLAYLISTS.iterator();
+        	while (defaultIgnoredIter.hasNext())
         	{
-        		String playlist = defaultFilteredIter.next();
-            	TablePane.Row newRow = createFilteredPrefsTableRow(playlist, components);
-            	filteredPrefsTablePane.getRows().add(newRow);
+        		String playlist = defaultIgnoredIter.next();
+            	TablePane.Row newRow = createIgnoredPrefsTableRow(playlist, components);
+            	ignoredPrefsTablePane.getRows().add(newRow);
         	}
         }
         
@@ -809,7 +792,7 @@ public class PreferencesWindow
     	/*
     	 * Now register the preferences window skin elements.
     	 */
-		windowElements = skins.mapComponentsToSkinElements(components);
+        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
 		skins.registerWindowElements(Skins.Window.PREFERENCES, windowElements);
         
         /*
@@ -823,7 +806,7 @@ public class PreferencesWindow
          * Reset the updated indicators.
          */
     	bypassPrefsUpdated = false;
-    	filteredPrefsUpdated = false;
+    	ignoredPrefsUpdated = false;
     	fullTrackColumnsUpdated = false;
     	filteredTrackColumnsUpdated = false;
     	playlistTrackColumnsUpdated = false;
@@ -852,7 +835,7 @@ public class PreferencesWindow
      * Create and add a bypass playlist preferences row.
      * 
      * ANNOYED RANT: Pivot listeners are a pain to deal with. It would be real nice to be able to use
-     * a single method to handle both bypass and filtered playlist preferences, since it's a lot of
+     * a single method to handle both bypassed and ignored playlist preferences, since it's a lot of
      * code and most of it is identical. But the listeners don't provide any way for me to distinguish
      * between the two table views, so things like the + and - buttons don't work if a single method
      * is used. So I have no choice but to duplicate a lot of code. The next two methods are very close
@@ -968,7 +951,6 @@ public class PreferencesWindow
                 	/*
                 	 * Register the new components and skin them.
                 	 */
-            		Skins skins = Skins.getInstance();
             		Map<Skins.Element, List<Component>> windowElements = 
             				skins.mapComponentsToSkinElements(rowComponents);            		
             		skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
@@ -1052,12 +1034,12 @@ public class PreferencesWindow
     }
     
     /*
-     * Create and add a filtered playlist preferences row.
+     * Create and add an ignored playlist preferences row.
      */
-    private TablePane.Row createFilteredPrefsTableRow (String filteredPref, 
+    private TablePane.Row createIgnoredPrefsTableRow (String ignoredPref, 
     		List<Component> components)
     {
-    	logger.trace("createFilteredPrefsTableRow: " + this.hashCode());
+    	logger.trace("createIgnoredPrefsTableRow: " + this.hashCode());
     	
     	/*
     	 * New table row object.
@@ -1075,9 +1057,9 @@ public class PreferencesWindow
          * preference object.
          */
     	TextInput text = new TextInput();
-    	if (filteredPref != null)
+    	if (ignoredPref != null)
     	{
-    		text.setText(filteredPref);
+    		text.setText(ignoredPref);
     	}
     	
     	/*
@@ -1092,7 +1074,7 @@ public class PreferencesWindow
             @Override
             public void textInserted(TextInput textInput, int index, int count)
             {
-            	filteredPrefsUpdated = true;
+            	ignoredPrefsUpdated = true;
             	
             	Utilities.typingAssistant(textInput, XMLHandler.getPlaylistNames(), 
             			textInput.getText(), Filter.Operator.IS);
@@ -1148,13 +1130,12 @@ public class PreferencesWindow
                      */
                     List<Component> rowComponents = new ArrayList<Component>();
                 	TablePane.Row tableRow = 
-                			createFilteredPrefsTableRow(null, rowComponents);
-            		filteredPrefsTablePane.getRows().insert(tableRow, playlistPrefsRowIndex + 1);
+                			createIgnoredPrefsTableRow(null, rowComponents);
+            		ignoredPrefsTablePane.getRows().insert(tableRow, playlistPrefsRowIndex + 1);
             		
                 	/*
                 	 * Register the new components and skin them.
                 	 */
-            		Skins skins = Skins.getInstance();
             		Map<Skins.Element, List<Component>> windowElements = 
             				skins.mapComponentsToSkinElements(rowComponents);            		
             		skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
@@ -1190,7 +1171,7 @@ public class PreferencesWindow
             	Object parent = component.getParent();
             	if (parent instanceof TablePane)
             	{
-                	filteredPrefsUpdated = true;
+                	ignoredPrefsUpdated = true;
                 	
             		TablePane tablePane = (TablePane) parent;
                     int playlistPrefsRowIndex = tablePane.getRowAt(minusButtonYCoordinate);
@@ -1199,7 +1180,7 @@ public class PreferencesWindow
                     /*
                      * Remove the table row.
                      */
-                    filteredPrefsTablePane.getRows().remove(playlistPrefsRowIndex, 1);
+                    ignoredPrefsTablePane.getRows().remove(playlistPrefsRowIndex, 1);
                 	
                 	preferencesSheet.repaint();
             	}
@@ -1285,9 +1266,9 @@ public class PreferencesWindow
     }
     
     /*
-     * Collect the entered filtered playlist preferences and update them.
+     * Collect the entered ignored playlist preferences and update them.
      */
-    private List<String> collectFilteredPrefs ()
+    private List<String> collectIgnoredPrefs ()
     {
     	
     	/*
@@ -1299,10 +1280,10 @@ public class PreferencesWindow
     	final int textIndex = 1;
     	
     	/*
-    	 * Iterate through the filtered playlist preferences table rows.
+    	 * Iterate through the ignored playlist preferences table rows.
     	 */
-    	List<String> filteredPrefs = new ArrayList<String>();
-    	TablePane.RowSequence rows = filteredPrefsTablePane.getRows();
+    	List<String> ignoredPrefs = new ArrayList<String>();
+    	TablePane.RowSequence rows = ignoredPrefsTablePane.getRows();
     	Iterator<TablePane.Row> rowsIterator = rows.iterator();
     	while (rowsIterator.hasNext())
     	{
@@ -1312,10 +1293,10 @@ public class PreferencesWindow
 			 * Add this playlist preference to the collection.
 			 */
 			TextInput text = (TextInput) row.get(textIndex);
-			filteredPrefs.add(text.getText());
+			ignoredPrefs.add(text.getText());
     	}
     	
-    	return filteredPrefs;
+    	return ignoredPrefs;
     }
     
     /*
@@ -2319,18 +2300,18 @@ public class PreferencesWindow
         bypassPrefsTablePane = 
         		(TablePane)prefsWindowSerializer.getNamespace().get("bypassPrefsTablePane");
 		components.add(bypassPrefsTablePane);
-        filteredPrefsBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("filteredPrefsBorder");
-		components.add(filteredPrefsBorder);
-        filteredPrefsBoxPane = 
-        		(BoxPane)prefsWindowSerializer.getNamespace().get("filteredPrefsBoxPane");
-		components.add(filteredPrefsBoxPane);
-        filteredPrefsBorderLabel = 
-        		(Label)prefsWindowSerializer.getNamespace().get("filteredPrefsBorderLabel");
-		components.add(filteredPrefsBorderLabel);
-        filteredPrefsTablePane = 
-        		(TablePane)prefsWindowSerializer.getNamespace().get("filteredPrefsTablePane");
-		components.add(filteredPrefsTablePane);
+        ignoredPrefsBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("ignoredPrefsBorder");
+		components.add(ignoredPrefsBorder);
+        ignoredPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("ignoredPrefsBoxPane");
+		components.add(ignoredPrefsBoxPane);
+        ignoredPrefsBorderLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("ignoredPrefsBorderLabel");
+		components.add(ignoredPrefsBorderLabel);
+        ignoredPrefsTablePane = 
+        		(TablePane)prefsWindowSerializer.getNamespace().get("ignoredPrefsTablePane");
+		components.add(ignoredPrefsTablePane);
         columnPrefsBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
 		components.add(columnPrefsBorderLabel);

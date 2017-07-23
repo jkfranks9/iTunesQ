@@ -34,14 +34,14 @@ public final class PlaylistCollection
 	}
 	
 	/**
-	 * Determine if a playlist should be filtered out
+	 * Determine if a playlist should be ignored.
 	 * 
 	 * @param playlistName Name of the playlist to check.
-	 * @return true if the playlist should be filtered, false otherwise.
+	 * @return true if the playlist should be ignored, false otherwise.
 	 */
-	public static boolean isPlaylistFiltered (String playlistName)
+	public static boolean isPlaylistIgnored (String playlistName)
 	{
-    	logger.trace("isPlaylistFiltered");
+    	logger.trace("isPlaylistIgnored");
     	
 		boolean result = false;
         
@@ -51,17 +51,17 @@ public final class PlaylistCollection
         Preferences prefs = Preferences.getInstance();
 		
         /*
-         * Walk the list of filtered playlist preferences.
+         * Walk the list of ignored playlist preferences.
          */
-    	List<String> filteredPrefs = prefs.getFilteredPrefs();
-    	Iterator<String> filteredPrefsIter = filteredPrefs.iterator();
-    	while (filteredPrefsIter.hasNext())
+    	List<String> ignoredPrefs = prefs.getIgnoredPrefs();
+    	Iterator<String> ignoredPrefsIter = ignoredPrefs.iterator();
+    	while (ignoredPrefsIter.hasNext())
     	{
-    		String filteredPref = filteredPrefsIter.next();
+    		String ignoredPref = ignoredPrefsIter.next();
     		
-        	if (filteredPref.equals(playlistName))
+        	if (ignoredPref.equals(playlistName))
         	{
-    			logger.debug("'" + playlistName + "' is filtered out");
+    			logger.debug("'" + playlistName + "' is ignored");
         		result = true;
         		break;
         	}
@@ -139,12 +139,10 @@ public final class PlaylistCollection
     		 * Now update the track playlist info. We skip the following:
     		 * 
     		 * - Folder playlists (covered by the playlists in the folder)
-    		 * - Filtered out playlists
-    		 * - Playlists for which we should bypass updating playlist info
+    		 * - Ignored playlists
     		 */
         	if (playlistObj.getIsFolder() == false && 
-        			playlistObj.getFilteredOut() == false &&
-        			playlistObj.getSkipPlaylistInfo() == false)
+        		playlistObj.getIgnored() == false)
         	{
         		
         		/*
@@ -167,7 +165,10 @@ public final class PlaylistCollection
         				/*
         				 * Add this playlist to the track playlist info.
         				 */
-        				track.addPlaylistToTrack(playlistObj.getName());
+        				TrackPlaylistInfo playlistInfo = new TrackPlaylistInfo();
+        				playlistInfo.setPlaylistName(playlistObj.getName());
+        				playlistInfo.setBypassed(playlistObj.getSkipPlaylistInfo());
+        				track.addPlaylistInfoToTrack(playlistInfo);
         			}
         		}
         	}

@@ -3,11 +3,9 @@ package itunesq;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.Bindable;
 import org.apache.pivot.collections.Map;
-import org.apache.pivot.collections.Sequence;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.util.Resources;
 import org.apache.pivot.wtk.Action;
@@ -34,6 +32,37 @@ import ch.qos.logback.classic.Logger;
  */
 public class MenuBars extends Frame implements Bindable
 {
+
+    //---------------- Public variables ------------------------------------
+	
+	/**
+	 * When we display a list of tracks that result from some type of query, the File -> Save menu is
+	 * enabled. This is handled by the FileSaveDialog class. That class in turn needs to gather the 
+	 * list of resulting tracks, and so needs the associated window handler, which should always be
+	 * of type TracksWindow. It also needs other attributes, for example the string representation
+	 * of the query.
+	 * 
+	 * This enum defines values used to set and get these attributes on the window (MenuBars). 
+	 * 
+	 * The attributes are set by TracksWindow, and then obtained by the FileSaveDialog class.
+	 */
+	public static enum WindowAttributes
+	{
+		/**
+		 * Window handler object attribute.
+		 */
+		HANDLER,
+		
+		/**
+		 * Query type.
+		 */
+		QUERY_TYPE,
+		
+		/**
+		 * Query string representation attribute.
+		 */
+		QUERY_STRING
+	}
 
     //---------------- Private variables -----------------------------------
 
@@ -98,47 +127,76 @@ public class MenuBars extends Frame implements Bindable
 						{
 
 							/*
-							 * Only one file can be selected, even though the method returns a sequence.
+							 * Get the selected file name.
 							 */
-							Sequence<File> selectedFiles = fileBrowserSheet.getSelectedFiles();
-							String xmlFileName = selectedFiles.get(0).getPath();
+							File selectedFile = fileBrowserSheet.getSelectedFile();
 							
-							/*
-							 * Save the selected XML file, then write the preferences.
-							 */
-							Preferences userPrefs = Preferences.getInstance();
-							userPrefs.setXMLFileName(xmlFileName);
-							userPrefs.writePreferences();
-
-							logger.info("updating for new XML file '" + xmlFileName + "'");
-
-							/*
-							 * Update based on the new XML file.
-							 */
-							try
+							if (selectedFile != null)
 							{
-								Utilities.updateFromXMLFile(xmlFileName);
-							}							
-							catch (JDOMException e)
-							{
-				        		logger.error("caught JDOMException");
-								Alert.alert(MessageType.ERROR, 
-										"Unable to read and process XML file: " + 
-										xmlFileName, MenuBars.this);
-								e.printStackTrace();
+								String xmlFileName = selectedFile.getPath();
+
+								/*
+								 * Save the selected XML file, then write the preferences.
+								 */
+								Preferences userPrefs = Preferences.getInstance();
+								userPrefs.setXMLFileName(xmlFileName);
+								userPrefs.writePreferences();
+
+								logger.info("updating for new XML file '" + xmlFileName + "'");
+
+								/*
+								 * Update based on the new XML file.
+								 */
+								try
+								{
+									Utilities.updateFromXMLFile(xmlFileName);
+								}							
+								catch (JDOMException e)
+								{
+									logger.error("caught JDOMException");
+									Alert.alert(MessageType.ERROR, 
+											"Unable to read and process XML file: " + 
+													xmlFileName, MenuBars.this);
+									e.printStackTrace();
+								}
+
+								/*
+								 * Repaint the main window.
+								 */
+								MenuBars.this.repaint();
 							}
-
-							/*
-							 * Repaint the main window.
-							 */
-							MenuBars.this.repaint();
-						}
-						else
-						{
-							Alert.alert(MessageType.INFO, "You didn't select anything.", MenuBars.this);
+							else
+							{
+								Alert.alert(MessageType.INFO, "You didn't select anything.", MenuBars.this);
+							}
 						}
 					}
 				});
+			}
+		});
+
+		/*
+		 * Create the file save action.
+		 */
+		Action.getNamedActions().put("fileSave", new Action()
+		{
+			@Override
+			public void perform(Component source)
+			{
+				logger.info("executing file save action");
+				
+            	Display display = source.getDisplay();
+        		FileSaveDialog fileSaveDialogHandler = new FileSaveDialog(MenuBars.this);
+        		
+        		try
+				{
+        			fileSaveDialogHandler.displayFileSaveDialog(display);
+				} 
+        		catch (IOException | SerializationException e)
+				{
+            		logger.error("caught " + e.getClass().getSimpleName());
+					e.printStackTrace();
+				}
 			}
 		});
 
@@ -164,6 +222,7 @@ public class MenuBars extends Frame implements Bindable
 			public void perform(Component source)
 			{
 				logger.info("executing edit preferences action");
+				
 				Display display = source.getDisplay();
         		PreferencesWindow prefsWindowHandler = 
         				new PreferencesWindow(preferencesSheet, MenuBars.this);

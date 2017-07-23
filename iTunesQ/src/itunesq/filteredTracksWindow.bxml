@@ -30,6 +30,11 @@
                                 <content:MenuItemData text="Open"/>
                             </buttonData>
                         </Menu.Item>
+                        <Menu.Item action="fileSave">
+                            <buttonData>
+                                <content:MenuItemData text="Save"/>
+                            </buttonData>
+                        </Menu.Item>
                         <Menu.Item action="exit">
                             <buttonData>
                                 <content:MenuItemData text="Exit"/>
@@ -80,9 +85,9 @@
                 	
                 	<!-- Lay out the contents in a split pane. -->
                     <SplitPane splitRatio="0.7">
-                    <left>
                     
-                    	<!-- The left side is the tracks. -->
+                    <!-- The left side is the tracks. -->
+                    <left>
                     	<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
                     		 verticalScrollBarPolicy="fill_to_capacity">
                         	<TableView bxml:id="tracksTableView" selectMode="single"
@@ -90,8 +95,8 @@
                         	</TableView>
 
                         	<columnHeader>
-                            	<TableViewHeader bxml:id="tracksTableViewHeader" tableView="$tracksTableView" 
-                            		sortMode="single_column"
+                            	<TableViewHeader bxml:id="tracksTableViewHeader" 
+                            		tableView="$tracksTableView" sortMode="single_column"
                                 	styles="{includeTrailingVerticalGridLine:true}"/>
                         	</columnHeader>
                     	</ScrollPane>
@@ -104,7 +109,8 @@
                         	<TableView bxml:id="trackPlaylistsTableView" selectMode="single"
                             	styles="{includeTrailingVerticalGridLine:true}">
                             	<columns>
-                            		<TableView.Column name="name" width="1*" headerData="Playlist Names"/>
+                            		<TableView.Column name="name" width="8*" headerData="Playlist Names"/>
+                            		<TableView.Column name="bypass" width="3*" headerData="Bypassed"/>
                             	</columns>
                         	</TableView>
 

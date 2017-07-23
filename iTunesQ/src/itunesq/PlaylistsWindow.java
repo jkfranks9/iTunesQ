@@ -43,6 +43,7 @@ public class PlaylistsWindow
     //---------------- Private variables -----------------------------------
 
 	private Window playlistsWindow = null;
+	private Skins skins = null;
 	private Logger uiLogger = null;
 	private Logger playlistLogger = null;
 	
@@ -88,6 +89,11 @@ public class PlaylistsWindow
     	 */
     	logging.registerLogger(Logging.Dimension.UI, uiLogger);
     	logging.registerLogger(Logging.Dimension.PLAYLIST, playlistLogger);
+    	
+    	/*
+    	 * Initialize variables.
+    	 */
+    	skins = Skins.getInstance();
 		
 		uiLogger.trace("PlaylistsWindow constructor: " + this.hashCode());
     }
@@ -122,23 +128,28 @@ public class PlaylistsWindow
             public void buttonPressed(Button button) 
             {
             	uiLogger.info("done button pressed");
+            	
+            	/*
+            	 * Close the window.
+            	 */
             	playlistsWindow.close();
+            	
+            	/*
+            	 * Pop the window off the skins window stack.
+            	 */
+            	skins.popSkinnedWindow();
             }
         });
 		
 		/*
-		 * Get the skins object singleton.
+		 * Set the window title.
 		 */
-		Skins skins = Skins.getInstance();
 		playlistsWindow.setTitle(Skins.Window.PLAYLISTS.getDisplayValue());
 		
 		/*
 		 * Register the tracks window skin elements.
 		 */
-		Map<Skins.Element, List<Component>> windowElements = 
-				new HashMap<Skins.Element, List<Component>>();
-		
-		windowElements = skins.mapComponentsToSkinElements(components);		
+		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);		
 		skins.registerWindowElements(Skins.Window.PLAYLISTS, windowElements);
         
         /*
@@ -244,8 +255,8 @@ public class PlaylistsWindow
 					/*
 					 * Create and open the track details popup dialog.
 					 */
-                	TracksWindow tw = new TracksWindow();
-					tw.handleTrackDetailsPopup(selectedTrackRowData, display);
+                	TracksWindow tracksWindowHandler = new TracksWindow();
+					tracksWindowHandler.handleTrackDetailsPopup(selectedTrackRowData, display);
             	}
  
                 return false;
@@ -261,6 +272,12 @@ public class PlaylistsWindow
 		 * Skin the playlists window.
 		 */
 		skins.skinMe(Skins.Window.PLAYLISTS);
+		
+		/*
+		 * Push the skinned window onto the skins window stack. It gets popped from our done button press
+		 * handler.
+		 */
+		skins.pushSkinnedWindow(Skins.Window.PLAYLISTS);
         
         /*
          * Open the playlists window.

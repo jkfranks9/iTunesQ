@@ -63,7 +63,7 @@ public final class XMLHandler
 	private static Logging logging = Logging.getInstance();
 	
 	private static Date XMLDate = null;
-	private static int playlistFilteredCount = 0;
+	private static int playlistIgnoredCount = 0;
 	
 	/*
 	 * Static string definitions.
@@ -164,14 +164,13 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Get the number of playlists found in the input XML file, reduced by the number of playlists
-	 * filtered out.
+	 * Get the number of playlists found in the input XML file, reduced by the number of ignored playlists.
 	 * 
 	 * @return Number of playlists.
 	 */
 	public static int getNumberOfPlaylists ()
 	{
-		return (Playlists != null) ? Playlists.getCount() - playlistFilteredCount : 0;
+		return (Playlists != null) ? Playlists.getCount() - playlistIgnoredCount : 0;
 	}
 
 	/**
@@ -605,9 +604,9 @@ public final class XMLHandler
 		logger.trace("generatePlaylists");
 		
 		/*
-		 * Reset the playlist filtered count, so it doesn't keep growing if we reread the XML file.
+		 * Reset the playlist ignored count, so it doesn't keep growing if we reread the XML file.
 		 */
-		playlistFilteredCount = 0;
+		playlistIgnoredCount = 0;
 		
 		/*
 		 * Get a list of the XML playlists to work with.
@@ -675,12 +674,12 @@ public final class XMLHandler
     					playlistObj.setName(plName);
     					
     					/*
-    					 * If this playlist is to be filtered out, indicate so.
+    					 * If this playlist is to be ignored, indicate so.
     					 */
-    					if (PlaylistCollection.isPlaylistFiltered(plName))
+    					if (PlaylistCollection.isPlaylistIgnored(plName))
     					{
-    						playlistObj.setFilteredOut(true);
-    						playlistFilteredCount++;
+    						playlistObj.setIgnored(true);
+    						playlistIgnoredCount++;
     					}
     					break;
 
@@ -735,9 +734,9 @@ public final class XMLHandler
 	    	logger.debug("found playlist name " + playlistObj.getName());
         	
         	/*
-        	 * If the playlist is not filtered out, add its name to the playlist name list.
+        	 * If the playlist is not ignored, add its name to the playlist name list.
         	 */
-        	if (playlistObj.getFilteredOut() == false)
+        	if (playlistObj.getIgnored() == false)
         	{
         		PlaylistNames.add(playlistObj.getName());
         	}

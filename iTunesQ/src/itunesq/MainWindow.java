@@ -5,7 +5,6 @@ import java.io.IOException;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
-import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
@@ -191,7 +190,8 @@ public class MainWindow implements Application
             	try
 				{
             		TracksWindow tracksWindowHandler = new TracksWindow();
-            		tracksWindowHandler.displayTracks(display, XMLHandler.getTracks(), false);
+            		tracksWindowHandler.displayTracks(display, XMLHandler.getTracks(), 
+            				TracksWindow.QueryType.NONE, null);
 				} 
             	catch (IOException | SerializationException e)
 				{
@@ -313,15 +313,16 @@ public class MainWindow implements Application
 		 * constructor needs to read the preferences to initialize the preferred skin.
 		 */
 		Skins skins = Skins.getInstance();
+		
+		/*
+		 * Set the window title.
+		 */
 		mainWindow.setTitle(Skins.Window.MAIN.getDisplayValue());
 		
 		/*
 		 * Register the main window skin elements.
 		 */
-		Map<Skins.Element, List<Component>> windowElements = 
-				new HashMap<Skins.Element, List<Component>>();
-		
-		windowElements = skins.mapComponentsToSkinElements(components);		
+		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);		
 		skins.registerWindowElements(Skins.Window.MAIN, windowElements);
 
 		/*
@@ -352,6 +353,12 @@ public class MainWindow implements Application
 		 * Skin the main window.
 		 */
 		skins.skinMe(Skins.Window.MAIN);
+		
+		/*
+		 * Push the skinned window onto the window stack. Note that since the main window never goes 
+		 * away we don't need to pop it off the stack.
+		 */
+		skins.pushSkinnedWindow(Skins.Window.MAIN);
         
         /*
          * Open the main window.

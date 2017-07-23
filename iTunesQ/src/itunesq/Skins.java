@@ -4,10 +4,12 @@ import java.awt.Font;
 import java.util.Iterator;
 
 import org.apache.pivot.collections.ArrayList;
+import org.apache.pivot.collections.ArrayStack;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.collections.Sequence;
+import org.apache.pivot.collections.Stack;
 import org.apache.pivot.wtk.Border;
 import org.apache.pivot.wtk.BoxPane;
 import org.apache.pivot.wtk.Checkbox;
@@ -19,6 +21,7 @@ import org.apache.pivot.wtk.Menu;
 import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.ScrollPane;
+import org.apache.pivot.wtk.Separator;
 import org.apache.pivot.wtk.Spinner;
 import org.apache.pivot.wtk.TabPane;
 import org.apache.pivot.wtk.TablePane;
@@ -207,7 +210,8 @@ public class Skins
 		MAIN("iTunes Query Tool"), TRACKS("Tracks"), PLAYLISTS("Playlists"), 
 		FILTERS("Query Tracks"), QUERYPLAYLISTS("Query Playlists"),  
 		PREFERENCES("Preferences"), SKINPREVIEW("Preview"), 
-		TRACKPOPUP("Track Popup"), TRACKINFO("Track Info");
+		TRACKPOPUP("Track Popup"), TRACKINFO("Track Info"),
+		FILESAVE("File Save");
 		
 		private String displayValue;
 		
@@ -286,6 +290,7 @@ public class Skins
 	private static final int menuMask            = 1 + 16 + 64 + 512;
 	private static final int pushButtonMask      = 4 + 8 + 32 + 512;
 	private static final int scrollPaneMask      = 1;
+	private static final int separatorMask       = 16 + 512;
 	private static final int spinnerMask         = 1 + 4 + 16 + 512;
 	private static final int tablePaneMask       = 1;
 	private static final int tabPaneMask         = 2 + 4 + 16 + 128 + 512;
@@ -306,6 +311,14 @@ public class Skins
 	private Map<String, Map<Element, String>> skinRegistry;
 	
 	/*
+	 * The window stack is used when multiple windows are displayed on top of each other. If the skin is
+	 * changed when there are multiple stacked windows, then they all need to be re-skinned. Window 
+	 * handlers that call the skinMe() method are responsible to maintain this stack. The preferences
+	 * window handler calls reskinWindowStack() if the skin is changed.
+	 */
+	private Stack<Window> windowStack;
+	
+	/*
 	 * Constructor. Making it private prevents instantiation by any other class.
 	 */
 	private Skins ()
@@ -323,6 +336,11 @@ public class Skins
 		skinRegistry.put(duskyGray, DUSKY_GRAY);
 		skinRegistry.put(pumpkinPatch, PUMPKIN_PATCH);
 		skinRegistry.put(seasideDaze, SEASIDE_DAZE);
+		
+		/*
+		 * Initialize the window stack.
+		 */
+		windowStack = new ArrayStack<Window>();
 		
         /*
          * Get the preferences object instance.
@@ -433,6 +451,38 @@ public class Skins
 	}
 	
 	/**
+	 * Push a window onto the window stack.
+	 * 
+	 * @param window Window to be pushed.
+	 */
+	public void pushSkinnedWindow (Window window)
+	{
+		windowStack.push(window);
+	}
+	
+	/**
+	 * Pop a window off of the window stack and throw it away.
+	 */
+	public void popSkinnedWindow ()
+	{
+		windowStack.pop();
+	}
+	
+	/**
+	 * Re-skin all the windows on the window stack. This is called when the skin is changed via
+	 * preferences.
+	 */
+	public void reskinWindowStack ()
+	{
+		Iterator<Window> windowStackIter = windowStack.iterator();
+		while (windowStackIter.hasNext())
+		{
+			Window window = windowStackIter.next();
+			skinMe(window);
+		}
+	}
+	
+	/**
 	 * Apply the skin values to the elements for a specific window.
 	 * 
 	 * @param window Window for which skin elements should be applied.
@@ -539,112 +589,119 @@ public class Skins
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof BoxPane)
 		{
 			if ((element.getMaskValue() & boxPaneMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof Checkbox)
 		{
 			if ((element.getMaskValue() & checkboxMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof FileBrowser)
 		{
 			if ((element.getMaskValue() & fileBrowserMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof FillPane)
 		{
 			if ((element.getMaskValue() & fillPaneMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof Label)
 		{
 			if ((element.getMaskValue() & labelMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof MenuBar)
 		{
 			if ((element.getMaskValue() & menuBarMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof Menu)
 		{
 			if ((element.getMaskValue() & menuMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof PushButton)
 		{
 			if ((element.getMaskValue() & pushButtonMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof ScrollPane)
 		{
 			if ((element.getMaskValue() & scrollPaneMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
+		else if (component instanceof Separator)
+		{
+			if ((element.getMaskValue() & separatorMask) != 0)
+			{
+				result = true;
+			}
+		}
 		else if (component instanceof Spinner)
 		{
 			if ((element.getMaskValue() & spinnerMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof TablePane)
 		{
 			if ((element.getMaskValue() & tablePaneMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof TableViewHeader)
 		{
 			if ((element.getMaskValue() & tableViewHeaderMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof TableView)
 		{
 			if ((element.getMaskValue() & tableViewMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof TabPane)
 		{
 			if ((element.getMaskValue() & tabPaneMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof TextInput)
 		{
 			if ((element.getMaskValue() & textInputMask) != 0)
 			{
 				result = true;
 			}
-		}		
+		}
 		else if (component instanceof TreeView)
 		{
 			if ((element.getMaskValue() & treeViewMask) != 0)
@@ -736,6 +793,10 @@ public class Skins
 			else if (component instanceof TabPane)
 			{
 				componentSkinValue.put("buttonColor", element.getElementValue());
+			}
+			else if (component instanceof Separator)
+			{
+				componentSkinValue.put("headingColor", element.getElementValue());
 			}
 			else
 			{

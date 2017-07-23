@@ -6,7 +6,6 @@ import java.util.Iterator;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
-import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
@@ -44,6 +43,7 @@ public class FiltersWindow
     //---------------- Private variables -----------------------------------
 	
     private Window filtersWindow = null;
+	private Skins skins = null;
 	private int textInputYCoordinate = -1;
 	private int plusButtonYCoordinate = -1;
 	private int minusButtonYCoordinate = -1;
@@ -93,6 +93,11 @@ public class FiltersWindow
     	 */
     	logging.registerLogger(Logging.Dimension.UI, uiLogger);
     	logging.registerLogger(Logging.Dimension.FILTER, filterLogger);
+    	
+    	/*
+    	 * Initialize variables.
+    	 */
+    	skins = Skins.getInstance();
 		
     	uiLogger.trace("FiltersWindow constructor: " + this.hashCode());
     }
@@ -161,8 +166,11 @@ public class FiltersWindow
 						 */
 						if (!filteredTracks.isEmpty())
 						{
+							String queryStr = filterCollection.getFiltersAsString();
 							TracksWindow tracksWindowHandler = new TracksWindow();
-							tracksWindowHandler.displayTracks(display, filteredTracks, true);
+							tracksWindowHandler.displayTracks(display, filteredTracks, 
+									TracksWindow.QueryType.TRACKS, 
+									TracksWindow.QueryType.TRACKS.getDisplayValue() + ": " + queryStr);
 						}
 						else
 						{
@@ -194,21 +202,23 @@ public class FiltersWindow
             public void buttonPressed(Button button) 
             {
             	uiLogger.info("done button pressed");
+            	
+            	/*
+            	 * Close the window.
+            	 */
             	filtersWindow.close();
+            	
+            	/*
+            	 * Pop the window off the skins window stack.
+            	 */
+            	skins.popSkinnedWindow();
             }
         });
 		
 		/*
-		 * Get the skins object singleton.
+		 * Set the window title.
 		 */
-		Skins skins = Skins.getInstance();
-		filtersWindow.setTitle(Skins.Window.FILTERS.getDisplayValue());		
-		
-		/*
-		 * Start with the filters window skin elements known from the BXML.
-		 */
-		Map<Skins.Element, List<Component>> windowElements = 
-				new HashMap<Skins.Element, List<Component>>();
+		filtersWindow.setTitle(Skins.Window.FILTERS.getDisplayValue());
         
         /*
          * Add the initial filter row. This populates the component list with table row components.
@@ -219,13 +229,19 @@ public class FiltersWindow
     	/*
     	 * Now register the filters window skin elements.
     	 */
-		windowElements = skins.mapComponentsToSkinElements(components);
+    	Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
 		skins.registerWindowElements(Skins.Window.FILTERS, windowElements);
 		
 		/*
 		 * Skin the filters window.
 		 */
 		skins.skinMe(Skins.Window.FILTERS);
+		
+		/*
+		 * Push the skinned window onto the skins window stack. It gets popped from our done button press
+		 * handler.
+		 */
+		skins.pushSkinnedWindow(Skins.Window.FILTERS);
     	
     	/*
     	 * Open the filters window.
@@ -408,7 +424,6 @@ public class FiltersWindow
                 	/*
                 	 * Register the new components and skin them.
                 	 */
-            		Skins skins = Skins.getInstance();
             		Map<Skins.Element, List<Component>> windowElements = 
             				skins.mapComponentsToSkinElements(rowComponents);            		
             		skins.registerDynamicWindowElements(Skins.Window.FILTERS, windowElements);
@@ -493,7 +508,6 @@ public class FiltersWindow
                 	/*
                 	 * Register the new components and skin them.
                 	 */
-            		Skins skins = Skins.getInstance();
             		Map<Skins.Element, List<Component>> windowElements = 
             				skins.mapComponentsToSkinElements(rowComponents);            		
             		skins.registerDynamicWindowElements(Skins.Window.FILTERS, windowElements);

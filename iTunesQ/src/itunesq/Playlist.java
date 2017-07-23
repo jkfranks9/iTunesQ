@@ -25,9 +25,9 @@ public class Playlist
     //---------------- Class variables -------------------------------------
 	
 	/**
-	 * Default list of playlist names that should be filtered out.
+	 * Default list of playlist names that should be ignored.
 	 */
-	public static final List<String> DEFAULT_FILTERED_PLAYLISTS;
+	public static final List<String> DEFAULT_IGNORED_PLAYLISTS;
 	static
 	{
 		List<String> result = new ArrayList<String>();
@@ -41,7 +41,7 @@ public class Playlist
 		result.add("Tones");
 		result.add("TV Shows");
 		
-		DEFAULT_FILTERED_PLAYLISTS = result;
+		DEFAULT_IGNORED_PLAYLISTS = result;
 	};
 	
 	/*
@@ -53,7 +53,7 @@ public class Playlist
 	private boolean plIsFolder;
 	private List<Integer> plTracks;
 	
-	private boolean plFilteredOut;
+	private boolean plIgnored;
 	private boolean plSkipPlaylistInfo;
 	
 	/**
@@ -62,7 +62,7 @@ public class Playlist
 	public Playlist ()
 	{
 		plIsFolder = false;
-		plFilteredOut = false;
+		plIgnored = false;
 		plSkipPlaylistInfo = false;
 	}
 
@@ -169,23 +169,23 @@ public class Playlist
 	}
 	
 	/**
-	 * Get the playlist filtered out indicator.
+	 * Get the playlist ignored indicator.
 	 * 
-	 * @return Playlist filtered out indicator.
+	 * @return Playlist ignored indicator.
 	 */
-	public boolean getFilteredOut ()
+	public boolean getIgnored ()
 	{
-		return plFilteredOut;
+		return plIgnored;
 	}
 	
 	/**
-	 * Set the playlist filtered out indicator.
+	 * Set the playlist ignored indicator.
 	 * 
-	 * @param filtered Playlist filtered out indicator.
+	 * @param ignored Playlist ignored indicator.
 	 */
-	public void setFilteredOut (boolean filtered)
+	public void setIgnored (boolean ignored)
 	{
-		this.plFilteredOut = filtered;
+		this.plIgnored = ignored;
 	}
 
 	/**

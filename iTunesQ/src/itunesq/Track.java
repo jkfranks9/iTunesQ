@@ -1,6 +1,7 @@
 package itunesq;
 
 import java.util.Date;
+import java.util.Iterator;
 
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
@@ -22,9 +23,11 @@ public class Track
 	 * 
 	 * NOTE: We can have more columns than are displayed. The MAP_PLAYLISTS column is not displayed 
 	 * as such. It holds playlist names that are displayed on the right side of a split pane when
-	 * the results of a filter are displayed.
+	 * the results of a track query are displayed. Likewise, MAP_BYPASSED indicates when such playlist
+	 * names are bypassed.
 	 */
-	public static final String MAP_PLAYLISTS  = "playlists";
+	public static final String MAP_PLAYLISTS  = "Playlists";
+	public static final String MAP_BYPASSED  = "Bypassed";
 	
 	/*
 	 * Track attributes.
@@ -46,7 +49,7 @@ public class Track
 	private int trkPlayCount;
 	private Date trkReleased;
 	private int trkRating;
-	private List<String> trkPlaylists;
+	private List<TrackPlaylistInfo> trkPlaylists;
 	
     //---------------- Private variables -----------------------------------
 	
@@ -63,7 +66,7 @@ public class Track
 	public Track (int ID)
 	{
 		trkID = ID;
-		trkPlaylists = new ArrayList<String>();
+		trkPlaylists = new ArrayList<TrackPlaylistInfo>();
 	}
 	
     //---------------- Getters and setters ---------------------------------
@@ -311,26 +314,41 @@ public class Track
 	{
 		this.trkRating = rating;
 	}
+	
+    //---------------- Public methods --------------------------------------
 
 	/**
-	 * Get the track playlist count.
+	 * Get the track playlist count. This only includes playlists that are not bypassed.
 	 * 
 	 * @return The track playlist count.
 	 */
 	public int getTrkPlaylistCount()
 	{
-		return trkPlaylists.getLength();
+		int playlistCount = 0;
+		
+		Iterator<TrackPlaylistInfo> trkPlaylistsIter = trkPlaylists.iterator();
+		while (trkPlaylistsIter.hasNext())
+		{
+			TrackPlaylistInfo playlistInfo = trkPlaylistsIter.next();
+			
+			if (playlistInfo.getBypassed() == false)
+			{
+				playlistCount++;
+			}
+		}
+		
+		return playlistCount;
 	}
 
 	/**
-	 * Add a playlist to the track.
+	 * Add playlist info to the track.
+	 * 
+	 * @param playlistInfo Playlist info object.
 	 */
-	public void addPlaylistToTrack(String playlistName)
+	public void addPlaylistInfoToTrack(TrackPlaylistInfo playlistInfo)
 	{
-		this.trkPlaylists.add(playlistName);
+		this.trkPlaylists.add(playlistInfo);
 	}
-	
-    //---------------- Public methods --------------------------------------
 
 	/**
 	 * Comparison method for itqTrack, used for sorting. We sort by track name.
@@ -403,13 +421,38 @@ public class Track
 		
 		result.put(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue(), 
 				Integer.toString(trkRating / RATING_DIVISOR));
+
+		/*
+		 * Create the string of playlist names and the corresponding bypassed indicators.
+		 */
+		StringBuilder playlistsStr = new StringBuilder();
+		StringBuilder bypassedStr = new StringBuilder();
 		
-		String playlistsStr = trkPlaylists.toString();
-		int startIndex = playlistsStr.indexOf("[");
-		int stopIndex = playlistsStr.indexOf("]");
-		String playlists = playlistsStr.substring(startIndex + 1, stopIndex);
+		Iterator<TrackPlaylistInfo> trkPlaylistsIter = trkPlaylists.iterator();
+		while (trkPlaylistsIter.hasNext())
+		{
+			TrackPlaylistInfo playlistInfo = trkPlaylistsIter.next();
+			
+			if (playlistsStr.length() > 0)
+			{
+				playlistsStr.append(",");
+				bypassedStr.append(",");
+			}
+			
+			playlistsStr.append(playlistInfo.getPlaylistName());
+			
+			if (playlistInfo.getBypassed() == true)
+			{
+				bypassedStr.append("Y");
+			}
+			else
+			{
+				bypassedStr.append("N");
+			}
+		}
 		
-		result.put(MAP_PLAYLISTS, playlists);
+		result.put(MAP_PLAYLISTS, playlistsStr.toString());
+		result.put(MAP_BYPASSED, bypassedStr.toString());
 		
 		return result;
 	}

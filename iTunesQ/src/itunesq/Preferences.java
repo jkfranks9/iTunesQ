@@ -71,7 +71,7 @@ public final class Preferences implements Serializable
 	 * 
 	 * - iTunes XML file name
 	 * - list of bypass playlist preferences
-	 * - list of filtered playlist preferences
+	 * - list of ignored playlist preferences
 	 * - various track column sets
 	 * - skin name
 	 * - maximum log file history
@@ -80,7 +80,7 @@ public final class Preferences implements Serializable
 	 */
 	private String xmlFileName;
 	private List<BypassPreference> bypassPrefs;
-	private List<String> filteredPrefs;
+	private List<String> ignoredPrefs;
 	private List<List<String>> trackColumnsFullView;
 	private List<List<String>> trackColumnsFilteredView;
 	private List<List<String>> trackColumnsPlaylistView;
@@ -130,11 +130,11 @@ public final class Preferences implements Serializable
     	/*
     	 * Initialize variables.
     	 * 
-    	 * NOTE: We initialize the filtered playlists with the default value. They get replaced when
+    	 * NOTE: We initialize the ignored playlists with the default value. They get replaced when
     	 * the preferences are read, if they exist in the serialized object.
     	 */
 		bypassPrefs = new ArrayList<BypassPreference>();
-		filteredPrefs = new ArrayList<String>(Playlist.DEFAULT_FILTERED_PLAYLISTS);
+		ignoredPrefs = new ArrayList<String>(Playlist.DEFAULT_IGNORED_PLAYLISTS);
 		
 		maxLogHistory = DEFAULT_MAX_HISTORY;
 		
@@ -175,13 +175,13 @@ public final class Preferences implements Serializable
 	}
 
 	/**
-	 * Get the list of filtered playlist preferences.
+	 * Get the list of ignored playlist preferences.
 	 * 
-	 * @return Filtered playlist preferences list.
+	 * @return Ignored playlist preferences list.
 	 */
-	public List<String> getFilteredPrefs ()
+	public List<String> getIgnoredPrefs ()
 	{
-		return filteredPrefs;
+		return ignoredPrefs;
 	}
 	
 	/**
@@ -355,19 +355,19 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Replace the list of filtered playlist preferences.
+	 * Replace the list of ignored playlist preferences.
 	 * 
-	 * @param filteredPrefs List of new filtered playlist preferences.
+	 * @param ignoredPrefs List of new ignored playlist preferences.
 	 */
-	public void replaceFilteredPrefs (List<String> filteredPrefs)
+	public void replaceIgnoredPrefs (List<String> ignoredPrefs)
 	{
-		logger.trace("replaceFilteredPrefs: " + this.hashCode());
+		logger.trace("replaceIgnoredPrefs: " + this.hashCode());
 		
-		this.filteredPrefs.clear();
-		Iterator<String> filteredPrefsIter = filteredPrefs.iterator();
-		while (filteredPrefsIter.hasNext())
+		this.ignoredPrefs.clear();
+		Iterator<String> ignoredPrefsIter = ignoredPrefs.iterator();
+		while (ignoredPrefsIter.hasNext())
 		{
-			this.filteredPrefs.add(filteredPrefsIter.next());
+			this.ignoredPrefs.add(ignoredPrefsIter.next());
 		}
 	}
 	
@@ -527,9 +527,9 @@ public final class Preferences implements Serializable
 		{
 			replaceBypassPrefs(prefs.bypassPrefs);
 		}
-		if (prefs.filteredPrefs != null)
+		if (prefs.ignoredPrefs != null)
 		{
-			replaceFilteredPrefs(prefs.filteredPrefs);
+			replaceIgnoredPrefs(prefs.ignoredPrefs);
 		}
 		this.trackColumnsFullView = prefs.trackColumnsFullView;
 		this.trackColumnsFilteredView = prefs.trackColumnsFilteredView;

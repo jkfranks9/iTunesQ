@@ -45,10 +45,38 @@ import ch.qos.logback.classic.Logger;
 public class TracksWindow
 {
 	
+    //---------------- Public variables ------------------------------------
+	
+	public enum QueryType
+	{
+		NONE(""), TRACKS("Query tracks"), PLAYLISTS("Query playlists");
+		
+		private String displayValue;
+		
+		/*
+		 * Constructor.
+		 */
+		private QueryType (String s)
+		{
+			displayValue = s;
+		}
+		
+		/**
+		 * Get the display value.
+		 * 
+		 * @return The enum display value.
+		 */
+		public String getDisplayValue ()
+		{
+			return displayValue;
+		}
+	}
+	
     //---------------- Private variables -----------------------------------
 
 	private Window tracksWindow = null;
 	private Dialog trackInfoDialog = null;
+	private Skins skins = null;
 	private Logger logger = null;
 	
 	/*
@@ -95,6 +123,11 @@ public class TracksWindow
     	 */
     	logging.registerLogger(Logging.Dimension.UI, logger);
     	
+    	/*
+    	 * Initialize variables.
+    	 */
+    	skins = Skins.getInstance();
+    	
     	logger.trace("TracksWindow constructor: " + this.hashCode());
     }
 	
@@ -105,11 +138,12 @@ public class TracksWindow
 	 * 
 	 * @param display Display object for managing windows.
 	 * @param tracks The list of tracks to be displayed.
-	 * @param filtered Whether or not a filtered list of tracks is being displayed.
+	 * @param queryType The type of query (if any) that generated the tracks to be displayed.
+	 * @param queryStr String representation of the query (if any), or null.
 	 * @throws IOException
 	 * @throws SerializationException
 	 */
-    public void displayTracks (Display display, List<Track> tracks, boolean filtered) 
+    public void displayTracks (Display display, List<Track> tracks, QueryType queryType, String queryStr) 
     		throws IOException, SerializationException
     {
     	logger.trace("displayTracks: " + this.hashCode());
@@ -119,7 +153,18 @@ public class TracksWindow
     	 * to be skinned.
     	 */
 		List<Component> components = new ArrayList<Component>();
-		initializeWindowBxmlVariables(filtered, components);
+		initializeWindowBxmlVariables(queryType, components);
+
+		/*
+		 * Set this object as the handler attribute on the tracks window. Also set other needed
+		 * attributes. The attributes are used for the File -> Save menu on queried track results.
+		 */
+		if (queryType != QueryType.NONE)
+		{
+			tracksWindow.setAttribute(MenuBars.WindowAttributes.HANDLER, this);
+			tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_TYPE, queryType);
+			tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_STRING, queryStr);
+		}
         
         /*
          * Listener to handle the done button press.
@@ -130,14 +175,23 @@ public class TracksWindow
             public void buttonPressed(Button button) 
             {
             	logger.info("done button pressed");
+            	
+            	/*
+            	 * Close the window.
+            	 */
             	tracksWindow.close();
+            	
+            	/*
+            	 * Pop the window off the skins window stack.
+            	 */
+            	skins.popSkinnedWindow();
             }
         });
         
         /*
          * Listener to handle track selection in a filtered view.
          */
-        if (filtered == true)
+        if (queryType != QueryType.NONE)
         {
             
             /*
@@ -165,14 +219,31 @@ public class TracksWindow
                 	logger.debug("track '" + trackName + "' selected");
                     
                 	/*
-                	 * Get the playlists for the selected track.
+                	 * Get the playlists and bypassed indicator for the selected track.
                 	 */
-                    String playlistInfo = rowData.get(Track.MAP_PLAYLISTS);
-                    String[] playlists = playlistInfo.split(",");
+                    String playlistNames = rowData.get(Track.MAP_PLAYLISTS);
+                    String[] playlists = playlistNames.split(",");
+                    String bypassedFlags = rowData.get(Track.MAP_BYPASSED);
+                    String[] bypassed = bypassedFlags.split(",");
+                    
                     for (int i = 0; i < playlists.length; i++)
                     {
                         HashMap<String, String> playlistStr = new HashMap<String, String>();
                     	playlistStr.put("name", playlists[i]);
+                    	
+                    	/*
+                    	 * I find it more aesthetically pleasing to only show a value for the bypassed 
+                    	 * column for playlists that are actually bypassed.
+                    	 */
+                    	if (bypassed[i].equals("Y"))
+                    	{
+                    		playlistStr.put("bypass", bypassed[i]);
+                    	}
+                    	else
+                    	{
+                    		playlistStr.put("bypass", "");
+                    	}
+                    	
                         displayPlaylists.add(playlistStr);
                     }
                     
@@ -222,18 +293,14 @@ public class TracksWindow
         });  
 		
 		/*
-		 * Get the skins object singleton.
+		 * Set the window title.
 		 */
-		Skins skins = Skins.getInstance();
 		tracksWindow.setTitle(Skins.Window.TRACKS.getDisplayValue());
 		
 		/*
 		 * Register the tracks window skin elements.
 		 */
-		Map<Skins.Element, List<Component>> windowElements = 
-				new HashMap<Skins.Element, List<Component>>();
-		
-		windowElements = skins.mapComponentsToSkinElements(components);
+		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
 		skins.registerWindowElements(Skins.Window.TRACKS, windowElements);
         
         /*
@@ -249,15 +316,17 @@ public class TracksWindow
         /*
          * Now walk the set, and add all tracks to the list.
          */
+		int trackNum = 0;
+		
         Iterator<Track> tracksIter = tracks.iterator();
         while (tracksIter.hasNext())
         {
         	Track track = tracksIter.next();
-        	HashMap<String, String> trackAttrs = track.toDisplayMap(0);
+        	HashMap<String, String> trackAttrs = track.toDisplayMap(++trackNum);
         	displayTracks.add(trackAttrs);
         }
 
-        if (filtered == true)
+        if (queryType != QueryType.NONE)
         {
         	TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.FILTERED_VIEW, tracksTableView);
         }
@@ -287,6 +356,12 @@ public class TracksWindow
 		 * Skin the tracks window.
 		 */
 		skins.skinMe(Skins.Window.TRACKS);
+		
+		/*
+		 * Push the skinned window onto the skins window stack. It gets popped from our done button press
+		 * handler.
+		 */
+		skins.pushSkinnedWindow(Skins.Window.TRACKS);
         
         /*
          * Open the tracks window.
@@ -331,13 +406,6 @@ public class TracksWindow
 		}
 
 		/*
-		 * Get the skins singleton.
-		 */
-		Skins skins = Skins.getInstance();
-		Map<Skins.Element, List<Component>> windowElements = 
-				new HashMap<Skins.Element, List<Component>>();
-
-		/*
 		 * Build table rows to represent the track details. This method also adds
 		 * components that need to be skinned.
 		 */
@@ -357,7 +425,7 @@ public class TracksWindow
 		/*
 		 * Register the window elements.
 		 */
-		windowElements = skins.mapComponentsToSkinElements(components);		
+		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);		
 		skins.registerWindowElements(Skins.Window.TRACKINFO, windowElements);
 
 		/*
@@ -371,6 +439,17 @@ public class TracksWindow
 		 */
 		logger.info("opening track info dialog");
 		trackInfoDialog.open(display);
+    }
+    
+    /**
+     * Get the list of tracks table data for a filtered list of tracks.
+     * 
+     * @return List of track data.
+     */
+    @SuppressWarnings("unchecked")
+	public List<HashMap<String, String>> getFilteredTrackData ()
+    {
+    	return (List<HashMap<String, String>>) tracksTableView.getTableData();
     }
 
     //---------------- Private methods -------------------------------------
@@ -399,8 +478,7 @@ public class TracksWindow
     		String columnName = columns.getDisplayValue();
     		
     		/*
-    		 * Since NUMBER is a generated value only used when displaying tracks for a playlist,
-    		 * skip it here.
+    		 * Since NUMBER is a generated value that is not part of the track data, skip it here.
     		 */
     		if (columns == TrackDisplayColumns.ColumnNames.NUMBER)
     		{
@@ -484,13 +562,13 @@ public class TracksWindow
     /*
      * Initialize tracks window BXML variables and collect the list of components to be skinned.
      */
-    private void initializeWindowBxmlVariables (boolean filtered, List<Component> components) 
+    private void initializeWindowBxmlVariables (QueryType queryType, List<Component> components) 
     		throws IOException, SerializationException
     {
     	logger.trace("initializeWindowBxmlVariables: " + this.hashCode());
     	
         BXMLSerializer windowSerializer = new BXMLSerializer();
-        if (filtered == true)
+        if (queryType != QueryType.NONE)
         {
         	tracksWindow = (Window)windowSerializer.
         			readObject(getClass().getResource("filteredTracksWindow.bxml"));
@@ -541,7 +619,7 @@ public class TracksWindow
         		(PushButton)windowSerializer.getNamespace().get("tracksDoneButton");
 		components.add(tracksDoneButton);
         
-        if (filtered == true)
+        if (queryType != QueryType.NONE)
         {
         	trackPlaylistsTableView = (TableView)windowSerializer.getNamespace().
         			get("trackPlaylistsTableView");

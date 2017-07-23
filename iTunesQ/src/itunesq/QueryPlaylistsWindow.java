@@ -7,7 +7,6 @@ import java.util.Iterator;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
-import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.HashSet;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
@@ -47,11 +46,13 @@ public class QueryPlaylistsWindow
     //---------------- Private variables -----------------------------------
 	
     private Window queryPlaylistsWindow = null;
+	private Skins skins = null;
 	private int plusButtonYCoordinate = -1;
 	private int minusButtonYCoordinate = -1;
 	private Logger uiLogger = null;
 	private Logger filterLogger = null;
 	private boolean evaluateComparisonNeeded = true;
+	private String queryStr = null;
 
 	Set<PlaylistComparisonTrack> allIDs;
 	Set<PlaylistComparisonTrack> someIDs;
@@ -110,6 +111,11 @@ public class QueryPlaylistsWindow
     	 */
     	logging.registerLogger(Logging.Dimension.UI, uiLogger);
     	logging.registerLogger(Logging.Dimension.FILTER, filterLogger);
+    	
+    	/*
+    	 * Initialize variables.
+    	 */
+    	skins = Skins.getInstance();
 		
     	uiLogger.trace("QueryPlaylistsWindow constructor: " + this.hashCode());
     }
@@ -237,21 +243,23 @@ public class QueryPlaylistsWindow
             public void buttonPressed(Button button) 
             {
             	uiLogger.info("done button pressed");
+            	
+            	/*
+            	 * Close the window.
+            	 */
             	queryPlaylistsWindow.close();
+            	
+            	/*
+            	 * Pop the window off the skins window stack.
+            	 */
+            	skins.popSkinnedWindow();
             }
         });
 		
 		/*
-		 * Get the skins object singleton.
+		 * Set the window title.
 		 */
-		Skins skins = Skins.getInstance();
-		queryPlaylistsWindow.setTitle(Skins.Window.QUERYPLAYLISTS.getDisplayValue());		
-		
-		/*
-		 * Start with the query playlists window skin elements known from the BXML.
-		 */
-		Map<Skins.Element, List<Component>> windowElements = 
-				new HashMap<Skins.Element, List<Component>>();
+		queryPlaylistsWindow.setTitle(Skins.Window.QUERYPLAYLISTS.getDisplayValue());
         
         /*
          * Add the initial query playlist rows. We add 2 rows because we need at least that 
@@ -282,13 +290,19 @@ public class QueryPlaylistsWindow
     	/*
     	 * Now register the query playlists window skin elements.
     	 */
-		windowElements = skins.mapComponentsToSkinElements(components);
+		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
 		skins.registerWindowElements(Skins.Window.QUERYPLAYLISTS, windowElements);
 		
 		/*
 		 * Skin the query playlists window.
 		 */
 		skins.skinMe(Skins.Window.QUERYPLAYLISTS);
+		
+		/*
+		 * Push the skinned window onto the skins window stack. It gets popped from our done button press
+		 * handler.
+		 */
+		skins.pushSkinnedWindow(Skins.Window.QUERYPLAYLISTS);
     	
     	/*
     	 * Open the query playlists window.
@@ -410,7 +424,6 @@ public class QueryPlaylistsWindow
                 	/*
                 	 * Register the new components and skin them.
                 	 */
-            		Skins skins = Skins.getInstance();
             		Map<Skins.Element, List<Component>> windowElements = 
             				skins.mapComponentsToSkinElements(rowComponents);            		
             		skins.registerDynamicWindowElements(Skins.Window.QUERYPLAYLISTS, windowElements);
@@ -588,14 +601,29 @@ public class QueryPlaylistsWindow
     	 * We make 2 passes to establish all compare lists. In the first pass, we walk through
     	 * the list of track IDs for all playlists, and create the 'one' list and a 
     	 * potential 'some' list.
+    	 * 
+    	 * We also create the query string during the first pass. This is passed to TracksWindow when
+    	 * the tracks are displayed.
     	 */
 		int playlistLoopIndex = 0;
+		StringBuilder query = new StringBuilder();
+		
 		Iterator<String> playlistsIter = playlists.iterator();
 		while (playlistsIter.hasNext())
 		{
     		filterLogger.debug("playlist index: " + playlistLoopIndex);
     		
 			String playlistName = playlistsIter.next();
+			
+			/*
+			 * Add this playlist to the query string, along with a "+" separator for all but the
+			 * first.
+			 */
+			if (playlistLoopIndex != 0)
+			{
+				query.append(" + ");
+			}
+			query.append(playlistName);
 			
 			/*
 			 * Get the playlist object.
@@ -696,6 +724,11 @@ public class QueryPlaylistsWindow
 		 */
 		if (playlistsValid == true)
 		{
+			
+			/*
+			 * Save the query string constructed during the first pass.
+			 */
+			queryStr = query.toString();
 	    	
 	    	/*
 	    	 * For the second pass, walk through the potential 'some' list. Move all IDs that have a
@@ -764,18 +797,22 @@ public class QueryPlaylistsWindow
 		 * Walk through the appropriate list of track IDs.
 		 */
 		Iterator<PlaylistComparisonTrack> trackIDsIter = null;
+		String compareStr = null;
 		switch (compareType)
 		{
 		case ALL:
 			trackIDsIter = allIDs.iterator();
+			compareStr = "(show all)";
 			break;
 			
 		case SOME:
 			trackIDsIter = someIDs.iterator();
+			compareStr = "(show some)";
 			break;
 			
 		case ONE:
 			trackIDsIter = oneIDs.iterator();
+			compareStr = "(show one)";
 			break;
 			
 		default: ;
@@ -802,7 +839,9 @@ public class QueryPlaylistsWindow
 		TracksWindow tracksWindowHandler = new TracksWindow();
 		try
 		{
-			tracksWindowHandler.displayTracks(display, displayableTracks, false);
+			tracksWindowHandler.displayTracks(display, displayableTracks, 
+					TracksWindow.QueryType.PLAYLISTS, 
+					TracksWindow.QueryType.PLAYLISTS.getDisplayValue() + " " + compareStr + ": " + queryStr);
 		} 
 		catch (IOException | SerializationException e)
 		{

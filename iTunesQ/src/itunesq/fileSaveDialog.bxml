@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Dialog title="Save File" modal="true"
+    xmlns:bxml="http://pivot.apache.org/bxml"
+    xmlns="org.apache.pivot.wtk">
+    
+    <!-- Primary window border. -->
+    <Border bxml:id="fileSavePrimaryBorder">
+        
+        <!-- Lay out the window elements in a single column table pane. -->
+    	<TablePane preferredWidth="500"
+    		styles="{verticalSpacing:10, padding:10}">
+    		
+        	<columns>
+            	<TablePane.Column width="1*"/>
+        	</columns>
+
+			<!-- File save elements row. -->
+        	<TablePane.Row height="4*">
+        		<Border bxml:id="fileSaveDetailsBorder">
+            		<BoxPane bxml:id="fileSaveDetailsBoxPane" orientation="vertical"
+                		    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                		<Separator bxml:id="fileSaveDetailsFileSeparator" heading="Save to File"/>
+            			<Label bxml:id="fileSaveDetailsLabel" text="Enter file name"
+                			styles="{horizontalAlignment:'center', verticalAlignment:'center'}"/>
+                		<TextInput bxml:id="fileSaveDetailsTextInput"/>
+                		<Separator bxml:id="fileSaveDetailsPrintSeparator" heading="Save to Printer"/>
+                		<Checkbox bxml:id="fileSaveDetailsPrintCheckbox" buttonData="Save to printer"/>
+                		<Separator bxml:id="fileSaveDetailsOptionsSeparator" heading="Options"/>
+                		<Checkbox bxml:id="fileSaveDetailsLimitCheckbox"/>
+            		</BoxPane>
+            	</Border>
+        	</TablePane.Row>
+
+			<!-- Button elements row. -->
+        	<TablePane.Row height="1*">
+        		<Border bxml:id="fileSaveButtonBorder">
+            		<BoxPane bxml:id="fileSaveButtonBoxPane" orientation="horizontal"
+             		   	    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+             		   	<PushButton bxml:id="fileSaveDoneButton" buttonData="Done"/>
+            		</BoxPane>
+            	</Border>
+        	</TablePane.Row>
+    	</TablePane>
+    </Border>
+</Dialog>

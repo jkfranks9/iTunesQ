@@ -37,7 +37,7 @@
                 					<Border bxml:id="bypassPrefsBorder">
                     		 			<BoxPane bxml:id="bypassPrefsBoxPane" orientation="vertical">
             								<Label bxml:id="bypassPrefsBorderLabel" 
-            									text="Don't Include Track Playlist Counts For These Playlists"
+            									text="Bypass Track Playlist Info For These Playlists"
             									styles="{font:{bold:true}, padding:5}"/>
                         					<TablePane bxml:id="bypassPrefsTablePane"
                         						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
@@ -54,16 +54,16 @@
                 				</ScrollPane>
             				</TablePane.Row>
             
-				            <!-- Filtered playlist preferences row. -->
+				            <!-- Ignored playlist preferences row. -->
             				<TablePane.Row height="5*">
                     			<ScrollPane	horizontalScrollBarPolicy="fill_to_capacity"
                     		 			verticalScrollBarPolicy="fill_to_capacity">
-                					<Border bxml:id="filteredPrefsBorder">
-            							<BoxPane bxml:id="filteredPrefsBoxPane" orientation="vertical">
-            								<Label bxml:id="filteredPrefsBorderLabel" 
+                					<Border bxml:id="ignoredPrefsBorder">
+            							<BoxPane bxml:id="ignoredPrefsBoxPane" orientation="vertical">
+            								<Label bxml:id="ignoredPrefsBorderLabel" 
             									text="Ignore The Following Playlists"
             									styles="{font:{bold:true}, padding:5}"/>
-                        					<TablePane bxml:id="filteredPrefsTablePane"
+                        					<TablePane bxml:id="ignoredPrefsTablePane"
                         						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
             									<columns>
                 									<TablePane.Column width="1*"/>

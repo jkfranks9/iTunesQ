@@ -88,7 +88,7 @@ public final class PlaylistTree
         	/*
         	 * Ignore filtered out playlists.
         	 */
-        	if (playlistObj.getFilteredOut() == true)
+        	if (playlistObj.getIgnored() == true)
         	{
         		continue;
         	}
