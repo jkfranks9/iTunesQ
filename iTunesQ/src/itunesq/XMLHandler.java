@@ -22,17 +22,23 @@ import ch.qos.logback.classic.Logger;
 
 /**
  * Class that reads and processes the iTunes XML file.
- * 
- * The main public method is processXML(), that uses JDOM to walk through the XML file.
- * 
- * The iTunes XML is rather ridiculous and difficult to work with. See comments scattered
- * throughout for details.
+ * <p>
+ * This is a final class consisting entirely of <code>static</code> methods.
+ * <p>
+ * The main public method is <code>processXML</code>, that uses JDOM to walk 
+ * through the XML file. I'd like to note that the iTunes XML is rather 
+ * ridiculous and difficult to work with. Just saying.
  * 
  * @author Jon
  *
  */
 public final class XMLHandler 
 {
+	
+	/*
+	 * Special note: The iTunes XML is rather ridiculous and difficult to work with. See 
+     * comments scattered throughout for details.
+	 */
 
     //---------------- Class variables -------------------------------------
 	
@@ -84,9 +90,9 @@ public final class XMLHandler
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the list of tracks found in the input XML file.
+	 * Gets the list of tracks found in the input XML file.
 	 * 
-	 * @return List of Element objects representing tracks.
+	 * @return list of tracks
 	 */
 	public static List<Track> getTracks ()
 	{
@@ -94,9 +100,9 @@ public final class XMLHandler
 	}
 	
 	/**
-	 * Get the mapping of track IDs to track list indices.
+	 * Gets the mapping of track IDs to track list indices.
 	 *  
-	 * @return Mapping of track IDs to indices.
+	 * @return mapping of track IDs to indices
 	 */
 	public static Map<Integer, Integer> getTracksMap ()
 	{
@@ -104,9 +110,9 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Get the list of playlists found in the input XML file.
+	 * Gets the list of playlists found in the input XML file.
 	 * 
-	 * @return List of Element objects representing playlists.
+	 * @return list of playlists
 	 */
 	public static Map<String, Playlist> getPlaylists ()
 	{
@@ -114,9 +120,9 @@ public final class XMLHandler
 	}
 	
 	/**
-	 * Get the mapping of playlist names to playlist IDs.
+	 * Gets the mapping of playlist names to playlist IDs.
 	 *  
-	 * @return Mapping of playlist names to IDs.
+	 * @return mapping of playlist names to IDs
 	 */
 	public static Map<String, String> getPlaylistsMap ()
 	{
@@ -124,9 +130,9 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Get the list of playlist names found in the input XML file.
+	 * Gets the list of playlist names found in the input XML file.
 	 * 
-	 * @return List of playlist names.
+	 * @return list of playlist names
 	 */
 	public static ArrayList<String> getPlaylistNames ()
 	{
@@ -134,9 +140,9 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Get the list of track artist names found in the input XML file.
+	 * Gets the list of track artist names found in the input XML file.
 	 * 
-	 * @return List of artist names.
+	 * @return list of artist names
 	 */
 	public static ArrayList<String> getArtistNames ()
 	{
@@ -146,7 +152,7 @@ public final class XMLHandler
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Initialize logging. This is called once at application initialization.
+	 * Initializes logging. This is called once at application initialization.
 	 */
 	public static void initializeLogging ()
 	{
@@ -154,9 +160,9 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Get the number of tracks found in the input XML file.
+	 * Gets the number of tracks found in the input XML file.
 	 * 
-	 * @return Number of tracks.
+	 * @return number of tracks
 	 */
 	public static int getNumberOfTracks ()
 	{
@@ -164,9 +170,10 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Get the number of playlists found in the input XML file, reduced by the number of ignored playlists.
+	 * Gets the number of playlists found in the input XML file, reduced by 
+	 * the number of ignored playlists.
 	 * 
-	 * @return Number of playlists.
+	 * @return number of non-ignored playlists
 	 */
 	public static int getNumberOfPlaylists ()
 	{
@@ -174,9 +181,9 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Get the timestamp of the XML file.
+	 * Gets the timestamp of the XML file.
 	 * 
-	 * @return Timestamp string.
+	 * @return file timestamp
 	 */
 	public static String getXMLFileTimestamp ()
 	{
@@ -184,10 +191,11 @@ public final class XMLHandler
 	}
 	
 	/**
-	 * Read and process the XML file.
+	 * Reads and processes the XML file.
 	 * 
-	 * @param xmlFileName The XML file name.
-	 * @throws JDOMException
+	 * @param xmlFileName XML file name
+	 * @throws JDOMException If an exception occurs trying to read the iTunes 
+	 * XML file.
 	 */
 	public static void processXML (String xmlFileName)
 		throws JDOMException

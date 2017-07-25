@@ -49,7 +49,9 @@ import ch.qos.logback.classic.Logger;
 import itunesq.TracksWindow.QueryType;
 
 /**
- * Class that handles the file save dialog.
+ * Class that handles the file save dialog. This dialog is available from the
+ * File {@literal ->} Save menu on a page showing the results of a track or playlist
+ * query. This dialog allows the user to save or print the query results.
  * 
  * @author Jon
  *
@@ -83,7 +85,6 @@ public class FileSaveDialog
 	/*
 	 * BXML variables.
 	 */
-	@BXML private Border fileSavePrimaryBorder = null;
 	@BXML private Border fileSaveDetailsBorder = null;
 	@BXML private BoxPane fileSaveDetailsBoxPane = null;
 	@BXML private Separator fileSaveDetailsFileSeparator = null;
@@ -98,9 +99,9 @@ public class FileSaveDialog
 	@BXML private PushButton fileSaveDoneButton = null;
 
 	/**
-	 * Constructor.
+	 * Class constructor specifying the owning window.
 	 * 
-	 * @param owner Owning window.
+	 * @param owner owning window. This dialog is modal over the window.
 	 */
 	public FileSaveDialog (MenuBars owner)
 	{
@@ -136,11 +137,12 @@ public class FileSaveDialog
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Display the file save dialog.
+	 * Displays the file save dialog.
 	 * 
-	 * @param display Display object for managing windows.
-	 * @throws IOException
-	 * @throws SerializationException
+	 * @param display display object for managing windows
+	 * @throws IOException If an exception occurs trying to read the BXML file.
+	 * @throws SerializationException If an exception occurs trying to 
+	 * deserialize the BXML file.
 	 */
 	public void displayFileSaveDialog (Display display) 
 			throws IOException, SerializationException
@@ -536,9 +538,6 @@ public class FileSaveDialog
         fileSaveDialog = (Dialog)dialogSerializer.readObject(getClass().
 				getResource("fileSaveDialog.bxml"));
 
-    	fileSavePrimaryBorder = 
-        		(Border)dialogSerializer.getNamespace().get("fileSavePrimaryBorder");
-		components.add(fileSavePrimaryBorder);
 		fileSaveDetailsBorder = 
         		(Border)dialogSerializer.getNamespace().get("fileSaveDetailsBorder");
 		components.add(fileSaveDetailsBorder);
@@ -576,12 +575,14 @@ public class FileSaveDialog
         		(PushButton)dialogSerializer.getNamespace().get("fileSaveDoneButton");
 		components.add(fileSaveDoneButton);
     }
+	
+    //---------------- Nested classes --------------------------------------
     
     /*
-     * This embedded class implements the DialogCloseListener interface, and gets control when the
+     * This class implements the DialogCloseListener interface, and gets control when the
      * file save dialog is closed.
      */
-    private class CloseAdapter implements DialogCloseListener
+    private final class CloseAdapter implements DialogCloseListener
     {
 
         @Override

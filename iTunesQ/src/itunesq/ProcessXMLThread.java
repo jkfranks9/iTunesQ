@@ -3,7 +3,8 @@ package itunesq;
 import org.jdom2.JDOMException;
 
 /**
- * Class to process the iTunes XML file on a thread. This allows us to display the main window faster.
+ * Class that handles processing the iTunes XML file on a thread. 
+ * Theoretically, this allows us to display the main window faster.
  * 
  * @author Jon
  *
@@ -17,9 +18,9 @@ public class ProcessXMLThread implements Runnable
 	private static Exception savedException;
 
 	/**
-	 * Constructor.
+	 * Class constructor specifying the XML file name.
 	 * 
-	 * @param fileName Name of the XML file to be processed.
+	 * @param fileName name of the XML file to be processed
 	 */
 	public ProcessXMLThread (String fileName)
 	{
@@ -29,20 +30,21 @@ public class ProcessXMLThread implements Runnable
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Return a saved exception from the run() method, if any.
+	 * Returns a saved exception from the <code>run</code> method, if any.
 	 * 
-	 * @return Saved exception, or null.
+	 * @return saved exception, or <code>null</code>
 	 */
 	public static Exception getSavedException ()
 	{
 		return savedException;
 	}
 	
-	@Override
 	/**
-	 * Execute the run() method on a thread. We simply call processXML() with the file name provided
-	 * to the constructor, and save any exception that occurs.
+	 * Executes the <code>run</code> method on a thread. We simply call 
+	 * <code>processXML</code> with the file name provided to the constructor,
+	 * and save any exception that occurs.
 	 */
+	@Override
 	public void run()
 	{
 		try

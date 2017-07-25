@@ -9,16 +9,18 @@ import org.apache.pivot.collections.Map;
 import org.apache.pivot.wtk.TableView;
 
 /**
- * Class that represents the columns that are displayed for various track listings.
- * 
- * The following column definitions exist:
- * 
- * - Full:     The full list of tracks.
- * - Filtered: The tracks that are displayed for a given query.
- * - Playlist: The tracks that are displayed for a given playlist.
- * 
- * There are default values of each of these column sets, but they can be changed with user
- * preferences.
+ * Class that represents the columns that are displayed for various track 
+ * listings.
+ * <p>
+ * The following column set definitions exist:
+ * <ul>
+ * <li>Full - full list of tracks</li>
+ * <li>Filtered - tracks that are displayed for a given query</li>
+ * <li>Playlist - tracks that are displayed for a given playlist</li>
+ * </ul>
+ * <p>
+ * There are default values of each of these column sets, but they can be 
+ * changed with user preferences.
  * 
  * @author Jon
  *
@@ -29,14 +31,101 @@ public class TrackDisplayColumns
     //---------------- Class variables -------------------------------------
 	
 	/**
-	 * Definition of all possible column names.
+	 * Definition of all possible column names. The <code>enum</code> value is 
+	 * the name of the associated column.
 	 */
 	public enum ColumnNames
 	{
-		NUMBER("Number"), ID("ID"), NAME("Name"), ARTIST("Artist"), COMPOSER("Composer"), ALBUM("Album"),
-		GENRE("Genre"), KIND("Kind"), SIZE("Size"), DURATION("Duration"), YEAR("Year"),
-		MODIFIED("Modified"), ADDED("Added"), BITRATE("Bit Rate"), SAMPLERATE("Sample Rate"),
-		PLAYCOUNT("Play Count"), RELEASED("Released"), RATING("Rating");
+		
+		/**
+		 * relative track number within a list
+		 */
+		NUMBER("Number"),
+		
+		/**
+		 * track ID
+		 */
+		ID("ID"),
+		
+		/**
+		 * track name
+		 */
+		NAME("Name"),
+		
+		/**
+		 * artist name
+		 */
+		ARTIST("Artist"),
+		
+		/**
+		 * composer name
+		 */
+		COMPOSER("Composer"),
+		
+		/**
+		 * album name
+		 */
+		ALBUM("Album"),
+		
+		/**
+		 * genre
+		 */
+		GENRE("Genre"),
+		
+		/**
+		 * kind of track
+		 */
+		KIND("Kind"),
+		
+		/**
+		 * size in bytes
+		 */
+		SIZE("Size"),
+		
+		/**
+		 * duration
+		 */
+		DURATION("Duration"),
+		
+		/**
+		 * year of release
+		 */
+		YEAR("Year"),
+		
+		/**
+		 * modified date
+		 */
+		MODIFIED("Modified"),
+		
+		/**
+		 * added date
+		 */
+		ADDED("Added"),
+		
+		/**
+		 * bit rate
+		 */
+		BITRATE("Bit Rate"),
+		
+		/**
+		 * sample rate
+		 */
+		SAMPLERATE("Sample Rate"),
+		
+		/**
+		 * play count
+		 */
+		PLAYCOUNT("Play Count"),
+		
+		/**
+		 * released date
+		 */
+		RELEASED("Released"),
+		
+		/**
+		 * rating from 0 to 5
+		 */
+		RATING("Rating");
 		
 		private String displayValue;
 		
@@ -49,9 +138,9 @@ public class TrackDisplayColumns
 		}
 		
 		/**
-		 * Get the display value.
+		 * Gets the display value.
 		 * 
-		 * @return The enum display value.
+		 * @return <code>enum</code> display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -59,10 +148,10 @@ public class TrackDisplayColumns
 		}
 		
 		/**
-		 * Reverse lookup the enum from the display value.
+		 * Reverse lookup the <code>enum</code> from the display value.
 		 * 
-		 * @param value The display value to look up.
-		 * @return The enum.
+		 * @param value display value to look up
+		 * @return <code>enum</code> value
 		 */
 		public static ColumnNames getEnum(String value)
 		{
@@ -87,8 +176,20 @@ public class TrackDisplayColumns
 	 */
 	public enum ColumnSet
 	{
-		FULL_VIEW(), 
+		
+		/**
+		 * full list of tracks
+		 */
+		FULL_VIEW(),
+		
+		/**
+		 * tracks resulting from a query
+		 */
 		FILTERED_VIEW(),
+		
+		/**
+		 * tracks shown for a given playlist
+		 */
 		PLAYLIST_VIEW();
 		
 		private List<String> names;
@@ -104,11 +205,11 @@ public class TrackDisplayColumns
 		}
 		
 		/**
-		 * Build a column set. 
+		 * Builds a column set. 
 		 * 
-		 * @param columnDef List of column set definitions. The inner list always contains
-		 * just 2 elements, representing the column name and corresponding width, so we use
-		 * absolute indices to get these.
+		 * @param columnDef column set definitions. The inner list always 
+		 * contains just two elements, representing the column name and 
+		 * corresponding width.
 		 */
 		public void buildColumnSet (List<List<String>> columnDef)
 		{
@@ -125,9 +226,9 @@ public class TrackDisplayColumns
 		}
 		
 		/**
-		 * Get the names list.
+		 * Gets the names list.
 		 * 
-		 * @return The enum names list.
+		 * @return <code>enum</code> names list
 		 */
 		public List<String> getNamesList ()
 		{
@@ -135,9 +236,9 @@ public class TrackDisplayColumns
 		}
 		
 		/**
-		 * Get the widths list.
+		 * Gets the widths list.
 		 * 
-		 * @return The enum widths list.
+		 * @return <code>enum</code> widths list
 		 */
 		public List<String> getWidthsList ()
 		{
@@ -169,10 +270,18 @@ public class TrackDisplayColumns
 		COLUMN_WIDTH_MAP = result;
 	}
 	
+	/**
+	 * Class constructor.
+	 */
+	public TrackDisplayColumns ()
+	{
+	}
+	
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Initialize the default columns. This is called once during initialization.
+	 * Initializes the default column sets. This is called once during 
+	 * initialization.
 	 */
 	public static void initializeDefaults ()
 	{
@@ -197,11 +306,11 @@ public class TrackDisplayColumns
 	}
 	
 	/**
-	 * Create a column set. This is called by the various methods that create track listings for
-	 * display.
+	 * Creates a column set. This is called by the various methods that create 
+	 * track listings for display.
 	 * 
-	 * @param type The type of column set to create.
-	 * @param table The TableView for which the column set should be created.
+	 * @param type type of column set to create
+	 * @param table table view for which the column set should be created
 	 */
 	public static void createColumnSet (ColumnSet type, TableView table)
 	{
@@ -222,10 +331,10 @@ public class TrackDisplayColumns
 	}
 	
 	/**
-	 * Create the name + width data for an individual track display column.
+	 * Creates the name + width data for an individual track display column.
 	 * 
-	 * @param name Name of the column.
-	 * @return List of name + width data.
+	 * @param name name of the column
+	 * @return list of name + width data
 	 */
 	public static List<String> buildColumnData (String name)
 	{

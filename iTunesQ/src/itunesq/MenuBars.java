@@ -24,10 +24,14 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that represents the main window menu bar. The required functionality is not built in,
- * because we need a constructor that creates named actions.
+ * Class that represents the menu bar for non-dialog windows.
+ * <p>
+ * The required functionality is not built in to Pivot, because of the need to
+ * create named actions that are driven from the menu items.
+ * <p>Full disclosure: the template for this class was gleefully stolen from 
+ * the Pivot tutorials :)
  * 
- * @author Jon ... well, gleefully stolen from the Pivot tutorials :)
+ * @author Jon
  *
  */
 public class MenuBars extends Frame implements Bindable
@@ -36,30 +40,34 @@ public class MenuBars extends Frame implements Bindable
     //---------------- Public variables ------------------------------------
 	
 	/**
-	 * When we display a list of tracks that result from some type of query, the File -> Save menu is
-	 * enabled. This is handled by the FileSaveDialog class. That class in turn needs to gather the 
-	 * list of resulting tracks, and so needs the associated window handler, which should always be
-	 * of type TracksWindow. It also needs other attributes, for example the string representation
-	 * of the query.
-	 * 
-	 * This enum defines values used to set and get these attributes on the window (MenuBars). 
-	 * 
-	 * The attributes are set by TracksWindow, and then obtained by the FileSaveDialog class.
+	 * When we display a list of tracks that result from some type of query, 
+	 * the File ... Save menu is enabled. This is handled by the 
+	 * <code>FileSaveDialog</code> class. That class in turn needs to gather 
+	 * the list of resulting tracks, and so needs the associated window 
+	 * handler, which should always be of type <code>TracksWindow</code>. It 
+	 * also needs other attributes, for example the string representation of 
+	 * the query.
+	 * <p>
+	 * This <code>enum</code> defines values used to set and get these 
+	 * attributes on the window represented by this class. 
+	 * <p>
+	 * The attributes are set by the <code>TracksWindow</code> class, 
+	 * and then obtained by the <code>FileSaveDialog class</code>.
 	 */
 	public static enum WindowAttributes
 	{
 		/**
-		 * Window handler object attribute.
+		 * window handler object attribute
 		 */
 		HANDLER,
 		
 		/**
-		 * Query type.
+		 * query type attribute
 		 */
 		QUERY_TYPE,
 		
 		/**
-		 * Query string representation attribute.
+		 * query string representation attribute
 		 */
 		QUERY_STRING
 	}
@@ -79,7 +87,14 @@ public class MenuBars extends Frame implements Bindable
 	@BXML private Sheet preferencesSheet;
 
 	/**
-	 * Constructor. This creates the named actions.
+	 * Class constructor. This creates named actions for the following menu
+	 * items:
+	 * <ul>
+	 * <li>File {@literal ->} Open</li>
+	 * <li>File {@literal ->} Save</li>
+	 * <li>File {@literal ->} Exit</li>
+	 * <li>Edit {@literal ->} Preferences</li>
+	 * </ul>
 	 */
 	public MenuBars()
 	{
@@ -240,6 +255,16 @@ public class MenuBars extends Frame implements Bindable
 		});
 	}
 
+	/**
+	 * Initializes the class after it has been completely processed and bound
+	 * by the serializer. This method is required to be overriden for the
+	 * <code>Bindable</code> interface, but does nothing.
+	 * 
+	 * @param namespace serializer's namespace
+	 * @param location location of the BXML source
+	 * @param resources resources used to localize the deserialized content,
+	 * or null
+	 */
 	@Override
 	public void initialize(Map<String, Object> namespace, URL location, Resources resources)
 	{

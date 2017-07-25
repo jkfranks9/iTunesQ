@@ -1,7 +1,9 @@
 package itunesq;
 
 /**
- * Class representing playlist info for a single track.
+ * Class that represents a single playlist info for a single track. This 
+ * consists of the playlist name and an indicator of whether or not the 
+ * playlist is bypassed. 
  * 
  * @author Jon
  *
@@ -14,12 +16,19 @@ public class TrackPlaylistInfo
 	private String playlistName;
 	private boolean bypassed;
 	
+	/**
+	 * Class constructor.
+	 */
+	public TrackPlaylistInfo ()
+	{
+	}
+	
     //---------------- Getters and setters ---------------------------------
 
 	/**
-	 * Get the playlist name.
+	 * Gets the playlist name.
 	 * 
-	 * @return Playlist name.
+	 * @return playlist name
 	 */
 	public String getPlaylistName()
 	{
@@ -27,9 +36,9 @@ public class TrackPlaylistInfo
 	}
 
 	/**
-	 * Set the playlist name.
+	 * Sets the playlist name.
 	 * 
-	 * @param playlistName Playlist name.
+	 * @param playlistName playlist name
 	 */
 	public void setPlaylistName(String playlistName)
 	{
@@ -37,9 +46,9 @@ public class TrackPlaylistInfo
 	}
 
 	/**
-	 * Get the bypassed indicator.
+	 * Gets the bypassed indicator.
 	 * 
-	 * @return Bypassed indicator.
+	 * @return bypassed indicator
 	 */
 	public boolean getBypassed()
 	{
@@ -47,9 +56,9 @@ public class TrackPlaylistInfo
 	}
 
 	/**
-	 * Set the bypassed indicator.
+	 * Sets the bypassed indicator.
 	 * 
-	 * @param bypassed Bypassed indicator.
+	 * @param bypassed bypassed indicator
 	 */
 	public void setBypassed(boolean bypassed)
 	{

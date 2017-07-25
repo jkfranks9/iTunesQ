@@ -32,7 +32,9 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that handles the display playlists window.
+ * Class that handles the display playlists window. This window shows all 
+ * playlists in a tree form. Selecting a playlist shows the associated tracks
+ * on the right side of the window.
  * 
  * @author Jon
  *
@@ -53,7 +55,6 @@ public class PlaylistsWindow
 	@BXML private MenuBar mainMenuBar = null;
 	@BXML private Menu mainFileMenu = null;
 	@BXML private Menu mainEditMenu = null;
-	@BXML private Border primaryBorder = null;
 	@BXML private Border playlistsBorder = null;
 	@BXML private TreeView playlistsTreeView = null;
 	@BXML private TableView playlistTracksTableView = null;
@@ -63,7 +64,7 @@ public class PlaylistsWindow
 	@BXML private PushButton playlistsDoneButton = null;
     
     /**
-     * Constructor.
+     * Class constructor.
      */
     public PlaylistsWindow ()
     {
@@ -101,11 +102,12 @@ public class PlaylistsWindow
     //---------------- Public methods --------------------------------------
     
 	/**
-	 * Display the playlists in a new window.
+	 * Displays the playlists in a new window.
 	 * 
-	 * @param display Display object for managing windows.
-	 * @throws IOException
-	 * @throws SerializationException
+	 * @param display display object for managing windows
+	 * @throws IOException If an exception occurs trying to read the BXML file.
+	 * @throws SerializationException If an exception occurs trying to 
+	 * deserialize the BXML file.
 	 */
     public void displayPlaylists (Display display) 
     		throws IOException, SerializationException
@@ -309,9 +311,6 @@ public class PlaylistsWindow
         mainEditMenu = 
         		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
 		components.add(mainEditMenu);
-        primaryBorder = 
-        		(Border)windowSerializer.getNamespace().get("primaryBorder");
-		components.add(primaryBorder);
         playlistsBorder = 
         		(Border)windowSerializer.getNamespace().get("playlistsBorder");
 		components.add(playlistsBorder);

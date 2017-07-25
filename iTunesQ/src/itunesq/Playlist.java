@@ -5,16 +5,18 @@ import org.apache.pivot.collections.List;
 
 /**
  * Class that represents a single playlist.
- * 
- * Interesting playlist data are defined for a playlist. There are three types of playlists:
- * 
- * 1) Top level folder that contains other folders or playlists. This is indicated by plIsFolder
- *    true but no plParentPersistentID.
- *    
- * 2) Intermediate folder that contains other folders or playlists. This is indicated by plIsFolder
- *    true and a plParentPersistentID.
- *    
- * 3) Non-folder playlist. This is indicated by plIsFolder false.
+ * <p>
+ * Note that there are three types of playlists:
+ * <ol>
+ * <li>Top level folder that contains other folders or playlists. This is 
+ * indicated by <code>plIsFolder</code> equal to <code>true</code> but no 
+ * <code>plParentPersistentID</code> value.</li>
+ * <li>Intermediate folder that contains other folders or playlists. This is 
+ * indicated by <code>plIsFolder</code> equal to <code>true</code> along with
+ * a <code>plParentPersistentID</code> value.</li>
+ * <li>Non-folder playlist. This is indicated by <code>plIsFolder</code> 
+ * equal to <code>false</code>.
+ * </ol>
  * 
  * @author Jon
  *
@@ -57,7 +59,7 @@ public class Playlist
 	private boolean plSkipPlaylistInfo;
 	
 	/**
-	 * Constructor.
+	 * Class constructor.
 	 */
 	public Playlist ()
 	{
@@ -69,9 +71,9 @@ public class Playlist
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the playlist name.
+	 * Gets the playlist name.
 	 * 
-	 * @return Playlist name.
+	 * @return playlist name
 	 */
 	public String getName ()
 	{
@@ -79,9 +81,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Set the playlist name.
+	 * Sets the playlist name.
 	 * 
-	 * @param name Playlist name.
+	 * @param name playlist name
 	 */
 	public void setName (String name)
 	{
@@ -89,9 +91,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Get the playlist persistent ID.
+	 * Gets the playlist persistent ID.
 	 * 
-	 * @return Playlist persistent ID.
+	 * @return playlist persistent ID
 	 */
 	public String getPersistentID ()
 	{
@@ -99,9 +101,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Set the playlist persistent ID.
+	 * Sets the playlist persistent ID.
 	 * 
-	 * @param persistentID Playlist persistent ID.
+	 * @param persistentID playlist persistent ID
 	 */
 	public void setPersistentID (String persistentID)
 	{
@@ -109,9 +111,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Get the playlist parent persistent ID.
+	 * Gets the playlist parent persistent ID.
 	 * 
-	 * @return Playlist parent persistent ID.
+	 * @return playlist parent persistent ID
 	 */
 	public String getParentPersistentID ()
 	{
@@ -119,9 +121,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Set the playlist parent persistent ID.
+	 * Sets the playlist parent persistent ID.
 	 * 
-	 * @param parentPersistentID Playlist parent persistent ID.
+	 * @param parentPersistentID playlist parent persistent ID
 	 */
 	public void setParentPersistentID (String parentPersistentID)
 	{
@@ -129,9 +131,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Get the playlist folder indicator.
+	 * Gets the playlist folder indicator.
 	 * 
-	 * @return Playlist folder indicator.
+	 * @return playlist folder indicator
 	 */
 	public boolean getIsFolder ()
 	{
@@ -139,9 +141,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Set the playlist folder indicator.
+	 * Sets the playlist folder indicator.
 	 * 
-	 * @param isFolder Playlist folder indicator.
+	 * @param isFolder playlist folder indicator
 	 */
 	public void setIsFolder (boolean isFolder)
 	{
@@ -149,9 +151,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Get the playlist tracks.
+	 * Gets the playlist tracks.
 	 * 
-	 * @return Playlist tracks.
+	 * @return playlist tracks
 	 */
 	public List<Integer> getTracks ()
 	{
@@ -159,9 +161,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Set the playlist tracks.
+	 * Sets the playlist tracks.
 	 * 
-	 * @param tracks Playlist tracks.
+	 * @param tracks playlist tracks
 	 */
 	public void setTracks (List<Integer> tracks)
 	{
@@ -169,9 +171,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Get the playlist ignored indicator.
+	 * Gets the playlist ignored indicator.
 	 * 
-	 * @return Playlist ignored indicator.
+	 * @return playlist ignored indicator
 	 */
 	public boolean getIgnored ()
 	{
@@ -179,9 +181,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Set the playlist ignored indicator.
+	 * Sets the playlist ignored indicator.
 	 * 
-	 * @param ignored Playlist ignored indicator.
+	 * @param ignored playlist ignored indicator
 	 */
 	public void setIgnored (boolean ignored)
 	{
@@ -189,9 +191,9 @@ public class Playlist
 	}
 
 	/**
-	 * Get the skip playlist info indicator.
+	 * Gets the skip playlist info indicator.
 	 * 
-	 * @return Skip playlist info indicator.
+	 * @return skip playlist info indicator
 	 */
 	public boolean getSkipPlaylistInfo()
 	{
@@ -199,9 +201,9 @@ public class Playlist
 	}
 	
 	/**
-	 * Set the skip playlist info indicator.
+	 * Sets the skip playlist info indicator.
 	 * 
-	 * @param skipPlaylistInfo Skip playlist info indicator.
+	 * @param skipPlaylistInfo skip playlist info indicator
 	 */
 	public void setSkipPlaylistInfo(boolean skipPlaylistInfo)
 	{
@@ -211,10 +213,11 @@ public class Playlist
     //---------------- Public methods --------------------------------------
 
 	/**
-	 * Comparison function to sort by the persistent ID.
+	 * Compares a given persistent ID to this persistent ID.
 	 * 
-	 * @param key2 The persistent ID to compare to this persistent ID.
-	 * @return -1, 0, or 1 to indicate less than, equal, or greater than.
+	 * @param key2 persistent ID to compare to this persistent ID
+	 * @return negative value, zero, or positive value to indicate less than, 
+	 * equal to, or greater than, respectively
 	 */
 	public int compareTo (String key2)
 	{

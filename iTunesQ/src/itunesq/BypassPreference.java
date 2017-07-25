@@ -3,7 +3,14 @@ package itunesq;
 import java.io.Serializable;
 
 /**
- * Class representing a single bypass playlist preference.
+ * Class that represents a single bypassed playlist preference. A bypassed 
+ * playlist is specified using the preferences dialog. Such a playlist 
+ * is not counted against the number of playlists associated with a
+ * given track, and thus does not participate in the 'Playlist Count'
+ * subject of a <code>Filter</code> object.
+ * <p>
+ * A bypassed playlist preference can also specify that all children 
+ * playlists are bypassed as well.
  * 
  * @author Jon
  *
@@ -20,12 +27,19 @@ public class BypassPreference implements Serializable
 	
 	private static final long serialVersionUID = 153557071290842369L;
 	
+	/**
+	 * Class constructor.
+	 */
+	public BypassPreference ()
+	{
+	}
+	
     //---------------- Getters and setters ---------------------------------
 
 	/**
-	 * Get the playlist name.
+	 * Gets the bypassed playlist name.
 	 * 
-	 * @return Playlist name.
+	 * @return playlist name
 	 */
 	public String getPlaylistName()
 	{
@@ -33,9 +47,9 @@ public class BypassPreference implements Serializable
 	}
 
 	/**
-	 * Set the playlist name.
+	 * Sets the bypassed playlist name.
 	 * 
-	 * @param playlistName Playlist name.
+	 * @param playlistName playlist name
 	 */
 	public void setPlaylistName(String playlistName)
 	{
@@ -43,9 +57,9 @@ public class BypassPreference implements Serializable
 	}
 
 	/**
-	 * Get the include children indicator.
+	 * Gets the include children indicator.
 	 * 
-	 * @return Include children indicator.
+	 * @return include children indicator
 	 */
 	public boolean getIncludeChildren()
 	{
@@ -53,9 +67,9 @@ public class BypassPreference implements Serializable
 	}
 
 	/**
-	 * Set the include children indicator.
+	 * Sets the include children indicator.
 	 * 
-	 * @param includeChildren Include children indicator.
+	 * @param includeChildren include children indicator
 	 */
 	public void setIncludeChildren(boolean includeChildren)
 	{

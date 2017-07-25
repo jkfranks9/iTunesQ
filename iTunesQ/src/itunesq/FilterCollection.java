@@ -11,16 +11,12 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class representing a collection of filters.
- * 
- * Filters can be ANDed or ORed. In addition, subgroups of filters can exist. For example:
- * 
- *     ARTIST CONTAINS "Oyster"
- * AND YEAR   GREATER  "1975"
- * AND (
- *           KIND CONTAINS "MPEG"
- *       OR  KIND CONTAINS "AAC"
- *     )
+ * Class that represents a collection of filters.
+ * <p>
+ * Filters can be ANDed or ORed. In addition, subgroups of filters can exist.
+ * For example: filter1 AND filter2 AND (filter3 OR filter4)
+ * <p>
+ * See the {@link Filter} class for more details on filter contents.
  */
 public class FilterCollection
 {
@@ -42,7 +38,7 @@ public class FilterCollection
 	private Logger logger = null;
 	
 	/**
-	 * Constructor.
+	 * Class constructor.
 	 */
 	public FilterCollection ()
 	{
@@ -74,9 +70,9 @@ public class FilterCollection
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the filter collection.
+	 * Gets the filter collection.
 	 * 
-	 * @return The filter collection.
+	 * @return collection of all filters as a list
 	 */
 	public List<Filter> getFilters ()
 	{
@@ -84,9 +80,9 @@ public class FilterCollection
 	}
 	
 	/**
-	 * Add a filter to the filter collection.
+	 * Adds a filter to the filter collection.
 	 * 
-	 * @param filter The filter to be added.
+	 * @param filter filter to be added
 	 */
 	public void addFilter (Filter filter)
 	{
@@ -94,9 +90,9 @@ public class FilterCollection
 	}
 	
 	/**
-	 * Get the result list of displayable tracks.
+	 * Gets the result list of displayable tracks.
 	 * 
-	 * @return Result list of tracks in setTableData() format.
+	 * @return list of filtered tracks in <code>setTableData</code> format
 	 */
 	public List<Track> getFilteredTracks ()
 	{
@@ -106,9 +102,12 @@ public class FilterCollection
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Filter the list of tracks based on the list of filters.
+	 * Filters the list of tracks based on the set of filters. The resulting
+	 * list of tracks can be retrieved using the <code>getFilteredTracks</code>
+	 * method.
 	 * 
-	 * @throws FilterException 
+	 * @throws FilterException If an exception occurs because the filter 
+	 * logic is too complex.
 	 */
 	public void executeFilterList () 
 			throws FilterException
@@ -207,9 +206,10 @@ public class FilterCollection
 	}
 	
 	/**
-	 * Return the set of filters as a string.
+	 * Returns the set of filters as a string. This is used  when saving or 
+	 * printing the results of a query.
 	 * 
-	 * @return String representation of the set of filters.
+	 * @return string representation of the set of filters 
 	 */
 	public String getFiltersAsString ()
 	{

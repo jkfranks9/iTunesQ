@@ -8,7 +8,6 @@ import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
-import org.apache.pivot.wtk.ActivityIndicator;
 import org.apache.pivot.wtk.Alert;
 import org.apache.pivot.wtk.Application;
 import org.apache.pivot.wtk.Border;
@@ -31,12 +30,28 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that represents a Pivot application.
- * 
- * This is the main class for the application. The startup() method is called when the application
- * starts. Its primary job is to manage the Pivot UI.
+ * Class that represents the Pivot application for the iTunes Query Tool.
+ * <p>
+ * This application operates on the XML file containing iTunes library tracks
+ * and playlists. The XML file is exported by the iTunes application. As such,
+ * this application does not have access to the actual iTunes songs, album art,
+ * and so on. The layout of, and access to, all that stuff is proprietary.
+ * <p>
+ * What this application provides is the following:
+ * <ul>
+ * <li>show all tracks in the library</li>
+ * <li>show all playlists in the library as a tree</li>
+ * <li>query tracks using a collection of filters</li>
+ * <li>compare two or more playlists</li>
+ * <li>save or print the results of a track or playlist query</li>
+ * </ul>
+ * <p>
+ * This is the main class for the application. The <code>startup</code> method
+ * is called when the application starts. Its primary job is to manage the 
+ * Pivot UI.
  * 
  * @author Jon
+ * @see <a href="http://pivot.apache.org/">Apache Pivot</a> 
  *
  */
 public class MainWindow implements Application 
@@ -56,7 +71,6 @@ public class MainWindow implements Application
 	@BXML private MenuBar mainMenuBar = null;
 	@BXML private Menu mainFileMenu = null;
 	@BXML private Menu mainEditMenu = null;
-	@BXML private Border primaryBorder = null;
 	@BXML private Border infoBorder = null;
 	@BXML private TablePane infoTablePane = null;
     @BXML private Label titleLabel = null;
@@ -74,10 +88,9 @@ public class MainWindow implements Application
     @BXML private PushButton viewPlaylistsButton = null;
     @BXML private PushButton queryTracksButton = null;
     @BXML private PushButton queryPlaylistsButton = null;
-    @BXML private ActivityIndicator activityIndicator = null;
     
     /**
-     * Constructor.
+     * Class constructor.
      */
     public MainWindow ()
     {
@@ -150,11 +163,12 @@ public class MainWindow implements Application
     //---------------- Public methods --------------------------------------
 
     /**
-     * Startup method that gets control when the application is launched.
+     * Starts up the application when it's launched.
      * 
-     * @param display Display object for managing windows.
-     * @param properties Properties passed to the application.
-     * @throws Exception
+     * @param display display object for managing windows
+     * @param properties properties passed to the application
+     * @throws Exception If an exception occurs by the thread that reads the 
+     * iTunes XML file.
      */
     @Override
     public void startup (Display display, Map<String, String> properties) 
@@ -372,7 +386,6 @@ public class MainWindow implements Application
     	Thread xmlThread = null;
     	if (xmlFileExists == true)
     	{
-    		activityIndicator.setActive(true);
     		
     		/*
     		 * Process the XML file in a new thread.
@@ -400,8 +413,6 @@ public class MainWindow implements Application
         	{
         		throw exception;
         	}
-        	
-    		activityIndicator.setActive(false);
     		
     		/*
     		 * Update the main window information based on the XML file contents.
@@ -419,10 +430,11 @@ public class MainWindow implements Application
     }
 
     /**
-     * The application is shutting down.
+     * Shuts down the application.
      * 
-     * @param optional Indicates if the shutdown is optional.
-     * @return true if further shutdown is optional, false otherwise.
+     * @param optional indicates if the shutdown is optional
+     * @return <code>true</code> if further shutdown is optional, otherwise
+     * <code>false</code>
      */
     @Override
     public boolean shutdown (boolean optional) 
@@ -437,20 +449,26 @@ public class MainWindow implements Application
         return false;
     }
 
+    /**
+     * Suspends the application (this method is not used).
+     */
     @Override
     public void suspend () 
     {
     }
 
+    /**
+     * Resumes the application (this method is not used).
+     */
     @Override
     public void resume () 
     {
     }
 
     /**
-     * Main application entry.
+     * Specifies the main application entry point.
      * 
-     * @param args Arguments.
+     * @param args program arguments
      */
     public static void main (String[] args) 
     {
@@ -484,9 +502,6 @@ public class MainWindow implements Application
         mainEditMenu = 
         		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
 		components.add(mainEditMenu);
-        primaryBorder = 
-        		(Border)windowSerializer.getNamespace().get("primaryBorder");
-		components.add(primaryBorder);
         infoBorder = 
         		(Border)windowSerializer.getNamespace().get("infoBorder");
 		components.add(infoBorder);
@@ -538,8 +553,5 @@ public class MainWindow implements Application
 		queryPlaylistsButton = 
         		(PushButton)windowSerializer.getNamespace().get("queryPlaylistsButton");
 		components.add(queryPlaylistsButton);
-        activityIndicator = 
-        		(ActivityIndicator)windowSerializer.getNamespace().get("activityIndicator");
-		components.add(activityIndicator);
     }
 }            

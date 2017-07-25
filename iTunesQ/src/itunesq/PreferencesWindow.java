@@ -74,7 +74,6 @@ public class PreferencesWindow
 	/*
 	 * BXML variables.
 	 */
-	@BXML private Border primaryBorder = null;
 	@BXML private TabPane tabPane = null;
 	@BXML private Border bypassPrefsBorder = null;
 	@BXML private BoxPane bypassPrefsBoxPane = null;
@@ -163,7 +162,6 @@ public class PreferencesWindow
 	@BXML private BoxPane actionBoxPane = null;
 	@BXML private PushButton preferencesDoneButton = null;
 
-	@BXML private Border previewPrimaryBorder = null;
 	@BXML private Border previewTextBorder = null;
 	@BXML private BoxPane previewTextBoxPane = null;
 	@BXML private Label previewTextLabel = null;
@@ -176,10 +174,11 @@ public class PreferencesWindow
 	@BXML private PushButton previewButton = null;
 	
 	/**
-	 * Constructor.
+	 * Class constructor specifying the preferences sheet and the associated
+	 * owning window.
 	 * 
-	 * @param preferences Preferences sheet.
-	 * @param owner Owning window.
+	 * @param preferences preferences sheet
+	 * @param owner owning window
 	 */
 	public PreferencesWindow (Sheet preferences, MenuBars owner)
 	{
@@ -214,11 +213,12 @@ public class PreferencesWindow
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Display the user preferences in a new window.
+	 * Displays the user preferences in a new window.
 	 * 
-	 * @param display Display object for managing windows.
-	 * @throws IOException
-	 * @throws SerializationException
+	 * @param display display object for managing windows
+	 * @throws IOException If an exception occurs trying to read the BXML file.
+	 * @throws SerializationException If an exception occurs trying to 
+	 * deserialize the BXML file.
 	 */
     public void displayPreferences (Display display) 
     		throws IOException, SerializationException
@@ -2282,9 +2282,6 @@ public class PreferencesWindow
         preferencesSheet = 
         		(Sheet)prefsWindowSerializer.readObject(getClass().getResource("preferencesWindow.bxml"));
 
-        primaryBorder = 
-        		(Border)prefsWindowSerializer.getNamespace().get("primaryBorder");
-		components.add(primaryBorder);
         tabPane = 
         		(TabPane)prefsWindowSerializer.getNamespace().get("tabPane");
 		components.add(tabPane);
@@ -2446,9 +2443,6 @@ public class PreferencesWindow
     	skinPreviewDialog = (Dialog)dialogSerializer.readObject(getClass().
 				getResource("skinPreviewWindow.bxml"));
 
-		previewPrimaryBorder = 
-        		(Border)dialogSerializer.getNamespace().get("previewPrimaryBorder");
-		components.add(previewPrimaryBorder);
 		previewTextBorder = 
         		(Border)dialogSerializer.getNamespace().get("previewTextBorder");
 		components.add(previewTextBorder);

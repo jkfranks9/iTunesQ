@@ -10,6 +10,8 @@ import ch.qos.logback.classic.Logger;
 
 /**
  * Class that performs various operations on a collection of playlists.
+ * <p>
+ * This is a final class consisting entirely of <code>static</code> methods.
  * 
  * @author Jon
  *
@@ -26,7 +28,7 @@ public final class PlaylistCollection
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Initialize logging. This is called once at application initialization.
+	 * Initializes logging. This is called once at application initialization.
 	 */
 	public static void initializeLogging ()
 	{
@@ -34,10 +36,11 @@ public final class PlaylistCollection
 	}
 	
 	/**
-	 * Determine if a playlist should be ignored.
+	 * Determines if a playlist should be ignored.
 	 * 
-	 * @param playlistName Name of the playlist to check.
-	 * @return true if the playlist should be ignored, false otherwise.
+	 * @param playlistName name of the playlist to check
+	 * @return <code>true</code> if the playlist should be ignored, 
+	 * otherwise <code>false</code>
 	 */
 	public static boolean isPlaylistIgnored (String playlistName)
 	{
@@ -71,7 +74,8 @@ public final class PlaylistCollection
 	}
 	
 	/**
-	 * Find and mark all playlists for which we don't want to update track playlist info.
+	 * Finds and marks all playlists for which we don't want to update track 
+	 * playlist info. Such a playlist is also known as bypassed.
 	 */
 	public static void markPlaylists ()
 	{
@@ -119,7 +123,7 @@ public final class PlaylistCollection
 	}
 	
 	/**
-	 * Update the track playlist info for all playlists.
+	 * Updates the track playlist info for all playlists that are not ignored.
 	 */
 	public static void updateTrackPlaylistInfo ()
 	{

@@ -35,7 +35,9 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that handles the query playlists window.
+ * Class that handles the query playlists window. This window allows the user
+ * to compare a set of playlists. For example, this can be used to find 
+ * intersecting tracks on multiple playlists.
  * 
  * @author Jon
  *
@@ -54,9 +56,9 @@ public class QueryPlaylistsWindow
 	private boolean evaluateComparisonNeeded = true;
 	private String queryStr = null;
 
-	Set<PlaylistComparisonTrack> allIDs;
-	Set<PlaylistComparisonTrack> someIDs;
-	Set<PlaylistComparisonTrack> oneIDs;
+	private Set<PlaylistComparisonTrack> allIDs;
+	private Set<PlaylistComparisonTrack> someIDs;
+	private Set<PlaylistComparisonTrack> oneIDs;
 	
 	/*
 	 * BXML variables.
@@ -64,7 +66,6 @@ public class QueryPlaylistsWindow
 	@BXML private MenuBar mainMenuBar = null;
 	@BXML private Menu mainFileMenu = null;
 	@BXML private Menu mainEditMenu = null;
-	@BXML private Border primaryBorder = null;
 	@BXML private Border compareBorder = null;
 	@BXML private BoxPane compareBoxPane = null;
 	@BXML private Label compareBorderLabel = null;
@@ -85,7 +86,7 @@ public class QueryPlaylistsWindow
 	}
     
     /**
-     * Constructor.
+     * Class constructor.
      */
     public QueryPlaylistsWindow ()
     {
@@ -123,11 +124,12 @@ public class QueryPlaylistsWindow
     //---------------- Public methods --------------------------------------
     
 	/**
-	 * Display the query playlists in a new window.
+	 * Displays the query playlists in a new window.
 	 * 
-	 * @param display Display object for managing windows.
-	 * @throws IOException
-	 * @throws SerializationException
+	 * @param display display object for managing windows
+	 * @throws IOException If an exception occurs trying to read the BXML file.
+	 * @throws SerializationException If an exception occurs trying to 
+	 * deserialize the BXML file.
 	 */
     public void displayQueryPlaylists (Display display) 
     		throws IOException, SerializationException
@@ -902,9 +904,6 @@ public class QueryPlaylistsWindow
         mainEditMenu = 
         		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
 		components.add(mainEditMenu);
-        primaryBorder = 
-        		(Border)windowSerializer.getNamespace().get("primaryBorder");
-		components.add(primaryBorder);
         compareBorder = 
         		(Border)windowSerializer.getNamespace().get("compareBorder");
 		components.add(compareBorder);

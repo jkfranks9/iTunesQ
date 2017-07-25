@@ -1,17 +1,20 @@
 package itunesq;
 
 /**
- * Class representing a track resulting from a comparison of two or more playlists. Such a comparison
- * has three possible results:
- * 
- * 1) A track exists in all compared playlists.
- * 2) A track exists in some, but not all, compared playlists.
- * 3) A track exists in only one playlist.
- * 
- * The algorithm that determines these results first sorts tracks from all compared playlists into
- * the second and third cases above. It then looks in the 'some' list for any tracks that really belong
- * in the 'all' list. To do this, it needs to know the number of playlists in which the track was found.
- * That is the reason for this class: to keep a playlist count for a given track ID.
+ * Class that represents a track resulting from a comparison of two or more 
+ * playlists. Such a comparison has three possible results:
+ * <ol>
+ * <li>A track exists in all compared playlists</li>
+ * <li>A track exists in some, but not all, compared playlists</li>
+ * <li>A track exists in only one playlist</li>
+ * </ol>
+ * <p>
+ * The algorithm that determines these results first sorts tracks from all 
+ * compared playlists into the second and third cases above. It then looks 
+ * in the 'some' list for any tracks that really belong in the 'all' list. 
+ * To do this, it needs to know the number of playlists in which the track was 
+ * found. That is the reason for this class: to keep a playlist count for a 
+ * given track ID.
  * 
  * @author Jon
  *
@@ -24,12 +27,19 @@ public class PlaylistComparisonTrack
 	private Integer trackID;
 	private Integer playlistCount;
 	
+	/**
+	 * Class constructor.
+	 */
+	public PlaylistComparisonTrack ()
+	{
+	}
+	
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the track ID.
+	 * Gets the track ID.
 	 * 
-	 * @return Track ID.
+	 * @return track ID
 	 */
 	public Integer getTrackID()
 	{
@@ -37,9 +47,9 @@ public class PlaylistComparisonTrack
 	}
 	
 	/**
-	 * Set the track ID.
+	 * Sets the track ID.
 	 * 
-	 * @param trackID Track ID.
+	 * @param trackID track ID
 	 */
 	public void setTrackID(Integer trackID)
 	{
@@ -47,9 +57,9 @@ public class PlaylistComparisonTrack
 	}
 	
 	/**
-	 * Get the playlist count.
+	 * Gets the playlist count.
 	 * 
-	 * @return Playlist count.
+	 * @return playlist count
 	 */
 	public Integer getPlaylistCount()
 	{
@@ -57,9 +67,9 @@ public class PlaylistComparisonTrack
 	}
 	
 	/**
-	 * Set the playlist count.
+	 * Sets the playlist count.
 	 * 
-	 * @param playlistCount Playlist count.
+	 * @param playlistCount playlist count
 	 */
 	public void setPlaylistCount(Integer playlistCount)
 	{

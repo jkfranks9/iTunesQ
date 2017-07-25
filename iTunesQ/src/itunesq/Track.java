@@ -19,14 +19,19 @@ public class Track
     //---------------- Class variables -------------------------------------
 	
 	/**
-	 * Definition of the map key to obtain playlists for a track, used in TracksWindow.
-	 * 
-	 * NOTE: We can have more columns than are displayed. The MAP_PLAYLISTS column is not displayed 
-	 * as such. It holds playlist names that are displayed on the right side of a split pane when
-	 * the results of a track query are displayed. Likewise, MAP_BYPASSED indicates when such playlist
-	 * names are bypassed.
+	 * Map key to obtain playlists for a track.
+	 * <p>
+	 * This is a column definition, but is not displayed as such. It holds 
+	 * playlist names that are displayed on the right side of a split pane 
+	 * when the results of a track query are displayed.
 	 */
 	public static final String MAP_PLAYLISTS  = "Playlists";
+	
+	/**
+	 * Map key to obtain bypassed playlists for a track.
+	 * <p>
+	 * This is a column definition, but is not displayed as such.
+	 */
 	public static final String MAP_BYPASSED  = "Bypassed";
 	
 	/*
@@ -59,7 +64,7 @@ public class Track
 	private static final int RATING_DIVISOR = 20;
 	
 	/**
-	 * Constructor.
+	 * Class constructor specifying the track ID.
 	 * 
 	 * @param ID Track ID.
 	 */
@@ -72,9 +77,9 @@ public class Track
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the track ID.
+	 * Gets the track ID.
 	 * 
-	 * @return Track ID.
+	 * @return track ID
 	 */
 	public int getID ()
 	{
@@ -82,9 +87,9 @@ public class Track
 	}
 
 	/**
-	 * Get the track name.
+	 * Gets the track name.
 	 * 
-	 * @return Track name.
+	 * @return track name
 	 */
 	public String getName ()
 	{
@@ -92,9 +97,9 @@ public class Track
 	}
 
 	/**
-	 * Set the track name.
+	 * Sets the track name.
 	 * 
-	 * @param name Track name.
+	 * @param name track name
 	 */
 	public void setName (String name)
 	{
@@ -102,9 +107,9 @@ public class Track
 	}
 
 	/**
-	 * Get the artist name.
+	 * Gets the artist name.
 	 * 
-	 * @return Artist name.
+	 * @return artist name
 	 */
 	public String getArtist ()
 	{
@@ -112,27 +117,37 @@ public class Track
 	}
 
 	/**
-	 * Set the artist name.
+	 * Sets the artist name.
 	 * 
-	 * @param name Artist name.
+	 * @param artist artist name
 	 */
 	public void setArtist (String artist)
 	{
 		this.trkArtist = artist;
 	}
 	
+	/**
+	 * Gets the composer name.
+	 * 
+	 * @return composer name
+	 */
 	public String getComposer() {
 		return trkComposer;
 	}
 
+	/**
+	 * Sets the composer name.
+	 * 
+	 * @param composer composer name
+	 */
 	public void setComposer(String composer) {
 		this.trkComposer = composer;
 	}
 
 	/**
-	 * Get the album name.
+	 * Gets the album name.
 	 * 
-	 * @return Album name.
+	 * @return album name
 	 */
 	public String getAlbum ()
 	{
@@ -140,27 +155,36 @@ public class Track
 	}
 
 	/**
-	 * Set the album name.
+	 * Sets the album name.
 	 * 
-	 * @param name Album name.
+	 * @param album album name
 	 */
 	public void setAlbum (String album)
 	{
 		this.trkAlbum = album;
 	}
 
+	/**
+	 * Gets the genre.
+	 * 
+	 * @return genre
+	 */
 	public String getGenre() {
 		return trkGenre;
 	}
 
+	/**
+	 * Sets the genre.
+	 * @param genre genre
+	 */
 	public void setGenre(String genre) {
 		this.trkGenre = genre;
 	}
 
 	/**
-	 * Get the kind of track.
+	 * Gets the kind of track.
 	 * 
-	 * @return Track kind.
+	 * @return kind of track
 	 */
 	public String getKind ()
 	{
@@ -168,27 +192,37 @@ public class Track
 	}
 
 	/**
-	 * Set the kind of track.
+	 * Sets the kind of track.
 	 * 
-	 * @param name Track kind.
+	 * @param kind kind of track
 	 */
 	public void setKind (String kind)
 	{
 		this.trkKind = kind;
 	}
 
+	/**
+	 * Gets the size of the track in bytes.
+	 * 
+	 * @return size of the track
+	 */
 	public int getSize() {
 		return trkSize;
 	}
 
+	/**
+	 * Sets the size of the track in bytes.
+	 * 
+	 * @param size size of the track
+	 */
 	public void setSize(int size) {
 		this.trkSize = size;
 	}
 
 	/**
-	 * Get the duration of the track.
+	 * Gets the duration of the track.
 	 * 
-	 * @return Duration of the track.
+	 * @return duration of the track
 	 */
 	public int getDuration ()
 	{
@@ -196,9 +230,9 @@ public class Track
 	}
 
 	/**
-	 * Set the duration of the track.
+	 * Sets the duration of the track.
 	 * 
-	 * @param name Duration of the track.
+	 * @param duration duration of the track
 	 */
 	public void setDuration (int duration)
 	{
@@ -206,9 +240,9 @@ public class Track
 	}
 
 	/**
-	 * Get the track year of release.
+	 * Gets the year of release.
 	 * 
-	 * @return Year of release.
+	 * @return year of release
 	 */
 	public int getYear ()
 	{
@@ -216,27 +250,37 @@ public class Track
 	}
 
 	/**
-	 * Set the track year of release.
+	 * Sets the year of release.
 	 * 
-	 * @param name Year of release.
+	 * @param year year of release
 	 */
 	public void setYear (int year)
 	{
 		this.trkYear = year;
 	}
 
+	/**
+	 * Gets the modification date.
+	 * 
+	 * @return modification date
+	 */
 	public Date getModified() {
 		return trkModified;
 	}
 
+	/**
+	 * Sets the modification date.
+	 * 
+	 * @param modified modification date
+	 */
 	public void setModified(Date modified) {
 		this.trkModified = modified;
 	}
 
 	/**
-	 * Get the date the track was added.
+	 * Gets the date the track was added.
 	 * 
-	 * @return the Date the track was added.
+	 * @return date the track was added
 	 */
 	public Date getDateAdded ()
 	{
@@ -244,51 +288,92 @@ public class Track
 	}
 
 	/**
-	 * Set the date the track was added.
+	 * Sets the date the track was added.
 	 * 
-	 * @param name Date the track was added.
+	 * @param dateAdded date the track was added
 	 */
 	public void setDateAdded (Date dateAdded)
 	{
 		this.trkDateAdded = dateAdded;
 	}
 
+	/**
+	 * Gets the bit rate.
+	 * 
+	 * @return bit rate
+	 */
 	public int getBitRate() {
 		return trkBitRate;
 	}
 
+	/**
+	 * Sets the bit rate.
+	 * 
+	 * @param bitRate bit rate
+	 */
 	public void setBitRate(int bitRate) {
 		this.trkBitRate = bitRate;
 	}
 
+	/**
+	 * Gets the sample rate.
+	 * 
+	 * @return sample rate
+	 */
 	public int getSampleRate() {
 		return trkSampleRate;
 	}
 
+	/**
+	 * Sets the sample rate.
+	 * 
+	 * @param sampleRate sample rate
+	 */
 	public void setSampleRate(int sampleRate) {
 		this.trkSampleRate = sampleRate;
 	}
 
+	/**
+	 * Gets the play count.
+	 * 
+	 * @return play count
+	 */
 	public int getPlayCount() {
 		return trkPlayCount;
 	}
 
+	/**
+	 * Sets the play count.
+	 * 
+	 * @param playCount play count
+	 */
 	public void setPlayCount(int playCount) {
 		this.trkPlayCount = playCount;
 	}
 
+	/**
+	 * Gets the release date.
+	 * 
+	 * @return release date
+	 */
 	public Date getReleased() {
 		return trkReleased;
 	}
 
+	/**
+	 * Sets the release date.
+	 * 
+	 * @param released release date
+	 */
 	public void setReleased(Date released) {
 		this.trkReleased = released;
 	}
 
 	/**
-	 * Get the raw track rating. This is the uncorrected rating as exists in the XML file.
+	 * Gets the track rating. This is the uncorrected rating as exists in the
+	 * XML file.
 	 * 
-	 * @return Track rating.
+	 * @return track rating
 	 */
 	public int getRawRating ()
 	{
@@ -296,9 +381,10 @@ public class Track
 	}
 
 	/**
-	 * Get the corrected track rating. This is the rating divided by RATING_DIVISOR.
+	 * Gets the corrected track rating. This is the rating divided by 
+	 * <code>RATING_DIVISOR</code>.
 	 * 
-	 * @return Track rating.
+	 * @return corrected track rating
 	 */
 	public int getCorrectedRating ()
 	{
@@ -306,9 +392,9 @@ public class Track
 	}
 
 	/**
-	 * Set the track rating.
+	 * Sets the track rating.
 	 * 
-	 * @param name track rating.
+	 * @param rating track rating
 	 */
 	public void setRating (int rating)
 	{
@@ -318,9 +404,10 @@ public class Track
     //---------------- Public methods --------------------------------------
 
 	/**
-	 * Get the track playlist count. This only includes playlists that are not bypassed.
+	 * Gets the track playlist count. This only includes playlists that are 
+	 * not bypassed.
 	 * 
-	 * @return The track playlist count.
+	 * @return track playlist count
 	 */
 	public int getTrkPlaylistCount()
 	{
@@ -341,9 +428,9 @@ public class Track
 	}
 
 	/**
-	 * Add playlist info to the track.
+	 * Adds playlist info to the track.
 	 * 
-	 * @param playlistInfo Playlist info object.
+	 * @param playlistInfo playlist info
 	 */
 	public void addPlaylistInfoToTrack(TrackPlaylistInfo playlistInfo)
 	{
@@ -351,10 +438,12 @@ public class Track
 	}
 
 	/**
-	 * Comparison method for itqTrack, used for sorting. We sort by track name.
+	 * Compares a given track to this track, used for sorting. We sort by 
+	 * track name.
 	 * 
-	 * @param t2 Second track to be compared to this track.
-	 * @return Negative integer, zero, or positive integer as this is less than, equal to, or greater than the input.
+	 * @param t2 track to be compared to this track
+	 * @return negative value, zero, or positive value to indicate less than, 
+	 * equal to, or greater than, respectively
 	 */
 	public int compareTo (Track t2)
 	{
@@ -362,10 +451,10 @@ public class Track
 	}
 	
 	/**
-	 * Return a HashMap of the track attributes.
+	 * Returns a hash map of the track attributes.
 	 * 
-	 * @param trackNum Track number to include, if > 0.
-	 * @return HashMap of the track attributes.
+	 * @param trackNum track number to include, if greater than 0
+	 * @return hash map of the track attributes
 	 */
 	public HashMap<String, String> toDisplayMap (int trackNum)
 	{

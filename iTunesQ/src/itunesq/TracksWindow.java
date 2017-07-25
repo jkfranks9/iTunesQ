@@ -37,7 +37,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that handles the display tracks window.
+ * Class that handles the display tracks window. This window shows all tracks
+ * or a set of tracks resulting from a query.
  * 
  * @author Jon
  *
@@ -47,9 +48,26 @@ public class TracksWindow
 	
     //---------------- Public variables ------------------------------------
 	
+	/**
+	 * The type of query associated with the list of tracks.
+	 */
 	public enum QueryType
 	{
-		NONE(""), TRACKS("Query tracks"), PLAYLISTS("Query playlists");
+		
+		/**
+		 * the tracks list is not associated with a query
+		 */
+		NONE(""),
+		
+		/**
+		 * the tracks list is the result of a tracks query
+		 */
+		TRACKS("Query tracks"),
+		
+		/**
+		 * the tracks list is the result of a playlist query
+		 */
+		PLAYLISTS("Query playlists");
 		
 		private String displayValue;
 		
@@ -62,9 +80,9 @@ public class TracksWindow
 		}
 		
 		/**
-		 * Get the display value.
+		 * Gets the display value.
 		 * 
-		 * @return The enum display value.
+		 * @return <code>enum</code> display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -85,7 +103,6 @@ public class TracksWindow
 	@BXML private MenuBar mainMenuBar = null;
 	@BXML private Menu mainFileMenu = null;
 	@BXML private Menu mainEditMenu = null;
-	@BXML private Border primaryBorder = null;
 	@BXML private Border infoBorder = null;
 	@BXML private FillPane infoFillPane = null;
 	@BXML private Label numTracksLabel = null;
@@ -102,7 +119,7 @@ public class TracksWindow
 	@BXML private TablePane detailsTablePane = null;
     
     /**
-     * Constructor.
+     * Class constructor.
      */
     public TracksWindow ()
     {
@@ -134,14 +151,16 @@ public class TracksWindow
     //---------------- Public methods --------------------------------------
 
 	/**
-	 * Display the tracks in a new window.
+	 * Displays the tracks in a new window.
 	 * 
-	 * @param display Display object for managing windows.
-	 * @param tracks The list of tracks to be displayed.
-	 * @param queryType The type of query (if any) that generated the tracks to be displayed.
-	 * @param queryStr String representation of the query (if any), or null.
-	 * @throws IOException
-	 * @throws SerializationException
+	 * @param display display object for managing windows
+	 * @param tracks list of tracks to be displayed
+	 * @param queryType type of query (if any) that generated the tracks to be 
+	 * displayed
+	 * @param queryStr string representation of the query, or null
+	 * @throws IOException If an exception occurs trying to read the BXML file.
+	 * @throws SerializationException If an exception occurs trying to 
+	 * deserialize the BXML file.
 	 */
     public void displayTracks (Display display, List<Track> tracks, QueryType queryType, String queryStr) 
     		throws IOException, SerializationException
@@ -371,13 +390,15 @@ public class TracksWindow
     }
     
     /**
-     * Create the track info details dialog.
+     * Creates the track info details dialog.
+     * <p>
+     * This is called when the user right clicks on a track in a table view,
+     * for example the filtered tracks window, or the list of tracks in a 
+     * selected playlist. 
      * 
-     * This is called when the user right clicks on a track in a table view, for example the filtered
-     * tracks window, or the list of tracks in a selected playlist. 
-     * 
-     * @param trackRowData Map of the track data from the table view row that was clicked.
-     * @param display Display for opening the dialog.
+     * @param trackRowData map of the track data from the table view row that
+     * was clicked
+     * @param display display for opening the dialog
      */
     public void handleTrackDetailsPopup (Map<String, String> trackRowData, Display display)
     {
@@ -442,9 +463,9 @@ public class TracksWindow
     }
     
     /**
-     * Get the list of tracks table data for a filtered list of tracks.
+     * Gets the list of tracks table data for a filtered list of tracks.
      * 
-     * @return List of track data.
+     * @return list of tracks table data
      */
     @SuppressWarnings("unchecked")
 	public List<HashMap<String, String>> getFilteredTrackData ()
@@ -588,9 +609,6 @@ public class TracksWindow
         mainEditMenu = 
         		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
 		components.add(mainEditMenu);
-        primaryBorder = 
-        		(Border)windowSerializer.getNamespace().get("primaryBorder");
-		components.add(primaryBorder);
         infoBorder = 
         		(Border)windowSerializer.getNamespace().get("infoBorder");
 		components.add(infoBorder);

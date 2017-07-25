@@ -36,9 +36,9 @@ public final class Preferences implements Serializable
 	private static transient Preferences instance = null;
 	
 	/**
-	 * Get the singleton instance.
+	 * Gets the singleton instance.
 	 * 
-	 * @return Class instance.
+	 * @return singleton class instance
 	 */
 	public static Preferences getInstance ()
 	{
@@ -55,13 +55,16 @@ public final class Preferences implements Serializable
 	/*
 	 * Serialized file directory constants.
 	 * 
-	 * (Of course only of these is public, but I like to put public variables first, and I need to
+	 * (Of course only one of these is public, but I like to put public variables first, and I need to
 	 * define the private variables before the public one.) 
 	 */
 	
 	private static transient final String HOME_ENV = System.getenv("HOME");
 	private static transient final String DEFAULT_PREFS_PATH = "itq";
 	
+	/**
+	 * Default save directory for things like preferences and log files.
+	 */
 	public static transient final String DEFAULT_SAVE_DIRECTORY = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
 
     //---------------- Class variables -------------------------------------
@@ -145,9 +148,9 @@ public final class Preferences implements Serializable
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the XML File name preference.
+	 * Gets the XML File name preference.
 	 * 
-	 * @return XML file name.
+	 * @return XML file name
 	 */
 	public String getXMLFileName ()
 	{
@@ -155,9 +158,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Set the XML File name preference.
+	 * Sets the XML File name preference.
 	 * 
-	 * @param xmlFile XML file name.
+	 * @param xmlFile XML file name
 	 */
 	public void setXMLFileName (String xmlFile)
 	{
@@ -165,9 +168,9 @@ public final class Preferences implements Serializable
 	}
 
 	/**
-	 * Get the list of bypass playlist preferences.
+	 * Gets the list of bypass playlist preferences.
 	 * 
-	 * @return Bypass playlist preferences list.
+	 * @return list of bypass playlist preferences
 	 */
 	public List<BypassPreference> getBypassPrefs ()
 	{
@@ -175,9 +178,9 @@ public final class Preferences implements Serializable
 	}
 
 	/**
-	 * Get the list of ignored playlist preferences.
+	 * Gets the list of ignored playlist preferences.
 	 * 
-	 * @return Ignored playlist preferences list.
+	 * @return list of ignored playlist preferences
 	 */
 	public List<String> getIgnoredPrefs ()
 	{
@@ -185,9 +188,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the full tracks column preferences.
+	 * Gets the list of full tracks column preferences.
 	 * 
-	 * @return List of full tracks column preferences.
+	 * @return list of full tracks column preferences
 	 */
 	public List<List<String>> getTrackColumnsFullView()
 	{
@@ -195,9 +198,9 @@ public final class Preferences implements Serializable
 	}
 
 	/**
-	 * Set the full tracks column preferences.
+	 * Sets the list of full tracks column preferences.
 	 * 
-	 * @param trackColumnsFullView List of full tracks column preferences.
+	 * @param trackColumnsFullView list of full tracks column preferences
 	 */
 	public void setTrackColumnsFullView(List<List<String>> trackColumnsFullView)
 	{
@@ -205,9 +208,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the filtered tracks column preferences.
+	 * Gets the list of filtered tracks column preferences.
 	 * 
-	 * @return List of filtered tracks column preferences.
+	 * @return list of filtered tracks column preferences
 	 */
 	public List<List<String>> getTrackColumnsFilteredView()
 	{
@@ -215,9 +218,9 @@ public final class Preferences implements Serializable
 	}
 
 	/**
-	 * Set the filtered tracks column preferences.
+	 * Sets the list of filtered tracks column preferences.
 	 * 
-	 * @param trackColumnsFilteredView List of filtered tracks column preferences.
+	 * @param trackColumnsFilteredView list of filtered tracks column preferences
 	 */
 	public void setTrackColumnsFilteredView(List<List<String>> trackColumnsFilteredView)
 	{
@@ -225,9 +228,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the playlist tracks column preferences.
+	 * Gets the list of playlist tracks column preferences.
 	 * 
-	 * @return List of playlist tracks column preferences.
+	 * @return list of playlist tracks column preferences
 	 */
 	public List<List<String>> getTrackColumnsPlaylistView()
 	{
@@ -235,9 +238,9 @@ public final class Preferences implements Serializable
 	}
 
 	/**
-	 * Set the playlist tracks column preferences.
+	 * Sets the list of playlist tracks column preferences.
 	 * 
-	 * @param trackColumnsPlaylistView List of playlist tracks column preferences.
+	 * @param trackColumnsPlaylistView list of playlist tracks column preferences
 	 */
 	public void setTrackColumnsPlaylistView(List<List<String>> trackColumnsPlaylistView)
 	{
@@ -245,9 +248,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the skin name.
+	 * Gets the skin name.
 	 * 
-	 * @return Skin name.
+	 * @return skin name
 	 */
 	public String getSkinName ()
 	{
@@ -255,9 +258,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Set the skin name.
+	 * Sets the skin name.
 	 * 
-	 * @param skin Skin name.
+	 * @param skin skin name
 	 */
 	public void setSkinName (String skin)
 	{
@@ -265,9 +268,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the maximum log history.
+	 * Gets the maximum log history.
 	 * 
-	 * @return Maximum log history.
+	 * @return maximum log history
 	 */
 	public int getMaxLogHistory ()
 	{
@@ -275,9 +278,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Set the maximum log history.
+	 * Sets the maximum log history.
 	 * 
-	 * @param maxLogHistory Maximum log history.
+	 * @param maxHistory maximum log history
 	 */
 	public void setMaxLogHistory (int maxHistory)
 	{
@@ -285,9 +288,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the global log level indicator.
+	 * Gets the global log level indicator.
 	 * 
-	 * @return true or false.
+	 * @return global log level indicator
 	 */
 	public boolean getGlobalLogLevel ()
 	{
@@ -295,19 +298,20 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Set the global log level indicator.
+	 * Sets the global log level indicator.
 	 * 
-	 * @param value true or false.
+	 * @param level global log level indicator
 	 */
-	public void setGlobalLogLevel (boolean value)
+	public void setGlobalLogLevel (boolean level)
 	{
-		globalLogLevel = value;
+		globalLogLevel = level;
 	}
 	
 	/**
-	 * Get the log level.
+	 * Gets the log level for a given logging dimension.
 	 * 
-	 * @return Log level.
+	 * @param dimension logging dimension
+	 * @return log level
 	 */
 	public Level getLogLevel (Logging.Dimension dimension)
 	{
@@ -316,9 +320,10 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Set the log level.
+	 * Sets the log level for a given logging dimension.
 	 * 
-	 * @param level Log level.
+	 * @param dimension logging dimension
+	 * @param level log level
 	 */
 	public void setLogLevel (Logging.Dimension dimension, Level level)
 	{
@@ -326,9 +331,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Get the preferences save directory.
+	 * Gets the preferences save directory.
 	 * 
-	 * @return Preferences save directory.
+	 * @return preferences save directory
 	 */
 	public static String getSaveDirectory ()
 	{
@@ -338,9 +343,9 @@ public final class Preferences implements Serializable
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Replace the list of bypass playlist preferences.
+	 * Replaces the list of bypass playlist preferences.
 	 * 
-	 * @param bypassPrefs List of new bypass playlist preferences.
+	 * @param bypassPrefs list of new bypass playlist preferences
 	 */
 	public void replaceBypassPrefs (List<BypassPreference> bypassPrefs)
 	{
@@ -355,9 +360,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Replace the list of ignored playlist preferences.
+	 * Replaces the list of ignored playlist preferences.
 	 * 
-	 * @param ignoredPrefs List of new ignored playlist preferences.
+	 * @param ignoredPrefs list of new ignored playlist preferences
 	 */
 	public void replaceIgnoredPrefs (List<String> ignoredPrefs)
 	{
@@ -372,9 +377,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Replace the list of full tracks column preferences.
+	 * Replaces the list of full tracks column preferences.
 	 * 
-	 * @param trackColumnsPrefs List of new tracks column preferences.
+	 * @param trackColumnsPrefs list of full tracks column preferences
 	 */
 	public void replaceTrackColumnsFullView (List<List<String>> trackColumnsPrefs)
 	{
@@ -389,9 +394,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Replace the list of filtered tracks column preferences.
+	 * Replaces the list of filtered tracks column preferences.
 	 * 
-	 * @param trackColumnsPrefs List of new tracks column preferences.
+	 * @param trackColumnsPrefs list of filtered tracks column preferences
 	 */
 	public void replaceTrackColumnsFilteredView (List<List<String>> trackColumnsPrefs)
 	{
@@ -406,9 +411,9 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Replace the list of playlist tracks column preferences.
+	 * Replaces the list of playlist tracks column preferences.
 	 * 
-	 * @param trackColumnsPrefs List of new tracks column preferences.
+	 * @param trackColumnsPrefs list of playlist tracks column preferences
 	 */
 	public void replaceTrackColumnsPlaylistView (List<List<String>> trackColumnsPrefs)
 	{
@@ -423,14 +428,14 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Set the preferences save directory, and move the existing preferences file to the new
-	 * directory.
+	 * Sets the preferences save directory, and moves the existing preferences 
+	 * file to the new directory.
+	 * <p>
+	 * Note that this method is called during initialization before our 
+	 * constructor. That's because the constructor registers a logger, which 
+	 * in turn requires the correct save directory to be set.
 	 * 
-	 * Note that this method is called during initialization before our constructor. That's because
-	 * the constructor registers a logger, which in turn requires the correct save directory to be
-	 * set.
-	 * 
-	 * @param directory Preferences save directory.
+	 * @param directory preferences save directory
 	 */
 	public static void updateSaveDirectory (String directory)
 	{
@@ -484,11 +489,12 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Initialize the logger for this class.
-	 * 
-	 * This cannot be done in the constructor, because calling registerLogger() from the
-	 * constructor would cause an endless loop, in turn because registerLogger() needs to
-	 * access this class.
+	 * Initializes the logger for this class.
+	 * <p>
+	 * This cannot be done in the constructor, because calling 
+	 * <code>registerLogger</code> from the constructor would cause an endless
+	 * loop, in turn because <code>registerLogger</code> needs to access 
+	 * this class.
 	 */
 	public void initializeLogging ()
 	{
@@ -513,10 +519,10 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Update the preferences from a preferences object. This is expected to be called after reading
-	 * the serialized preferences.
+	 * Updates the preferences from a preferences object. This is expected to 
+	 * be called after reading the serialized preferences.
 	 * 
-	 * @param prefs Deserialized preferences object.
+	 * @param prefs deserialized preferences object
 	 */
 	public void updatePreferences (Preferences prefs)
 	{
@@ -541,9 +547,9 @@ public final class Preferences implements Serializable
 	}
 
 	/**
-	 * Deserialize the preferences from disk.
+	 * Deserializes the preferences from disk.
 	 * 
-	 * @return Deserialized preferences.
+	 * @return deserialized preferences
 	 */
 	public Preferences readPreferences ()
 	{
@@ -572,7 +578,7 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Serialize the preferences to disk.
+	 * Serializes the preferences to disk.
 	 */
 	public void writePreferences ()
 	{

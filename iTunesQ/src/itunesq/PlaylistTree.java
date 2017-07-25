@@ -13,14 +13,16 @@ import ch.qos.logback.classic.Logger;
 
 /**
  * Class that represents a playlist tree.
- * 
- * There is one public method, createPlaylistTree(), that gathers the playlists into a form
- * suitable for the treeData field of a TreeView class. This in turn consists of a TreeBranch,
- * that is a list of items that are other TreeBranch lists, or are individual TreeNode objects,
- * that represent leaves in the tree.
- * 
- * There is no limit to the level of nesting of TreeBranch objects in the tree... he says
- * optimistically.
+ * <p>
+ * There is one primary method, <code>createPlaylistTree</code>, that gathers 
+ * the playlists into a form suitable for the <code>treeData</code> field of 
+ * a <code>TreeView</code> class. This in turn consists of a 
+ * <code>TreeBranch</code>, that is a list of items that are other 
+ * <code>TreeBranch</code> lists, or are individual <code>TreeNode</code> 
+ * objects, that represent leaves in the tree.
+ * <p>
+ * There is no limit to the level of nesting of <code>TreeBranch</code> 
+ * objects in the tree (he says optimistically).
  * 
  * @author Jon
  *
@@ -39,10 +41,17 @@ public final class PlaylistTree
 	 */
 	private static Map<String, Playlist> playlists = null;
 	
+	/**
+	 * Class constructor.
+	 */
+	public PlaylistTree ()
+	{
+	}
+	
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Initialize logging. This is called once at application initialization.
+	 * Initializes logging. This is called once at application initialization.
 	 */
 	public static void initializeLogging ()
 	{
@@ -50,9 +59,9 @@ public final class PlaylistTree
 	}
 	
 	/**
-	 * Create the tree of playlists.
+	 * Creates the tree of playlists.
 	 * 
-	 * return The tree branch of all playlists.
+	 * @return tree branch of all playlists
 	 */
 	public static TreeBranch createPlaylistTree ()
 	{

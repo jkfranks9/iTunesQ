@@ -32,7 +32,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that handles the display filters window.
+ * Class that handles the display filters window. This window allows the user
+ * to specify a collection of filters that query the set of all tracks.
  * 
  * @author Jon
  *
@@ -58,7 +59,6 @@ public class FiltersWindow
 	@BXML private MenuBar mainMenuBar = null;
 	@BXML private Menu mainFileMenu = null;
 	@BXML private Menu mainEditMenu = null;
-	@BXML private Border primaryBorder = null;
 	@BXML private Border filtersBorder = null;
 	@BXML private TablePane filterTablePane = null;
 	@BXML private Border actionBorder = null;
@@ -67,7 +67,7 @@ public class FiltersWindow
 	@BXML private PushButton queryDoneButton = null;
     
     /**
-     * Constructor.
+     * Class constructor.
      */
     public FiltersWindow ()
     {
@@ -105,11 +105,12 @@ public class FiltersWindow
     //---------------- Public methods --------------------------------------
     
 	/**
-	 * Display the filters in a new window.
+	 * Displays the filters in a new window.
 	 * 
-	 * @param display Display object for managing windows.
-	 * @throws IOException
-	 * @throws SerializationException
+	 * @param display display object for managing windows
+	 * @throws IOException If an exception occurs trying to read the BXML file.
+	 * @throws SerializationException If an exception occurs trying to 
+	 * deserialize the BXML file.
 	 */
     public void displayFilters (Display display) 
     		throws IOException, SerializationException
@@ -658,9 +659,6 @@ public class FiltersWindow
         mainEditMenu = 
         		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
 		components.add(mainEditMenu);
-        primaryBorder = 
-        		(Border)windowSerializer.getNamespace().get("primaryBorder");
-		components.add(primaryBorder);
         filtersBorder = 
         		(Border)windowSerializer.getNamespace().get("filtersBorder");
 		components.add(filtersBorder);

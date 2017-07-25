@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <itq:MenuBars maximized="true"
-    styles="{padding:{top:0, left:4, bottom:4, right:4}, showWindowControls:false}"
+    styles="{padding:{top:0, left:4, bottom:4, right:4}, showWindowControls:false, backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns:content="org.apache.pivot.wtk.content"
     xmlns:itq="itunesq"
@@ -54,114 +54,108 @@
         </MenuBar>
     </menuBar>
     
-    <!-- Primary window border. -->
-    <Border bxml:id="primaryBorder">
-    
-	    <!-- Lay out the window elements in a single column table pane. -->
-        <TablePane styles="{verticalSpacing:10, padding:10}">
-            <columns>
-                <TablePane.Column width="1*"/>
-            </columns>
+	<!-- Lay out the window elements in a single column table pane. -->
+    <TablePane styles="{verticalSpacing:10, padding:10}">
+        <columns>
+            <TablePane.Column width="1*"/>
+        </columns>
             
-			<!-- Informational elements row. -->
-            <TablePane.Row height="10*">
-			    <Border bxml:id="infoBorder">
+		<!-- Informational elements row. -->
+        <TablePane.Row height="10*">
+		    <Border bxml:id="infoBorder">
 			    
-			        <!-- Wrap the informational elements in a table pane. -->
-			        <TablePane bxml:id="infoTablePane">
-                        <columns>
-                            <TablePane.Column width="1*"/>
-                        </columns>
+		        <!-- Wrap the informational elements in a table pane. -->
+		        <TablePane bxml:id="infoTablePane">
+                    <columns>
+                        <TablePane.Column width="1*"/>
+                    </columns>
                     
-                        <TablePane.Row height="1*">
-		    	        	<FillPane orientation="horizontal">
-		    		        	<Label bxml:id="titleLabel" text="iTunes Query Tool"
-		          	  	        styles="{font:{bold:true, size:'200%'},
-		              		          horizontalAlignment:'center', verticalAlignment:'top'}"/>
-		                    </FillPane>
-		                </TablePane.Row>
+                    <TablePane.Row height="1*">
+	    	        	<FillPane orientation="horizontal">
+	    		        	<Label bxml:id="titleLabel" text="iTunes Query Tool"
+	          	  	        styles="{font:{bold:true, size:'200%'},
+	              		          horizontalAlignment:'center', verticalAlignment:'top'}"/>
+	                    </FillPane>
+	                </TablePane.Row>
                     
-                        <TablePane.Row height="1*">
-		    		        <SplitPane splitRatio="0.16" locked="true"
-		    		        	styles="{splitterThickness:0}">
-		    		        <left>
-		    			        <Label bxml:id="fileNameStaticLabel" text="XML File Name:"
-		                	  	    styles="{font:{bold:true}, padding:10,
-		                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                  	</left>
-		                  	<right>
-		    			        <Label bxml:id="fileNameLabel"
-		                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                	</right>
-		                    </SplitPane>
-		                </TablePane.Row>
+                    <TablePane.Row height="1*">
+	    		        <SplitPane splitRatio="0.16" locked="true"
+	    		        	styles="{splitterThickness:0}">
+	    		        <left>
+	    			        <Label bxml:id="fileNameStaticLabel" text="XML File Name:"
+	                	  	    styles="{font:{bold:true}, padding:10,
+	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                  	</left>
+	                  	<right>
+	    			        <Label bxml:id="fileNameLabel"
+	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                	</right>
+	                    </SplitPane>
+	                </TablePane.Row>
                     
-                        <TablePane.Row height="1*">
-		    		        <SplitPane splitRatio="0.16" locked="true"
-		    		        	styles="{splitterThickness:0}">
-		    		        <left>
-		    			        <Label bxml:id="fileDateStaticLabel" text="XML File Timestamp:"
-		                	  	    styles="{font:{bold:true}, padding:10,
-		                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                  	</left>
-		                  	<right>
-		    			        <Label bxml:id="fileDateLabel"
-		                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                	</right>
-		                    </SplitPane>
-		                </TablePane.Row>
+                    <TablePane.Row height="1*">
+	    		        <SplitPane splitRatio="0.16" locked="true"
+	    		        	styles="{splitterThickness:0}">
+	    		        <left>
+	    			        <Label bxml:id="fileDateStaticLabel" text="XML File Timestamp:"
+	                	  	    styles="{font:{bold:true}, padding:10,
+	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                  	</left>
+	                  	<right>
+	    			        <Label bxml:id="fileDateLabel"
+	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                	</right>
+	                    </SplitPane>
+	                </TablePane.Row>
                     
-                        <TablePane.Row height="1*">
-		    		        <SplitPane splitRatio="0.16" locked="true"
-		    		        	styles="{splitterThickness:0}">
-		    		        <left>
-		    			        <Label bxml:id="numTracksStaticLabel" text="Number of Tracks:"
-		                	  	    styles="{font:{bold:true}, padding:10,
-		                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                  	</left>
-		                  	<right>
-		    			        <Label bxml:id="numTracksLabel"
-		                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                	</right>
-		                    </SplitPane>
-		                </TablePane.Row>
+                    <TablePane.Row height="1*">
+	    		        <SplitPane splitRatio="0.16" locked="true"
+	    		        	styles="{splitterThickness:0}">
+	    		        <left>
+	    			        <Label bxml:id="numTracksStaticLabel" text="Number of Tracks:"
+	                	  	    styles="{font:{bold:true}, padding:10,
+	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                  	</left>
+	                  	<right>
+	    			        <Label bxml:id="numTracksLabel"
+	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                	</right>
+	                    </SplitPane>
+	                </TablePane.Row>
                     
-                        <TablePane.Row height="1*">
-		    		        <SplitPane splitRatio="0.16" locked="true"
-		    		        	styles="{splitterThickness:0}">
-		    		        <left>
-		    			        <Label bxml:id="numPlaylistsStaticLabel" text="Number of Playlists:"
-		                	  	    styles="{font:{bold:true}, padding:10,
-		                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                  	</left>
-		                  	<right>
-		    			        <Label bxml:id="numPlaylistsLabel"
-		                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-		                	</right>
-		                    </SplitPane>
-		                </TablePane.Row>
-	        	    </TablePane>
-	        	</Border>
-            </TablePane.Row>
+                    <TablePane.Row height="1*">
+	    		        <SplitPane splitRatio="0.16" locked="true"
+	    		        	styles="{splitterThickness:0}">
+	    		        <left>
+	    			        <Label bxml:id="numPlaylistsStaticLabel" text="Number of Playlists:"
+	                	  	    styles="{font:{bold:true}, padding:10,
+	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                  	</left>
+	                  	<right>
+	    			        <Label bxml:id="numPlaylistsLabel"
+	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	                	</right>
+	                    </SplitPane>
+	                </TablePane.Row>
+	       	    </TablePane>
+	       	</Border>
+        </TablePane.Row>
         	
-        	<!-- Action elements (buttons) row. -->
-            <TablePane.Row height="3*">
-			    <Border bxml:id="actionBorder">
-	                <BoxPane bxml:id="actionBoxPane" orientation="horizontal" 
-	                    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-	            	    <PushButton bxml:id="viewTracksButton" buttonData="View Tracks"
-	            	    	tooltipText="Show all tracks."/>
-	                	<PushButton bxml:id="viewPlaylistsButton" buttonData="View Playlists"
-	            	    	tooltipText="Show all playlists."/>
-	                	<PushButton bxml:id="queryTracksButton" buttonData="Query Tracks"
-	            	    	tooltipText="Use filters to select a group of tracks to display."/>
-	                	<PushButton bxml:id="queryPlaylistsButton" buttonData="Query Playlists"
-	            	    	tooltipText="Perform operations such as comparing playlist contents."/>
-	            	    <ActivityIndicator bxml:id="activityIndicator"
-                        	preferredWidth="48" preferredHeight="48"/>
-	        	    </BoxPane>
-	        	</Border>
-            </TablePane.Row>
-        </TablePane>
-    </Border>
+      	<!-- Action elements (buttons) row. -->
+        <TablePane.Row height="3*">
+		    <Border bxml:id="actionBorder">
+	            <BoxPane bxml:id="actionBoxPane" orientation="horizontal" 
+	                styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+	           	    <PushButton bxml:id="viewTracksButton" buttonData="View Tracks"
+	           	    	tooltipText="Show all tracks."/>
+	               	<PushButton bxml:id="viewPlaylistsButton" buttonData="View Playlists"
+	           	    	tooltipText="Show all playlists."/>
+	               	<PushButton bxml:id="queryTracksButton" buttonData="Query Tracks"
+	           	    	tooltipText="Use filters to select a group of tracks to display."/>
+	               	<PushButton bxml:id="queryPlaylistsButton" buttonData="Query Playlists"
+	           	    	tooltipText="Perform operations such as comparing playlist contents."/>
+	       	    </BoxPane>
+	       	</Border>
+        </TablePane.Row>
+    </TablePane>
 </itq:MenuBars>

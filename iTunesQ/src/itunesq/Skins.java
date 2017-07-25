@@ -32,6 +32,13 @@ import org.apache.pivot.wtk.TreeView;
 
 /**
  * Class that represents window skins. This is a singleton class.
+ * <p>
+ * Skins consist primarily of colors for elements of GUI widgets. Font is also
+ * included, but currently is rather pointless since it's the same for every
+ * skin.
+ * <p>
+ * A skin is a named entity that is a collection of HTML color codes that 
+ * complement each other, for an amazingly pleasant use experience.
  * 
  * @author Jon
  *
@@ -47,9 +54,9 @@ public class Skins
 	private static Skins instance = null;
 	
 	/**
-	 * Get the singleton instance.
+	 * Gets the singleton instance.
 	 * 
-	 * @return Class instance.
+	 * @return singleton class instance
 	 */
 	public static Skins getInstance ()
 	{
@@ -148,7 +155,8 @@ public class Skins
 	private String currentSkin;
 	
 	/**
-	 * The type of skin element, for example a border around a portion of the window.
+	 * The type of skin element, for example a border around a portion of the 
+	 * window.
 	 */
 	public enum Element
 	{
@@ -157,8 +165,58 @@ public class Skins
 		 * IMPORTANT: The constructor values must match the corresponding bitmask numbers in
 		 * the bitmasks for each component.
 		 */
-		BACKGROUND(1), ALTBACKGROUND(2), BORDER(4), BUTTON(8), TEXT(16), 
-		ALTTEXT(32), ACTIVE(64), INACTIVE(128), HEADER(256), FONT(512);
+		
+		/**
+		 * the background of an element
+		 */
+		BACKGROUND(1),
+		
+		/**
+		 * alternate background of an element, for example to differentiate
+		 * alternating rows of a table
+		 */
+		ALTBACKGROUND(2),
+		
+		/**
+		 * the border around an element or a collection of elements
+		 */
+		BORDER(4),
+		
+		/**
+		 * a button element
+		 */
+		BUTTON(8),
+		
+		/**
+		 * the text of an element
+		 */
+		TEXT(16),
+		
+		/**
+		 * alternate for the text of an element, for example a light color
+		 * for a dark background
+		 */
+		ALTTEXT(32),
+		
+		/**
+		 * an active (currently selected) element
+		 */
+		ACTIVE(64),
+		
+		/**
+		 * an inactive (previously selected) element
+		 */
+		INACTIVE(128),
+		
+		/**
+		 * a header element, for example a table header
+		 */
+		HEADER(256),
+		
+		/**
+		 * the font of an element
+		 */
+		FONT(512);
 		
 		private int maskValue;
 		private String elementValue;
@@ -172,9 +230,9 @@ public class Skins
 		}
 		
 		/**
-		 * Get the mask value.
+		 * Gets the mask value.
 		 * 
-		 * @return Mask value.
+		 * @return mask value
 		 */
 		public int getMaskValue ()
 		{
@@ -182,9 +240,9 @@ public class Skins
 		}
 		
 		/**
-		 * Get the element value.
+		 * Gets the element value.
 		 * 
-		 * @return Element value.
+		 * @return element value
 		 */
 		public String getElementValue ()
 		{
@@ -192,9 +250,9 @@ public class Skins
 		}
 		
 		/**
-		 * Set the element value.
+		 * Sets the element value.
 		 * 
-		 * @param value Element value.
+		 * @param value element value
 		 */
 		public void setElementValue (String value)
 		{
@@ -204,13 +262,54 @@ public class Skins
 	
 	/**
 	 * The specific window, for example the window showing the list of tracks.
+	 * The <code>enum</code> value is the title of the associated window.
 	 */
 	public enum Window
 	{
-		MAIN("iTunes Query Tool"), TRACKS("Tracks"), PLAYLISTS("Playlists"), 
-		FILTERS("Query Tracks"), QUERYPLAYLISTS("Query Playlists"),  
-		PREFERENCES("Preferences"), SKINPREVIEW("Preview"), 
-		TRACKPOPUP("Track Popup"), TRACKINFO("Track Info"),
+		
+		/**
+		 * main window
+		 */
+		MAIN("iTunes Query Tool"),
+		
+		/**
+		 * tracks window
+		 */
+		TRACKS("Tracks"),
+		
+		/**
+		 * playlists window
+		 */
+		PLAYLISTS("Playlists"),
+		
+		/**
+		 * filters (query tracks) window
+		 */
+		FILTERS("Query Tracks"),
+		
+		/**
+		 * query playlists window
+		 */
+		QUERYPLAYLISTS("Query Playlists"),
+		
+		/**
+		 * preferences window
+		 */
+		PREFERENCES("Preferences"),
+		
+		/**
+		 * skin preview window
+		 */
+		SKINPREVIEW("Preview"),
+		
+		/**
+		 * window that displays track details
+		 */
+		TRACKINFO("Track Info"),
+		
+		/**
+		 * file save window
+		 */
 		FILESAVE("File Save");
 		
 		private String displayValue;
@@ -224,9 +323,9 @@ public class Skins
 		}
 		
 		/**
-		 * Get the display value.
+		 * Gets the display value.
 		 * 
-		 * @return The enum display value.
+		 * @return <code>enum</code> display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -234,10 +333,10 @@ public class Skins
 		}
 		
 		/**
-		 * Reverse lookup the enum from the display value.
+		 * Reverse lookup the <code>enum</code> from the display value.
 		 * 
-		 * @param value The display value to look up.
-		 * @return The enum.
+		 * @param value display value to look up
+		 * @return <code>enum</code> value
 		 */
 		public static Window getEnum(String value)
 		{
@@ -362,9 +461,9 @@ public class Skins
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the current skin name.
+	 * Gets the current skin name.
 	 * 
-	 * @return Current skin name.
+	 * @return current skin name
 	 */
 	public String getCurrentSkinName ()
 	{
@@ -374,9 +473,9 @@ public class Skins
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Get the list of skin names.
+	 * Gets the list of skin names.
 	 * 
-	 * @return List of skin names.
+	 * @return list of skin names
 	 */
 	public Sequence<String> getSkinNames ()
 	{
@@ -391,9 +490,9 @@ public class Skins
 	}
 	
 	/**
-	 * Initialize the skin element values from a named skin.
+	 * Initializes the skin element values from a named skin.
 	 * 
-	 * @param skinName Named skin.
+	 * @param skinName named skin
 	 */
 	public void initializeSkinElements (String skinName)
 	{
@@ -415,10 +514,10 @@ public class Skins
 	}
 	
 	/**
-	 * Register the elements for a specific window that require skinning.
+	 * Registers the elements for a specific window that require skinning.
 	 * 
-	 * @param window Window for which elements are being registered.
-	 * @param elements Map of the element type to a list of components.
+	 * @param window window for which elements are being registered
+	 * @param elements map of the element type to a list of components
 	 */
 	public void registerWindowElements (Window window, Map<Element, List<Component>> elements)
 	{
@@ -427,10 +526,13 @@ public class Skins
 	
 	/**
 	 * 
-	 * Register additional dynamic elements for a specific window that require skinning.
+	 * Registers additional dynamic elements for a specific window that 
+	 * require skinning. This is used when some of the content of a window
+	 * is dynamically built in the code, and is thus not derived from the
+	 * BXML file.
 	 * 
-	 * @param window Window for which elements are being registered.
-	 * @param elements Map of the element type to a dynamic list of components.
+	 * @param window window for which elements are being registered
+	 * @param elements map of the element type to a dynamic list of components
 	 */
 	public void registerDynamicWindowElements (Window window, Map<Element, List<Component>> elements)
 	{
@@ -451,7 +553,9 @@ public class Skins
 	}
 	
 	/**
-	 * Push a window onto the window stack.
+	 * Pushes a window onto the window stack. The window stack keeps the 
+	 * current set of stacked windows, so they can all be re-skinned if the
+	 * user changes the skin name from the top window of a stack.
 	 * 
 	 * @param window Window to be pushed.
 	 */
@@ -461,7 +565,10 @@ public class Skins
 	}
 	
 	/**
-	 * Pop a window off of the window stack and throw it away.
+	 * Pops a window off of the window stack and throws it away. We don't need
+	 * to do anything with the window, because its only purpose is to let
+	 * <code>reskinWindowStack</code> know which windows to re-skin. Once that
+	 * has happened there is nothing else to do.
 	 */
 	public void popSkinnedWindow ()
 	{
@@ -469,8 +576,8 @@ public class Skins
 	}
 	
 	/**
-	 * Re-skin all the windows on the window stack. This is called when the skin is changed via
-	 * preferences.
+	 * Re-skin all the windows on the window stack. This is called when the 
+	 * skin is changed via preferences.
 	 */
 	public void reskinWindowStack ()
 	{
@@ -483,9 +590,9 @@ public class Skins
 	}
 	
 	/**
-	 * Apply the skin values to the elements for a specific window.
+	 * Applies the skin values to the elements for a specific window.
 	 * 
-	 * @param window Window for which skin elements should be applied.
+	 * @param window window for which skin elements should be applied
 	 */
 	public void skinMe (Window window)
 	{
@@ -531,10 +638,11 @@ public class Skins
 	}
 	
 	/**
-	 * For a list of window components, map each component to all of the skin elements that apply.
+	 * Maps each component to all of the skin elements that apply, for a list
+	 * of window components.
 	 * 
-	 * @param components List of window components.
-	 * @return Map of element to applicable components.
+	 * @param components list of window components
+	 * @return map of element to applicable components
 	 */
 	public Map<Element, List<Component>> mapComponentsToSkinElements (List<Component> components)
 	{

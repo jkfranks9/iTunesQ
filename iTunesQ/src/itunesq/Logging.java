@@ -19,7 +19,8 @@ import ch.qos.logback.core.rolling.RollingFileAppender;
 import ch.qos.logback.core.rolling.TimeBasedRollingPolicy;
 
 /**
- * Class that provides some assistance to using logback/SLF4J for logging. This is a singleton class.
+ * Class that provides some assistance for using logback/SLF4J for logging. 
+ * This is a singleton class.
  * 
  * @author Jon
  *
@@ -35,9 +36,9 @@ public class Logging
 	private static Logging instance = null;
 	
 	/**
-	 * Get the singleton instance.
+	 * Gets the singleton instance.
 	 * 
-	 * @return Class instance.
+	 * @return singleton class instance
 	 */
 	public static Logging getInstance ()
 	{
@@ -56,14 +57,44 @@ public class Logging
 	private Level defaultLevel;
 	
 	/**
-	 * The dimension, or scope, of a logger. For example, XML only concerns logging related to the
-	 * reading and processing of the iTunes XML file.
-	 * 
+	 * The dimension, or scope, of a logger. For example, <code>XML</code> only 
+	 * concerns logging related to the reading and processing of the iTunes 
+	 * XML file.
+	 * <p>
 	 * Each dimension contains the associated log level.
 	 */
 	public enum Dimension
 	{
-		ALL("All"), UI("UI"), XML("XML"), TRACK("Track"), PLAYLIST("Playlist"), FILTER("Filter");
+		
+		/**
+		 * logging associated with all dimensions
+		 */
+		ALL("All"),
+		
+		/**
+		 * logging associated with the user interface
+		 */
+		UI("UI"),
+		
+		/**
+		 * logging associated with processing the iTunes XML file
+		 */
+		XML("XML"),
+		
+		/**
+		 * logging associated with processing of tracks
+		 */
+		TRACK("Track"),
+		
+		/**
+		 * logging associated with processing of playlists
+		 */
+		PLAYLIST("Playlist"),
+		
+		/**
+		 * logging associated with processing of query filters
+		 */
+		FILTER("Filter");
 		
 		private String displayValue;
 		private Level logLevel;
@@ -77,9 +108,9 @@ public class Logging
 		}
 		
 		/**
-		 * Get the display value.
+		 * Gets the display value.
 		 * 
-		 * @return The enum display value.
+		 * @return <code>enum</code> display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -87,9 +118,9 @@ public class Logging
 		}
 
 		/**
-		 * Get the current log level.
+		 * Gets the current log level.
 		 * 
-		 * @return Current log level.
+		 * @return current log level
 		 */
 		public Level getLogLevel()
 		{
@@ -97,9 +128,9 @@ public class Logging
 		}
 
 		/**
-		 * Set the current log level.
+		 * Sets the current log level.
 		 * 
-		 * @param logLevel Log level.
+		 * @param logLevel current log level
 		 */
 		public void setLogLevel(Level logLevel)
 		{
@@ -107,10 +138,10 @@ public class Logging
 		}
 		
 		/**
-		 * Reverse lookup the enum from the display value.
+		 * Reverse lookup the <code>enum</code> from the display value.
 		 * 
-		 * @param value The display value to look up.
-		 * @return The enum.
+		 * @param value display value to look up
+		 * @return <code>enum</code> value
 		 */
 		public static Dimension getEnum(String value)
 		{
@@ -147,14 +178,14 @@ public class Logging
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Register a logger.
+	 * Registers a logger.
+	 * <p>
+	 * Loggers are obtained on a per-class basis. A class can contain several
+	 * loggers, each representing a different dimension. The registry is a map
+	 * of dimension to a list of loggers using that dimension.
 	 * 
-	 * Loggers are obtained on a per-class basis. A class can contain several loggers, each representing
-	 * a different dimension. The registry is a map of dimension to a list of loggers using that
-	 * dimension.
-	 * 
-	 * @param dimension Dimension for this logger.
-	 * @param logger Logger to be registered.
+	 * @param dimension dimension for this logger
+	 * @param logger logger to be registered
 	 */
 	public void registerLogger (Dimension dimension, Logger logger)
 	{
@@ -283,10 +314,10 @@ public class Logging
 	}
 	
 	/**
-	 * Move all log files when the save directory has been changed.
+	 * Moves all log files when the save directory has been changed.
 	 * 
-	 * @param oldDirectory Directory where log files are currently located.
-	 * @param newDirectory New save directory.
+	 * @param oldDirectory directory where log files are currently located
+	 * @param newDirectory new save directory
 	 */
 	public static void saveDirectoryUpdated (String oldDirectory, String newDirectory)
 	{
@@ -322,9 +353,9 @@ public class Logging
 	}
 	
 	/**
-	 * Set the default log level.
+	 * Sets the default log level.
 	 * 
-	 * @param level Default log level.
+	 * @param level default log level
 	 */
 	public void setDefaultLogLevel (Level level)
 	{
@@ -332,9 +363,9 @@ public class Logging
 	}
 	
 	/**
-	 * Get the list of log level values.
+	 * Gets the list of log level values.
 	 * 
-	 * @return List of log level values.
+	 * @return list of log level values
 	 */
 	public Sequence<String> getLogLevelValues ()
 	{
@@ -350,7 +381,7 @@ public class Logging
 	}
 	
 	/**
-	 * Set the log levels from the preferences.
+	 * Sets the log levels for all dimensions from the preferences.
 	 */
 	public void updateLogLevelsFromPrefs ()
 	{
@@ -406,7 +437,7 @@ public class Logging
 	}
 	
 	/**
-	 * Set the maximum log history from the preference.
+	 * Sets the maximum log history from the preference.
 	 */
 	public void updateMaxHistoryFromPref ()
 	{

@@ -6,7 +6,32 @@ import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 
 /**
- * Class that represents a query filter.
+ * Class that represents a track query filter. Filters are the mechanism that 
+ * allow users to query the set of tracks. A filter contains the following
+ * parts:
+ * <ol>
+ * <li>Logic - matches any or all of a set of filters</li>
+ * <li>Subject - the 'what' of a filter, for example artist or year of 
+ * release</li>
+ * <li>Operator - for example is or contains</li>
+ * <li>Text - the value associated with the subject</li>
+ * </ol>
+ * <p>
+ * When grouping filters, the logic is specified for the first filter, and
+ * applies to all following filters until a different logic value is
+ * specified. Only two such logic changes are allowed, one to specify a new
+ * group of filters with a different logic value, and an optional one to
+ * revert back to the original logic. For example:
+ * <pre>
+ *   <b>Logic Subject Operator              Text</b>
+ *   All   Year    greater than or equal 2001
+ *         Rating  is                    5
+ *   Any   Artist  is                    Ego Likeness
+ *         Artist  is                    The Birthday Massacre
+ * </pre>
+ * This can be read as "show all tracks with a release year greater than or 
+ * equal to 2001, with a rating of 5, by either of the bands Ego Likeness
+ * or The Birthday Massacre".
  * 
  * @author Jon
  *
@@ -27,11 +52,20 @@ public class Filter
 	private String filterText;
 	
 	/**
-	 * The logic of a filter, for example match all rules, or any rules.
+	 * logic of a filter. For example match all rules, or any rules.
 	 */
 	public enum Logic
 	{
-		AND("All"), OR("Any");
+		
+		/**
+		 * matches all of the following filters
+		 */
+		AND("All"),
+		
+		/**
+		 * matches any of the following filters
+		 */
+		OR("Any");
 		
 		private String displayValue;
 		
@@ -44,9 +78,9 @@ public class Filter
 		}
 		
 		/**
-		 * Get the display value.
+		 * Gets the display value.
 		 * 
-		 * @return The enum display value.
+		 * @return <code>enum</code> display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -54,10 +88,10 @@ public class Filter
 		}
 		
 		/**
-		 * Reverse lookup the enum from the display value.
+		 * Reverse lookup the <code>enum</code> from the display value.
 		 * 
-		 * @param value The display value to look up.
-		 * @return The enum.
+		 * @param value display value to look up
+		 * @return <code>enum</code> value
 		 */
 		public static Logic getEnum(String value)
 		{
@@ -78,12 +112,41 @@ public class Filter
 	}
 	
 	/**
-	 * The subject of a filter, for example artist name or year of release.
+	 * subject of a filter. For example artist name or year of release.
 	 */
 	public enum Subject
 	{
-		ARTIST("Artist"), KIND("Kind"), PLAYLIST_COUNT("Playlist Count"), 
-		RATING("Rating"), YEAR("Year"), NAME("Name");
+		
+		/**
+		 * artist name
+		 */
+		ARTIST("Artist"),
+		
+		/**
+		 * kind of track, for example AAC audio file or QuickTime movie file
+		 */
+		KIND("Kind"),
+		
+		/**
+		 * number of playlists that contain this track. Bypassed playlists
+		 * are not counted.
+		 */
+		PLAYLIST_COUNT("Playlist Count"),
+		
+		/**
+		 * rating of this track, from 0 through 5
+		 */
+		RATING("Rating"),
+		
+		/**
+		 * year of release
+		 */
+		YEAR("Year"),
+		
+		/**
+		 * name of this track
+		 */
+		NAME("Name");
 		
 		private final String displayValue;
 		
@@ -96,9 +159,9 @@ public class Filter
 		}
 		
 		/**
-		 * Get the display value.
+		 * Gets the display value.
 		 * 
-		 * @return The enum display value.
+		 * @return <code>enum</code> display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -106,10 +169,10 @@ public class Filter
 		}
 		
 		/**
-		 * Reverse lookup the enum from the display value.
+		 * Reverse lookup the <code>enum</code> from the display value.
 		 * 
-		 * @param value The display value to look up.
-		 * @return The enum.
+		 * @param value display value to look up
+		 * @return <code>enum</code> value
 		 */
 		public static Subject getEnum(String value)
 		{
@@ -130,12 +193,35 @@ public class Filter
 	}
 
 	/**
-	 * The operator of a filter.
+	 * operator of a filter
 	 */
 	public enum Operator
 	{
-		IS("is"), LESS("less than or equal"), GREATER("greater than or equal"), 
-		CONTAINS("contains"), IS_NOT("is not");
+		
+		/**
+		 * equals the specified value
+		 */
+		IS("is"),
+		
+		/**
+		 * less than or equal to the specified value
+		 */
+		LESS("less than or equal"),
+		
+		/**
+		 * greater than or equal to the specified value
+		 */
+		GREATER("greater than or equal"),
+		
+		/**
+		 * contains the specified value
+		 */
+		CONTAINS("contains"),
+		
+		/**
+		 * does not equal the specified value
+		 */
+		IS_NOT("is not");
 		
 		private String displayValue;
 		
@@ -148,9 +234,9 @@ public class Filter
 		}
 		
 		/**
-		 * Get the display value.
+		 * Gets the display value.
 		 * 
-		 * @return The enum display value.
+		 * @return <code>enum</code> display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -158,10 +244,10 @@ public class Filter
 		}
 		
 		/**
-		 * Reverse lookup the enum from the display value.
+		 * Reverse lookup the <code>enum</code> from the display value.
 		 * 
-		 * @param value The display value to look up.
-		 * @return The enum.
+		 * @param value display value to look up
+		 * @return <code>enum</code> value
 		 */
 		public static Operator getEnum(String value)
 		{
@@ -180,13 +266,20 @@ public class Filter
 	        }
 	    }
 	}
+	
+	/**
+	 * Class constructor.
+	 */
+	public Filter ()
+	{
+	}
 
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Get the filter logic.
+	 * Gets the filter logic.
 	 * 
-	 * @return The filter logic.
+	 * @return filter logic value
 	 */
 	public Logic getFilterLogic ()
 	{
@@ -194,9 +287,9 @@ public class Filter
 	}
 	
 	/**
-	 * Set the filter logic.
+	 * Sets the filter logic.
 	 * 
-	 * @param logic The filter logic.
+	 * @param logic filter logic value
 	 */
 	public void setFilterLogic (Logic logic)
 	{
@@ -204,9 +297,9 @@ public class Filter
 	}
 	
 	/**
-	 * Get the filter subject.
+	 * Gets the filter subject.
 	 * 
-	 * @return The filter subject.
+	 * @return filter subject value
 	 */
 	public Subject getFilterSubject ()
 	{
@@ -214,9 +307,9 @@ public class Filter
 	}
 	
 	/**
-	 * Set the filter subject.
+	 * Sets the filter subject.
 	 * 
-	 * @param subject The filter subject.
+	 * @param subject filter subject value
 	 */
 	public void setFilterSubject (Subject subject)
 	{
@@ -224,9 +317,9 @@ public class Filter
 	}
 	
 	/**
-	 * Get the filter operator.
+	 * Gets the filter operator.
 	 * 
-	 * @return The filter operator.
+	 * @return filter operator value
 	 */
 	public Operator getFilterOperator ()
 	{
@@ -234,9 +327,9 @@ public class Filter
 	}
 	
 	/**
-	 * Set the filter operator.
+	 * Sets the filter operator.
 	 * 
-	 * @param operator The filter operator.
+	 * @param operator filter operator value
 	 */
 	public void setFilterOperator (Operator operator)
 	{
@@ -244,9 +337,9 @@ public class Filter
 	}
 	
 	/**
-	 * Get the filter text.
+	 * Gets the filter text.
 	 * 
-	 * @return The filter text.
+	 * @return filter text value
 	 */
 	public String getFilterText ()
 	{
@@ -254,9 +347,9 @@ public class Filter
 	}
 	
 	/**
-	 * Set the filter text.
+	 * Sets the filter text.
 	 * 
-	 * @param text The filter text.
+	 * @param text filter text value
 	 */
 	public void setFilterText (String text)
 	{
@@ -264,9 +357,9 @@ public class Filter
 	}
 
 	/**
-	 * Get the list of logic enum values.
+	 * Gets the list of logic <code>enum</code> values.
 	 * 
-	 * @return The enum value list.
+	 * @return logic <code>enum</code> value list
 	 */
 	public static List<String> getLogicLabels ()
 	{
@@ -281,9 +374,9 @@ public class Filter
 	}
 	
 	/**
-	 * Get the list of subject enum values.
+	 * Gets the list of subject <code>enum</code> values.
 	 * 
-	 * @return The enum value list.
+	 * @return subject <code>enum</code> value list
 	 */
 	public static List<String> getSubjectLabels ()
 	{
@@ -298,9 +391,9 @@ public class Filter
 	}
 
 	/**
-	 * Get the list of operator enum values.
+	 * Gets the list of operator <code>enum</code> values.
 	 * 
-	 * @return The enum value list.
+	 * @return operator <code>enum</code> value list
 	 */
 	public static List<String> getOperatorLabels ()
 	{

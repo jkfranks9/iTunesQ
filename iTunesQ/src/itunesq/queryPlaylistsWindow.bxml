@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <itq:MenuBars maximized="true"
-    styles="{padding:{top:0, left:4, bottom:4, right:4}, showWindowControls:false}"
+    styles="{padding:{top:0, left:4, bottom:4, right:4}, showWindowControls:false, backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns:content="org.apache.pivot.wtk.content"
     xmlns:itq="itunesq"
@@ -53,54 +53,50 @@
             </MenuBar.Item>
         </MenuBar>
     </menuBar>
-    
-    <!-- Primary window border. -->
-    <Border bxml:id="primaryBorder">
         
-        <!-- Lay out the window elements in a single column table pane. -->
-        <TablePane styles="{verticalSpacing:10, padding:10}">
-            <columns>
-                <TablePane.Column width="1*"/>
-            </columns>
+    <!-- Lay out the window elements in a single column table pane. -->
+    <TablePane styles="{verticalSpacing:10, padding:10}">
+        <columns>
+            <TablePane.Column width="1*"/>
+        </columns>
             
-            <!-- Playlist compare row. -->
-            <TablePane.Row height="10*">
-                <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                   		 verticalScrollBarPolicy="fill_to_capacity">
-                	<Border bxml:id="compareBorder">
-                		<BoxPane bxml:id="compareBoxPane" orientation="vertical">
-            				<Label bxml:id="compareBorderLabel" 
-            					text="Enter Two Or More Playlists To Compare"
-            					styles="{font:{bold:true}, padding:5}"/>
-                       		<TablePane bxml:id="compareTablePane"
-                       			styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
-            					<columns>
-                					<TablePane.Column width="1*"/>
-                					<TablePane.Column width="8*"/>
-                					<TablePane.Column width="1*"/>
-                					<TablePane.Column width="1*"/>
-            					</columns>
-                       		</TablePane>
-                       	</BoxPane>
-                	</Border>
-                </ScrollPane>
-            </TablePane.Row>
+        <!-- Playlist compare row. -->
+        <TablePane.Row height="10*">
+            <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+               		 verticalScrollBarPolicy="fill_to_capacity">
+               	<Border bxml:id="compareBorder">
+               		<BoxPane bxml:id="compareBoxPane" orientation="vertical">
+           				<Label bxml:id="compareBorderLabel" 
+           					text="Enter Two Or More Playlists To Compare"
+           					styles="{font:{bold:true}, padding:5}"/>
+                   		<TablePane bxml:id="compareTablePane"
+                   			styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
+           					<columns>
+               					<TablePane.Column width="1*"/>
+               					<TablePane.Column width="8*"/>
+               					<TablePane.Column width="1*"/>
+               					<TablePane.Column width="1*"/>
+           					</columns>
+                   		</TablePane>
+                   	</BoxPane>
+               	</Border>
+            </ScrollPane>
+        </TablePane.Row>
             
-            <!-- Action elements (buttons) row. -->
-            <TablePane.Row height="1*">
-                <Border bxml:id="actionBorder">
-                    <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
-                        styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-            	        <PushButton bxml:id="showAllButton" buttonData="Show All"
-            	        	tooltipText="Show tracks belonging to all of the above playlists."/>
-            	        <PushButton bxml:id="showSomeButton" buttonData="Show Some"
-            	        	tooltipText="Show tracks belonging to some of the above playlists."/>
-            	        <PushButton bxml:id="showOneButton" buttonData="Show One"
-            	        	tooltipText="Show tracks belonging to only one of the above playlists."/>
-            	        <PushButton bxml:id="queryDoneButton" buttonData="Done"/>
-                    </BoxPane>
-                </Border>
-            </TablePane.Row>
-        </TablePane>
-    </Border>
+        <!-- Action elements (buttons) row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="actionBorder">
+                <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
+                    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+           	        <PushButton bxml:id="showAllButton" buttonData="Show All"
+           	        	tooltipText="Show tracks belonging to all of the above playlists."/>
+           	        <PushButton bxml:id="showSomeButton" buttonData="Show Some"
+           	        	tooltipText="Show tracks belonging to some of the above playlists."/>
+           	        <PushButton bxml:id="showOneButton" buttonData="Show One"
+           	        	tooltipText="Show tracks belonging to only one of the above playlists."/>
+           	        <PushButton bxml:id="queryDoneButton" buttonData="Done"/>
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+    </TablePane>
 </itq:MenuBars>

@@ -12,15 +12,20 @@ import org.jdom2.JDOMException;
 
 /**
  * Class that contains various useful utility methods.
+ * <p>
+ * This is a final class consisting entirely of <code>static</code> methods.
  * 
  * @author Jon
  *
  */
-public class Utilities
+public final class Utilities
 {
 	
     //---------------- Public variables ------------------------------------
 	
+	/**
+	 * Java preferences key representing the save directory.
+	 */
 	public static final String JAVA_PREFS_KEY_SAVEDIR = "SAVE_DIRECTORY";
 	
     //---------------- Private variables -----------------------------------
@@ -41,10 +46,10 @@ public class Utilities
     //---------------- Public methods --------------------------------------
 	
 	/**
-	 * Format a date string from a Date object.
+	 * Formats a date string from a date object.
 	 * 
-	 * @param date Date object to be formatted.
-	 * @return Formatted date string.
+	 * @param date date object to be formatted
+	 * @return formatted date string
 	 */
 	public static String formatDate (Date date)
 	{
@@ -61,11 +66,12 @@ public class Utilities
 	}
 	
 	/**
-	 * Parse a date string into a Date object.
+	 * Parses a date string into a date object.
 	 * 
-	 * @param dateStr Formatted date string.
-	 * @return Date object.
-	 * @throws ParseException
+	 * @param dateStr formatted date string
+	 * @return date object
+	 * @throws ParseException If an exception occurs trying to parse the date 
+	 * string.
 	 */
 	public static Date parseDate (String dateStr) 
 			throws ParseException
@@ -77,10 +83,10 @@ public class Utilities
 	}
 	
 	/**
-	 * Format milliseconds into an HH:MM string.
+	 * Formats milliseconds into an HH:MM string.
 	 * 
-	 * @param milliseconds Milliseconds to be converted.
-	 * @return Formatted string.
+	 * @param milliseconds milliseconds to be converted
+	 * @return formatted string
 	 */
 	public static String convertMillisecondTime (int milliseconds)
 	{
@@ -108,10 +114,12 @@ public class Utilities
 	}
 	
 	/**
-	 * Process the XML file, and update the main window XML file information.
+	 * Processes the XML file, and updates the main window XML file 
+	 * information.
 	 * 
-	 * @param xmlFileName Name of the XML file to be processed.
-	 * @throws JDOMException
+	 * @param xmlFileName name of the XML file to be processed
+	 * @throws JDOMException If an exception occurs trying to read the iTunes 
+	 * XML file.
 	 */
 	public static void updateFromXMLFile (String xmlFileName) 
 			throws JDOMException
@@ -132,18 +140,23 @@ public class Utilities
 	}
 	
 	/**
-	 * Provides typing assistance for text input fields, when the list of possible choices is
-	 * reasonably small, for example artist or playlist names.
+	 * Provides typing assistance for text input fields, when the list of 
+	 * possible choices is reasonably small, for example artist or playlist 
+	 * names.
 	 * <p>
-	 * This is expected to be called for every character entered into a text field. As soon as enough
-	 * characters are entered to uniquely identify a name, the text field is populated with the name.
-	 * A case-insensitive comparator should be used on the list of names, so the user doesn't need
+	 * This is expected to be called for every character entered into a text 
+	 * field. As soon as enough characters are entered to uniquely identify a 
+	 * name, the text field is populated with the name. A case-insensitive 
+	 * comparator should be used on the list of names, so the user doesn't need
 	 * to use correct case, but that's up to the caller. 
 	 *  
-	 * @param textInput Text input object in which the user is typing.
-	 * @param names List of names to check against.
-	 * @param text Text entered so far by the user.
-	 * @param operator Filter operator (we only support IS and CONTAINS operators).
+	 * @param textInput text input object in which the user is typing
+	 * @param names list of names to check against
+	 * @param text text entered so far by the user
+	 * @param operator filter operator (we only support IS and CONTAINS 
+	 * operators)
+	 * @return <code>true</code> if a match was found, otherwise 
+	 * <code>false</code>
 	 */
 	public static boolean typingAssistant (TextInput textInput, ArrayList<String> names, 
 			                            String text, Filter.Operator operator)
@@ -231,10 +244,9 @@ public class Utilities
 	}
 	
 	/**
-	 * Save the file name label for the main window. This and the following methods are here because
-	 * they are used at startup, and by the File - Open menu.
+	 * Saves the file name label for the main window.
 	 * 
-	 * @param label The file name label.
+	 * @param label file name label
 	 */
 	public static void saveFileNameLabel (Label label)
 	{
@@ -242,9 +254,9 @@ public class Utilities
 	}
 	
 	/**
-	 * Save the file date label for the main window.
+	 * Saves the file date label for the main window.
 	 * 
-	 * @param label The file date label.
+	 * @param label file date label
 	 */
 	public static void saveFileDateLabel (Label label)
 	{
@@ -252,9 +264,9 @@ public class Utilities
 	}
 
 	/**
-	 * Save the number of tracks label for the main window.
+	 * Saves the number of tracks label for the main window.
 	 * 
-	 * @param label The number of tracks label.
+	 * @param label number of tracks label
 	 */
 	public static void saveNumTracksLabel (Label label)
 	{
@@ -262,9 +274,9 @@ public class Utilities
 	}
 
 	/**
-	 * Save the number of playlists label for the main window.
+	 * Saves the number of playlists label for the main window.
 	 * 
-	 * @param label The number of playlists label.
+	 * @param label number of playlists label
 	 */
 	public static void saveNumPlaylistsLabel (Label label)
 	{
@@ -272,11 +284,11 @@ public class Utilities
 	}
 	
 	/**
-	 * Access the Java preference for a given key. This method also sets the preference in case it
-	 * was not currently set.
+	 * Accesses the Java preference for a given key. This method also sets 
+	 * the preference in case it was not currently set.
 	 * 
-	 * @param key Key that represents the preference.
-	 * @return Value for the specified key.
+	 * @param key key that represents the preference
+	 * @return value for the specified key
 	 */
 	public static String accessJavaPreference (String key)
 	{
@@ -317,10 +329,10 @@ public class Utilities
 	}
 	
 	/**
-	 * Save the Java preference for a given key.
+	 * Saves the Java preference for a given key.
 	 * 
-	 * @param key Key that represents the preference.
-	 * @param value Value for the specified key.
+	 * @param key key that represents the preference
+	 * @param value value for the specified key
 	 */
 	public static void saveJavaPreference (String key, String value)
 	{
