@@ -30,10 +30,10 @@ public final class Utilities
 	
     //---------------- Private variables -----------------------------------
 
-	private static Label fileNameLabel = null;
-	private static Label fileDateLabel = null;
+	private static Label fileLabel = null;
 	private static Label numTracksLabel = null;
 	private static Label numPlaylistsLabel = null;
+	private static Label numArtistsLabel = null;
 	
 	/*
 	 * Static string definitions.
@@ -111,32 +111,6 @@ public final class Utilities
 		result = String.format(HHMM_FORMAT, minutes, remainSeconds);
 		
 		return result;
-	}
-	
-	/**
-	 * Processes the XML file, and updates the main window XML file 
-	 * information.
-	 * 
-	 * @param xmlFileName name of the XML file to be processed
-	 * @throws JDOMException If an exception occurs trying to read the iTunes 
-	 * XML file.
-	 */
-	public static void updateFromXMLFile (String xmlFileName) 
-			throws JDOMException
-	{
-
-		/*
-		 * Read and process the XML file.
-		 */
-		XMLHandler.processXML(xmlFileName);
-
-		/*
-		 * Update the main window information based on the XML file contents.
-		 */
-		fileNameLabel.setText(xmlFileName);
-		fileDateLabel.setText(XMLHandler.getXMLFileTimestamp());
-		numTracksLabel.setText(Integer.toString(XMLHandler.getNumberOfTracks()));
-		numPlaylistsLabel.setText(Integer.toString(XMLHandler.getNumberOfPlaylists()));
 	}
 	
 	/**
@@ -244,23 +218,13 @@ public final class Utilities
 	}
 	
 	/**
-	 * Saves the file name label for the main window.
+	 * Saves the file label for the main window.
 	 * 
-	 * @param label file name label
+	 * @param label file label
 	 */
-	public static void saveFileNameLabel (Label label)
+	public static void saveFileLabel (Label label)
 	{
-		fileNameLabel = label;
-	}
-	
-	/**
-	 * Saves the file date label for the main window.
-	 * 
-	 * @param label file date label
-	 */
-	public static void saveFileDateLabel (Label label)
-	{
-		fileDateLabel = label;
+		fileLabel = label;
 	}
 
 	/**
@@ -281,6 +245,60 @@ public final class Utilities
 	public static void saveNumPlaylistsLabel (Label label)
 	{
 		numPlaylistsLabel = label;
+	}
+
+	/**
+	 * Saves the number of artists label for the main window.
+	 * 
+	 * @param label number of artists label
+	 */
+	public static void saveNumArtistsLabel (Label label)
+	{
+		numArtistsLabel = label;
+	}
+	
+	/**
+	 * Processes the XML file, and updates the main window XML file 
+	 * information.
+	 * 
+	 * @param xmlFileName name of the XML file to be processed
+	 * @throws JDOMException If an exception occurs trying to read the iTunes 
+	 * XML file.
+	 */
+	public static void updateFromXMLFile (String xmlFileName) 
+			throws JDOMException
+	{
+
+		/*
+		 * Read and process the XML file.
+		 */
+		XMLHandler.processXML(xmlFileName);
+
+		/*
+		 * Update the main window information based on the XML file contents.
+		 */
+		updateMainWindowLabels(xmlFileName);
+	}
+	
+	/**
+	 * Updates the XML file information on the main window.
+	 * <p>
+	 * This is somewhat tricky. <code>MainWindow</code> calls several methods
+	 * in this class to save the actual <code>Label</code> variables, for
+	 * example <code>saveFileLabel</code>. It then calls this method to fill
+	 * in the label values. Likewise, if the XML file is changed while running,
+	 * <code>updateFromXMLFile</code> also calls this method. All this so I 
+	 * don't have to repeat this code in two places.
+	 */
+	public static void updateMainWindowLabels (String xmlFileName)
+	{
+		fileLabel.setText(xmlFileName + ", dated " + XMLHandler.getXMLFileTimestamp());
+		numTracksLabel.setText("Number of tracks: " + 
+				Integer.toString(XMLHandler.getNumberOfTracks()));
+		numPlaylistsLabel.setText("Number of playlists: " + 
+				Integer.toString(XMLHandler.getNumberOfPlaylists()));
+		numArtistsLabel.setText("Number of artists: " + 
+				Integer.toString(XMLHandler.getNumberOfArtists()));
 	}
 	
 	/**
@@ -309,7 +327,7 @@ public final class Utilities
 		switch (key)
 		{
 		case JAVA_PREFS_KEY_SAVEDIR:
-			defaultValue = Preferences.DEFAULT_SAVE_DIRECTORY;
+			defaultValue = Preferences.getDefaultSaveDirectory();
 			break;
 			
 		default:

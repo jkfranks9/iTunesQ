@@ -72,9 +72,17 @@ public class PreferencesWindow
 	private String owningWindowTitle;
 
 	/*
-	 * BXML variables.
+	 * BXML variables ...
+	 */
+	
+	/*
+	 * ... top level tab pane.
 	 */
 	@BXML private TabPane tabPane = null;
+	
+	/*
+	 * ... first tab.
+	 */
 	@BXML private Border bypassPrefsBorder = null;
 	@BXML private BoxPane bypassPrefsBoxPane = null;
 	@BXML private Label bypassPrefsBorderLabel = null;
@@ -83,10 +91,16 @@ public class PreferencesWindow
 	@BXML private BoxPane ignoredPrefsBoxPane = null;
 	@BXML private Label ignoredPrefsBorderLabel = null;
 	@BXML private TablePane ignoredPrefsTablePane = null;
+	@BXML private Border tab1ResetBorder = null;
+	@BXML private BoxPane tab1ResetBoxPane = null;
+	@BXML private PushButton tab1ResetButton = null;
+	
+	/*
+	 * ... second tab.
+	 */
 	@BXML private Label columnPrefsBorderLabel = null;
 	@BXML private Border columnPrefsBorder = null;
 	@BXML private TablePane columnPrefsTablePane = null;
-	
 	@BXML private BoxPane fullColumnPrefsBoxPane = null;
 	@BXML private Label fullColumnPrefsLabel = null;
 	@BXML private Checkbox fullNumberCheckbox = null;
@@ -98,7 +112,6 @@ public class PreferencesWindow
 	@BXML private Checkbox fullYearCheckbox = null;
 	@BXML private Checkbox fullAddedCheckbox = null;
 	@BXML private Checkbox fullRatingCheckbox = null;
-
 	@BXML private BoxPane filteredColumnPrefsBoxPane = null;
 	@BXML private Label filteredColumnPrefsLabel = null;
 	@BXML private Checkbox filteredNumberCheckbox = null;
@@ -110,7 +123,6 @@ public class PreferencesWindow
 	@BXML private Checkbox filteredYearCheckbox = null;
 	@BXML private Checkbox filteredAddedCheckbox = null;
 	@BXML private Checkbox filteredRatingCheckbox = null;
-
 	@BXML private BoxPane playlistColumnPrefsBoxPane = null;
 	@BXML private Label playlistColumnPrefsLabel = null;
 	@BXML private Checkbox playlistNumberCheckbox = null;
@@ -122,7 +134,13 @@ public class PreferencesWindow
 	@BXML private Checkbox playlistYearCheckbox = null;
 	@BXML private Checkbox playlistAddedCheckbox = null;
 	@BXML private Checkbox playlistRatingCheckbox = null;
+	@BXML private Border tab2ResetBorder = null;
+	@BXML private BoxPane tab2ResetBoxPane = null;
+	@BXML private PushButton tab2ResetButton = null;
 
+	/*
+	 * ... third tab.
+	 */
 	@BXML private Label skinPrefsBorderLabel = null;
 	@BXML private Border skinPrefsBorder = null;
 	@BXML private BoxPane skinPrefsBoxPane = null;
@@ -135,7 +153,6 @@ public class PreferencesWindow
 	@BXML private Border logHistoryPrefsBorder = null;
 	@BXML private BoxPane logHistoryPrefsBoxPane = null;
 	@BXML private TextInput logHistoryPrefsTextInput = null;
-	
 	@BXML private PushButton skinPrefsButton = null;
 	@BXML private Label logLevelPrefsBorderLabel = null;
 	@BXML private Border logLevelPrefsBorder = null;
@@ -158,10 +175,20 @@ public class PreferencesWindow
 	@BXML private BoxPane filterLogLevelPrefsBoxPane = null;
 	@BXML private Label filterLogLevelPrefsLabel = null;
 	@BXML private Spinner filterLogLevelPrefsSpinner = null;
+	@BXML private Border tab3ResetBorder = null;
+	@BXML private BoxPane tab3ResetBoxPane = null;
+	@BXML private PushButton tab3ResetButton = null;
+	
+	/*
+	 * ... action buttons row.
+	 */
 	@BXML private Border actionBorder = null;
 	@BXML private BoxPane actionBoxPane = null;
 	@BXML private PushButton preferencesDoneButton = null;
 
+	/*
+	 * ... skin preview window.
+	 */
 	@BXML private Border previewTextBorder = null;
 	@BXML private BoxPane previewTextBoxPane = null;
 	@BXML private Label previewTextLabel = null;
@@ -238,6 +265,148 @@ public class PreferencesWindow
          */
         initializeTrackColumnStuff(prefsWindowSerializer, components);
         initializeLogLevelStuff(prefsWindowSerializer, components);
+        
+        /*
+         * Listener to handle the reset button on the first tab.
+         */
+        tab1ResetButton.getButtonPressListeners().add(new ButtonPressListener() 
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+				logger.info("tab 1 reset defaults button pressed");
+				
+				/*
+				 * Remove all current ignored preference rows.
+				 */
+				TablePane.RowSequence rows = ignoredPrefsTablePane.getRows();
+				rows.remove(0, rows.getLength());
+
+				/*
+				 * Create a component list for the rows we're about to add.
+				 */
+    			List<Component> rowComponents = new ArrayList<Component>();
+
+    			/*
+    			 * Add the default rows.
+    			 */
+	        	Iterator<String> defaultIgnoredIter = Playlist.DEFAULT_IGNORED_PLAYLISTS.iterator();
+	        	while (defaultIgnoredIter.hasNext())
+	        	{
+	        		String playlist = defaultIgnoredIter.next();
+	            	TablePane.Row newRow = createIgnoredPrefsTableRow(playlist, rowComponents);
+	            	ignoredPrefsTablePane.getRows().add(newRow);
+	        	}
+	        	
+	        	/*
+	        	 * Indicate the ignored preferences have been updated.
+	        	 */
+	        	ignoredPrefsUpdated = true;
+        		
+            	/*
+            	 * Register the new components and skin them.
+            	 */
+        		Map<Skins.Element, List<Component>> windowElements = 
+        				skins.mapComponentsToSkinElements(rowComponents);            		
+        		skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
+        		skins.skinMe(Skins.Window.PREFERENCES);
+            	
+            	preferencesSheet.repaint();
+            }
+        });
+        
+        /*
+         * Listener to handle the reset button on the second tab.
+         */
+        tab2ResetButton.getButtonPressListeners().add(new ButtonPressListener() 
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+				logger.info("tab 2 reset defaults button pressed");
+				
+				/*
+				 * Clear all the checkboxes to start.
+				 */
+				clearTrackColumnPrefsCheckboxes();
+				
+				/*
+				 * Get the defaults for the various column sets and set the checkboxes from them.
+				 */
+		        createFullTrackColumnPrefsCheckboxes(TrackDisplayColumns.getFullColumnDefaults());
+		        createFilteredTrackColumnPrefsCheckboxes(TrackDisplayColumns.getFilteredColumnDefaults());
+		        createPlaylistTrackColumnPrefsCheckboxes(TrackDisplayColumns.getPlaylistColumnDefaults());
+		        
+		        /*
+		         * Indicate the track column preferences have been updated.
+		         */
+		        fullTrackColumnsUpdated = true;
+		        filteredTrackColumnsUpdated = true;
+		        playlistTrackColumnsUpdated = true;
+            	
+            	preferencesSheet.repaint();
+            }
+        });
+        
+        /*
+         * Listener to handle the reset button on the third tab.
+         */
+        tab3ResetButton.getButtonPressListeners().add(new ButtonPressListener() 
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+				logger.info("tab 3 reset defaults button pressed");
+				
+				/*
+				 * Update the save directory to the default value.
+				 */
+				saveDirectoryTextInput.setText(Preferences.getDefaultSaveDirectory());
+		        
+		        /*
+		         * Update the maximum log history to the default value.
+		         */
+		        logHistoryPrefsTextInput.setText(Integer.toString(Preferences.getDefaultMaxLogHistory()));
+		        
+		        /*
+		         * Set the global log level checkbox to selected, and grey out all the dimensional
+		         * log level widgets.
+		         */
+		        logLevelPrefsCheckbox.setSelected(true);
+	        	uiLogLevelPrefsLabel.setEnabled(false);
+	        	uiLogLevelPrefsSpinner.setEnabled(false);
+	        	xmlLogLevelPrefsLabel.setEnabled(false);
+	        	xmlLogLevelPrefsSpinner.setEnabled(false);
+	        	trackLogLevelPrefsLabel.setEnabled(false);
+	        	trackLogLevelPrefsSpinner.setEnabled(false);
+	        	playlistLogLevelPrefsLabel.setEnabled(false);
+	        	playlistLogLevelPrefsSpinner.setEnabled(false);
+	        	filterLogLevelPrefsLabel.setEnabled(false);
+	        	filterLogLevelPrefsSpinner.setEnabled(false);
+		        
+		        /*
+		         * Update all log level spinners to the default value.
+		         */
+		        Sequence<String> levelNames = logging.getLogLevelValues();
+	        	int index = levelNames.indexOf(logging.getDefaultLogLevel().toString());
+	        	
+		        logLevelPrefsSpinner.setSelectedIndex(index);
+		        uiLogLevelPrefsSpinner.setSelectedIndex(index);
+		        xmlLogLevelPrefsSpinner.setSelectedIndex(index);
+		        trackLogLevelPrefsSpinner.setSelectedIndex(index);
+		        playlistLogLevelPrefsSpinner.setSelectedIndex(index);
+		        filterLogLevelPrefsSpinner.setSelectedIndex(index);
+		        
+		        /*
+		         * Indicate the above preferences have been updated.
+		         */
+		        saveDirectoryUpdated = true;
+		        logHistoryPrefsUpdated = true;
+		        logLevelPrefsUpdated = true;
+            	
+            	preferencesSheet.repaint();
+            }
+        });
         
         /*
          * Listener to handle the skin preview button press.
@@ -603,16 +772,34 @@ public class PreferencesWindow
         });
         
         /*
-         * Add tooltip texts.
+         * Add tooltip texts ...
          */
-        bypassPrefsBorderLabel.setTooltipText("Playlist info is accumulated for every track, "
-        		+ "but you can bypass this info for certain playlists.");
+        
+        /*
+         * ... first tab.
+         */
+        bypassPrefsBorderLabel.setTooltipText("A list of playlists is accumulated for every track."
+        		+ "\nBut you can indicate if certain playlists, and optionally their children, "
+        		+ "should be bypassed."
+        		+ "\nBypassed playlists are not counted when filtering tracks based on the playlist count.");
         ignoredPrefsBorderLabel.setTooltipText("iTunes includes built-in playlists that might be "
-        		+ "considered clutter. \nYou can ignore them if you want, and also add your own "
-        		+ "playlists to completely ignore.");
+        		+ "considered clutter."
+        		+ "\nYou can ignore them if you want, and also add your own "
+        		+ "playlists to completely ignore."
+        		+ "\nThe default ignored playlists are automatically selected.");
+        tab1ResetButton.setTooltipText("Reset the ignored playlists to the default value.");
+        
+        /*
+         * ... second tab.
+         */
         columnPrefsBorderLabel.setTooltipText("Select the columns you want to be displayed when "
-        		+ "displaying all tracks, filtered tracks, and the tracks shown for a "
+        		+ "showing all tracks, filtered tracks, and the tracks shown for a "
         		+ "selected playlist.");
+        tab2ResetButton.setTooltipText("Reset the track display columns to the default value.");
+        
+        /*
+         * ... third tab.
+         */
         skinPrefsBorderLabel.setTooltipText("Select a skin name and click the 'Preview' "
         		+ "button to see how it looks.");
         saveDirectoryBorderLabel.setTooltipText("Select the directory keeping files such as "
@@ -646,6 +833,8 @@ public class PreferencesWindow
         final String filterLogLevelTooltip = "This is the log level for the filter management component.";
         filterLogLevelPrefsLabel.setTooltipText(filterLogLevelTooltip);
         filterLogLevelPrefsSpinner.setTooltipText(filterLogLevelTooltip);
+
+        tab3ResetButton.setTooltipText("Reset all but the skin name to the default value.");
 		
 		/*
 		 * Set the window title.
@@ -1717,6 +1906,43 @@ public class PreferencesWindow
     }
     
     /*
+     * Clear all the track column preferences checkboxes.
+     */
+    private void clearTrackColumnPrefsCheckboxes ()
+    {
+    	fullNumberCheckbox.setSelected(false);
+    	fullNameCheckbox.setSelected(false);
+    	fullArtistCheckbox.setSelected(false);
+    	fullAlbumCheckbox.setSelected(false);
+    	fullKindCheckbox.setSelected(false);
+    	fullDurationCheckbox.setSelected(false);
+    	fullYearCheckbox.setSelected(false);
+    	fullAddedCheckbox.setSelected(false);
+    	fullRatingCheckbox.setSelected(false);
+    	
+    	filteredNumberCheckbox.setSelected(false);
+    	filteredNameCheckbox.setSelected(false);
+    	filteredArtistCheckbox.setSelected(false);
+    	filteredAlbumCheckbox.setSelected(false);
+    	filteredKindCheckbox.setSelected(false);
+    	filteredDurationCheckbox.setSelected(false);
+    	filteredYearCheckbox.setSelected(false);
+    	filteredAddedCheckbox.setSelected(false);
+    	filteredRatingCheckbox.setSelected(false);
+    	
+    	playlistNumberCheckbox.setSelected(false);
+    	playlistNameCheckbox.setSelected(false);
+    	playlistArtistCheckbox.setSelected(false);
+    	playlistAlbumCheckbox.setSelected(false);
+    	playlistKindCheckbox.setSelected(false);
+    	playlistDurationCheckbox.setSelected(false);
+    	playlistYearCheckbox.setSelected(false);
+    	playlistAddedCheckbox.setSelected(false);
+    	playlistRatingCheckbox.setSelected(false);
+    	
+    }
+    
+    /*
      * We have a large number of checkboxes to deal with. So do the brute force initialization
      * here so it doesn't clutter up displayPreferences().
      */
@@ -2285,6 +2511,10 @@ public class PreferencesWindow
         tabPane = 
         		(TabPane)prefsWindowSerializer.getNamespace().get("tabPane");
 		components.add(tabPane);
+		
+		/*
+		 * First tab.
+		 */
         bypassPrefsBorder = 
         		(Border)prefsWindowSerializer.getNamespace().get("bypassPrefsBorder");
 		components.add(bypassPrefsBorder);
@@ -2309,6 +2539,19 @@ public class PreferencesWindow
         ignoredPrefsTablePane = 
         		(TablePane)prefsWindowSerializer.getNamespace().get("ignoredPrefsTablePane");
 		components.add(ignoredPrefsTablePane);
+        tab1ResetBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("tab1ResetBorder");
+		components.add(tab1ResetBorder);
+        tab1ResetBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("tab1ResetBoxPane");
+		components.add(tab1ResetBoxPane);
+        tab1ResetButton = 
+        		(PushButton)prefsWindowSerializer.getNamespace().get("tab1ResetButton");
+		components.add(tab1ResetButton);
+		
+		/*
+		 * Second tab.
+		 */
         columnPrefsBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
 		components.add(columnPrefsBorderLabel);
@@ -2318,7 +2561,6 @@ public class PreferencesWindow
         columnPrefsTablePane = 
         		(TablePane)prefsWindowSerializer.getNamespace().get("columnPrefsTablePane");
 		components.add(columnPrefsTablePane);
-
         fullColumnPrefsBoxPane = 
         		(BoxPane)prefsWindowSerializer.getNamespace().get("fullColumnPrefsBoxPane");
 		components.add(fullColumnPrefsBoxPane);
@@ -2337,7 +2579,19 @@ public class PreferencesWindow
         playlistColumnPrefsLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("playlistColumnPrefsLabel");
 		components.add(playlistColumnPrefsLabel);
-
+        tab2ResetBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("tab2ResetBorder");
+		components.add(tab2ResetBorder);
+        tab2ResetBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("tab2ResetBoxPane");
+		components.add(tab2ResetBoxPane);
+        tab2ResetButton = 
+        		(PushButton)prefsWindowSerializer.getNamespace().get("tab2ResetButton");
+		components.add(tab2ResetButton);
+		
+		/*
+		 * Third tab.
+		 */
         skinPrefsBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("skinPrefsBorderLabel");
 		components.add(skinPrefsBorderLabel);
@@ -2377,7 +2631,6 @@ public class PreferencesWindow
 		logHistoryPrefsTextInput = 
         		(TextInput)prefsWindowSerializer.getNamespace().get("logHistoryPrefsTextInput");
 		components.add(logHistoryPrefsTextInput);
-        
         logLevelPrefsBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
 		components.add(logLevelPrefsBorderLabel);
@@ -2420,6 +2673,19 @@ public class PreferencesWindow
         filterLogLevelPrefsLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsLabel");
 		components.add(filterLogLevelPrefsLabel);
+        tab3ResetBorder = 
+        		(Border)prefsWindowSerializer.getNamespace().get("tab3ResetBorder");
+		components.add(tab3ResetBorder);
+        tab3ResetBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("tab3ResetBoxPane");
+		components.add(tab3ResetBoxPane);
+        tab3ResetButton = 
+        		(PushButton)prefsWindowSerializer.getNamespace().get("tab3ResetButton");
+		components.add(tab3ResetButton);
+		
+		/*
+		 * Action buttons.
+		 */
         actionBorder = 
         		(Border)prefsWindowSerializer.getNamespace().get("actionBorder");
 		components.add(actionBorder);

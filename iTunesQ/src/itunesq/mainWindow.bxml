@@ -63,81 +63,37 @@
 		<!-- Informational elements row. -->
         <TablePane.Row height="10*">
 		    <Border bxml:id="infoBorder">
-			    
-		        <!-- Wrap the informational elements in a table pane. -->
-		        <TablePane bxml:id="infoTablePane">
-                    <columns>
-                        <TablePane.Column width="1*"/>
-                    </columns>
-                    
-                    <TablePane.Row height="1*">
-	    	        	<FillPane orientation="horizontal">
-	    		        	<Label bxml:id="titleLabel" text="iTunes Query Tool"
-	          	  	        styles="{font:{bold:true, size:'200%'},
-	              		          horizontalAlignment:'center', verticalAlignment:'top'}"/>
-	                    </FillPane>
-	                </TablePane.Row>
-                    
-                    <TablePane.Row height="1*">
-	    		        <SplitPane splitRatio="0.16" locked="true"
-	    		        	styles="{splitterThickness:0}">
-	    		        <left>
-	    			        <Label bxml:id="fileNameStaticLabel" text="XML File Name:"
-	                	  	    styles="{font:{bold:true}, padding:10,
-	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                  	</left>
-	                  	<right>
-	    			        <Label bxml:id="fileNameLabel"
-	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                	</right>
-	                    </SplitPane>
-	                </TablePane.Row>
-                    
-                    <TablePane.Row height="1*">
-	    		        <SplitPane splitRatio="0.16" locked="true"
-	    		        	styles="{splitterThickness:0}">
-	    		        <left>
-	    			        <Label bxml:id="fileDateStaticLabel" text="XML File Timestamp:"
-	                	  	    styles="{font:{bold:true}, padding:10,
-	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                  	</left>
-	                  	<right>
-	    			        <Label bxml:id="fileDateLabel"
-	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                	</right>
-	                    </SplitPane>
-	                </TablePane.Row>
-                    
-                    <TablePane.Row height="1*">
-	    		        <SplitPane splitRatio="0.16" locked="true"
-	    		        	styles="{splitterThickness:0}">
-	    		        <left>
-	    			        <Label bxml:id="numTracksStaticLabel" text="Number of Tracks:"
-	                	  	    styles="{font:{bold:true}, padding:10,
-	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                  	</left>
-	                  	<right>
-	    			        <Label bxml:id="numTracksLabel"
-	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                	</right>
-	                    </SplitPane>
-	                </TablePane.Row>
-                    
-                    <TablePane.Row height="1*">
-	    		        <SplitPane splitRatio="0.16" locked="true"
-	    		        	styles="{splitterThickness:0}">
-	    		        <left>
-	    			        <Label bxml:id="numPlaylistsStaticLabel" text="Number of Playlists:"
-	                	  	    styles="{font:{bold:true}, padding:10,
-	                  		          horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                  	</left>
-	                  	<right>
-	    			        <Label bxml:id="numPlaylistsLabel"
-	                	  	    styles="{horizontalAlignment:'left', verticalAlignment:'center'}"/>
-	                	</right>
-	                    </SplitPane>
-	                </TablePane.Row>
-	       	    </TablePane>
+    	        <FillPane bxml:id="infoFillPane" orientation="vertical">
+   		        	<Label bxml:id="titleLabel" text="iTunes Query Tool"
+          	  	        styles="{font:{bold:true, size:'200%'},
+           		    	horizontalAlignment:'center', verticalAlignment:'center'}"/>
+                </FillPane>
+		    	<BoxPane orientation="vertical" styles="{spacing: 5, padding:10}">
+		    	
+		    		<!-- XML file information. -->
+           			<Separator bxml:id="fileSeparator" heading="Working XML File"/>
+            		<BoxPane bxml:id="fileBoxPane" orientation="horizontal" 
+                		styles="{spacing: 5, padding:10}">
+    			        <Label bxml:id="fileLabel"
+                	  	    styles="{font:{size:'120%'}, padding:5,
+               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+                    </BoxPane>
+	                    
+		    		<!-- XML file statistics. -->
+           			<Separator bxml:id="dataSeparator" heading="XML File Statistics"/>
+            		<BoxPane bxml:id="dataBoxPane" orientation="horizontal" 
+                		styles="{spacing: 5, padding:10}">
+    			        <Label bxml:id="numTracksLabel"
+                	  	    styles="{font:{size:'120%'}, padding:5,
+               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+    			        <Label bxml:id="numPlaylistsLabel"
+                	  	    styles="{font:{size:'120%'}, padding:5,
+               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+    			        <Label bxml:id="numArtistsLabel"
+                	  	    styles="{font:{size:'120%'}, padding:5,
+               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+                    </BoxPane>
+	            </BoxPane>
 	       	</Border>
         </TablePane.Row>
         	

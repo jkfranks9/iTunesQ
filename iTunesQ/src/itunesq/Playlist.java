@@ -56,7 +56,7 @@ public class Playlist
 	private List<Integer> plTracks;
 	
 	private boolean plIgnored;
-	private boolean plSkipPlaylistInfo;
+	private boolean plBypassed;
 	
 	/**
 	 * Class constructor.
@@ -65,7 +65,7 @@ public class Playlist
 	{
 		plIsFolder = false;
 		plIgnored = false;
-		plSkipPlaylistInfo = false;
+		plBypassed = false;
 	}
 
     //---------------- Getters and setters ---------------------------------
@@ -191,23 +191,23 @@ public class Playlist
 	}
 
 	/**
-	 * Gets the skip playlist info indicator.
+	 * Gets the playlist bypassed indicator.
 	 * 
-	 * @return skip playlist info indicator
+	 * @return playlist bypassed indicator
 	 */
-	public boolean getSkipPlaylistInfo()
+	public boolean getBypassed()
 	{
-		return plSkipPlaylistInfo;
+		return plBypassed;
 	}
 	
 	/**
-	 * Sets the skip playlist info indicator.
+	 * Sets the playlist bypassed indicator.
 	 * 
-	 * @param skipPlaylistInfo skip playlist info indicator
+	 * @param bypassed playlist bypassed indicator
 	 */
-	public void setSkipPlaylistInfo(boolean skipPlaylistInfo)
+	public void setBypassed(boolean bypassed)
 	{
-		this.plSkipPlaylistInfo = skipPlaylistInfo;
+		this.plBypassed = bypassed;
 	}
 
     //---------------- Public methods --------------------------------------

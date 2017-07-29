@@ -508,7 +508,7 @@ public class FileSaveDialog
         case TRACKS:
 			String playlistID = XMLHandler.getPlaylistsMap().get(playlistName);
         	Playlist playlist = XMLHandler.getPlaylists().get(playlistID);
-        	result = playlist.getSkipPlaylistInfo();
+        	result = playlist.getBypassed();
         	break;
 
         /*

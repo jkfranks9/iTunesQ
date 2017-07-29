@@ -175,6 +175,28 @@ public class Logging
 		loggerRegistry = new HashMap<Dimension, List<Logger>>();
 	}
 	
+    //---------------- Getters and setters ---------------------------------
+	
+	/**
+	 * Gets the default log level.
+	 * 
+	 * @return default log level
+	 */
+	public Level getDefaultLogLevel ()
+	{
+		return defaultLevel;
+	}
+	
+	/**
+	 * Sets the default log level.
+	 * 
+	 * @param level default log level
+	 */
+	public void setDefaultLogLevel (Level level)
+	{
+		this.defaultLevel = level;
+	}
+	
     //---------------- Public methods --------------------------------------
 	
 	/**
@@ -257,7 +279,7 @@ public class Logging
 			String saveDirectory = Preferences.getSaveDirectory();
 			if (saveDirectory == null)
 			{
-				saveDirectory = Preferences.DEFAULT_SAVE_DIRECTORY;
+				saveDirectory = Preferences.getDefaultSaveDirectory();
 			}
 			policy.setFileNamePattern(saveDirectory + "/" + logFileName + "-%d" + logFileSuffix);
 			policy.setMaxHistory(userPrefs.getMaxLogHistory());
@@ -350,16 +372,6 @@ public class Logging
 	        	}
 	        }
 	    }
-	}
-	
-	/**
-	 * Sets the default log level.
-	 * 
-	 * @param level default log level
-	 */
-	public void setDefaultLogLevel (Level level)
-	{
-		this.defaultLevel = level;
 	}
 	
 	/**

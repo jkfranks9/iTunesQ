@@ -50,23 +50,6 @@ public final class Preferences implements Serializable
 		return instance;
 	}
 
-    //---------------- Public variables ------------------------------------
-	
-	/*
-	 * Serialized file directory constants.
-	 * 
-	 * (Of course only one of these is public, but I like to put public variables first, and I need to
-	 * define the private variables before the public one.) 
-	 */
-	
-	private static transient final String HOME_ENV = System.getenv("HOME");
-	private static transient final String DEFAULT_PREFS_PATH = "itq";
-	
-	/**
-	 * Default save directory for things like preferences and log files.
-	 */
-	public static transient final String DEFAULT_SAVE_DIRECTORY = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
-
     //---------------- Class variables -------------------------------------
 	
 	/*
@@ -92,22 +75,30 @@ public final class Preferences implements Serializable
 	private boolean globalLogLevel;
 	private Map<String, Level> logLevels;
 	
-    //---------------- Private variables -----------------------------------
+	/*
+	 * Default save directory for things like preferences and log files.
+	 */
+	
+	private static transient final String HOME_ENV = System.getenv("HOME");
+	private static transient final String DEFAULT_PREFS_PATH = "itq";
+	private static transient final String DEFAULT_SAVE_DIRECTORY = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
+	
+	/*
+	 * Default maximum log history.
+	 */
+	private static transient final int DEFAULT_MAX_HISTORY = 30;
 	
 	/*
 	 * Save directory name.
 	 */
 	private static transient String saveDirectory;
 	
+    //---------------- Private variables -----------------------------------
+	
 	/*
 	 * Serialized file name suffix.
 	 */
 	private static transient final String PREFS_SUFFIX = ".ser";
-	
-	/*
-	 * Default maximum log history.
-	 */
-	private static transient final int DEFAULT_MAX_HISTORY = 30;
 	
 	/*
 	 * The serialized file name includes the class name. That's initialized in setSaveDirectory(),
@@ -328,6 +319,26 @@ public final class Preferences implements Serializable
 	public void setLogLevel (Logging.Dimension dimension, Level level)
 	{
 		logLevels.put(dimension.getDisplayValue(), level);
+	}
+	
+	/**
+	 * Gets the default save directory.
+	 * 
+	 * @return default save directory
+	 */
+	public static String getDefaultSaveDirectory ()
+	{
+		return DEFAULT_SAVE_DIRECTORY;
+	}
+	
+	/**
+	 * Gets the default maximum log history.
+	 * 
+	 * @return default maximum log history
+	 */
+	public static int getDefaultMaxLogHistory ()
+	{
+		return DEFAULT_MAX_HISTORY;
 	}
 	
 	/**

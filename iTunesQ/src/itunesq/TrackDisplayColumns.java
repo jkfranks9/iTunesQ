@@ -306,6 +306,63 @@ public class TrackDisplayColumns
 	}
 	
 	/**
+	 * Gets the list of full column set defaults.
+	 * 
+	 * @return list of full column set defaults
+	 */
+	public static List<List<String>> getFullColumnDefaults ()
+	{
+		List<List<String>> columnList = new ArrayList<List<String>>();
+		
+		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.KIND.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ADDED.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+		
+		return columnList;
+	}
+	
+	/**
+	 * Gets the list of filtered column set defaults.
+	 * 
+	 * @return list of filtered column set defaults
+	 */
+	public static List<List<String>> getFilteredColumnDefaults ()
+	{
+		List<List<String>> columnList = new ArrayList<List<String>>();
+
+		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
+		
+		return columnList;
+	}
+	
+	/**
+	 * Gets the list of playlist column set defaults.
+	 * 
+	 * @return list of playlist column set defaults
+	 */
+	public static List<List<String>> getPlaylistColumnDefaults ()
+	{
+		List<List<String>> columnList = new ArrayList<List<String>>();
+
+		columnList.add(buildColumnData(ColumnNames.NUMBER.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+		
+		return columnList;
+	}
+	
+	/**
 	 * Creates a column set. This is called by the various methods that create 
 	 * track listings for display.
 	 * 
@@ -352,16 +409,7 @@ public class TrackDisplayColumns
 	 */
 	private static void buildFullColumnData (Preferences prefs)
 	{
-		List<List<String>> columnList = new ArrayList<List<String>>();
-		
-		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.KIND.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ADDED.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+		List<List<String>> columnList = getFullColumnDefaults();
 		
 		/*
 		 * Note that we only need to modify column set preferences if the preferences for that set
@@ -388,11 +436,7 @@ public class TrackDisplayColumns
 	 */
 	private static void buildFilteredColumnData (Preferences prefs)
 	{
-		List<List<String>> columnList = new ArrayList<List<String>>();
-		
-		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
+		List<List<String>> columnList = getFilteredColumnDefaults();
 		
 		/*
 		 * Note that we only need to modify column set preferences if the preferences for that set
@@ -419,15 +463,7 @@ public class TrackDisplayColumns
 	 */
 	private static void buildPlaylistColumnData (Preferences prefs)
 	{
-		List<List<String>> columnList = new ArrayList<List<String>>();
-
-		columnList.add(buildColumnData(ColumnNames.NUMBER.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+		List<List<String>> columnList = getPlaylistColumnDefaults();
 		
 		/*
 		 * Note that we only need to modify column set preferences if the preferences for that set

@@ -179,6 +179,16 @@ public final class XMLHandler
 	{
 		return (Playlists != null) ? Playlists.getCount() - playlistIgnoredCount : 0;
 	}
+	
+	/**
+	 * Gets the number of artist names found in the input XML file.
+	 * 
+	 * @return number of artists
+	 */
+	public static int getNumberOfArtists ()
+	{
+		return (ArtistNames != null) ? ArtistNames.getLength() : 0;
+	}
 
 	/**
 	 * Gets the timestamp of the XML file.

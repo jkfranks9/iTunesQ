@@ -17,12 +17,13 @@ import org.apache.pivot.wtk.ButtonPressListener;
 import org.apache.pivot.wtk.Component;
 import org.apache.pivot.wtk.DesktopApplicationContext;
 import org.apache.pivot.wtk.Display;
+import org.apache.pivot.wtk.FillPane;
 import org.apache.pivot.wtk.Label;
 import org.apache.pivot.wtk.Menu;
 import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.PushButton;
-import org.apache.pivot.wtk.TablePane;
+import org.apache.pivot.wtk.Separator;
 import org.apache.pivot.wtk.Window;
 import org.apache.pivot.wtk.WindowStateListener;
 import org.slf4j.LoggerFactory;
@@ -72,16 +73,16 @@ public class MainWindow implements Application
 	@BXML private Menu mainFileMenu = null;
 	@BXML private Menu mainEditMenu = null;
 	@BXML private Border infoBorder = null;
-	@BXML private TablePane infoTablePane = null;
+	@BXML private FillPane infoFillPane = null;
     @BXML private Label titleLabel = null;
-    @BXML private Label fileNameStaticLabel = null;
-    @BXML private Label fileNameLabel = null;
-    @BXML private Label fileDateStaticLabel = null;
-    @BXML private Label fileDateLabel = null;
-    @BXML private Label numTracksStaticLabel = null;
+    @BXML private Separator fileSeparator = null;
+	@BXML private BoxPane fileBoxPane = null;
+    @BXML private Label fileLabel = null;
+    @BXML private Separator dataSeparator = null;
+	@BXML private BoxPane dataBoxPane = null;
     @BXML private Label numTracksLabel = null;
-    @BXML private Label numPlaylistsStaticLabel = null;
     @BXML private Label numPlaylistsLabel = null;
+    @BXML private Label numArtistsLabel = null;
 	@BXML private Border actionBorder = null;
 	@BXML private BoxPane actionBoxPane = null;
     @BXML private PushButton viewTracksButton = null;
@@ -342,10 +343,10 @@ public class MainWindow implements Application
 		/*
 		 * Save the main window information labels so they can be used from other windows.
 		 */
-        Utilities.saveFileNameLabel(fileNameLabel);
-        Utilities.saveFileDateLabel(fileDateLabel);
+        Utilities.saveFileLabel(fileLabel);
         Utilities.saveNumTracksLabel(numTracksLabel);
         Utilities.saveNumPlaylistsLabel(numPlaylistsLabel);
+        Utilities.saveNumArtistsLabel(numArtistsLabel);
 		
 		/*
 		 * Initialize the tracks display column defaults.
@@ -417,10 +418,7 @@ public class MainWindow implements Application
     		/*
     		 * Update the main window information based on the XML file contents.
     		 */
-			fileNameLabel.setText(xmlFileName);
-			fileDateLabel.setText(XMLHandler.getXMLFileTimestamp());
-			numTracksLabel.setText(Integer.toString(XMLHandler.getNumberOfTracks()));
-			numPlaylistsLabel.setText(Integer.toString(XMLHandler.getNumberOfPlaylists()));
+        	Utilities.updateMainWindowLabels(xmlFileName);
 
 			/*
 			 * Repaint the main window.
@@ -505,36 +503,36 @@ public class MainWindow implements Application
         infoBorder = 
         		(Border)windowSerializer.getNamespace().get("infoBorder");
 		components.add(infoBorder);
-        infoTablePane = 
-        		(TablePane)windowSerializer.getNamespace().get("infoTablePane");
-		components.add(infoTablePane);
+        infoFillPane = 
+        		(FillPane)windowSerializer.getNamespace().get("infoFillPane");
+		components.add(infoFillPane);
         titleLabel = 
         		(Label)windowSerializer.getNamespace().get("titleLabel");
 		components.add(titleLabel);
-        fileNameStaticLabel = 
-        		(Label)windowSerializer.getNamespace().get("fileNameStaticLabel");
-		components.add(fileNameStaticLabel);
-        fileNameLabel = 
-        		(Label)windowSerializer.getNamespace().get("fileNameLabel");
-		components.add(fileNameLabel);
-        fileDateStaticLabel = 
-        		(Label)windowSerializer.getNamespace().get("fileDateStaticLabel");
-		components.add(fileDateStaticLabel);
-        fileDateLabel = 
-        		(Label)windowSerializer.getNamespace().get("fileDateLabel");
-		components.add(fileDateLabel);
-        numTracksStaticLabel = 
-        		(Label)windowSerializer.getNamespace().get("numTracksStaticLabel");
-		components.add(numTracksStaticLabel);
+        fileSeparator = 
+        		(Separator)windowSerializer.getNamespace().get("fileSeparator");
+		components.add(fileSeparator);
+        fileBoxPane = 
+        		(BoxPane)windowSerializer.getNamespace().get("fileBoxPane");
+		components.add(fileBoxPane);
+        fileLabel = 
+        		(Label)windowSerializer.getNamespace().get("fileLabel");
+		components.add(fileLabel);
+        dataSeparator = 
+        		(Separator)windowSerializer.getNamespace().get("dataSeparator");
+		components.add(dataSeparator);
+        dataBoxPane = 
+        		(BoxPane)windowSerializer.getNamespace().get("dataBoxPane");
+		components.add(dataBoxPane);
         numTracksLabel = 
         		(Label)windowSerializer.getNamespace().get("numTracksLabel");
 		components.add(numTracksLabel);
-        numPlaylistsStaticLabel = 
-        		(Label)windowSerializer.getNamespace().get("numPlaylistsStaticLabel");
-		components.add(numPlaylistsStaticLabel);
         numPlaylistsLabel = 
         		(Label)windowSerializer.getNamespace().get("numPlaylistsLabel");
 		components.add(numPlaylistsLabel);
+        numArtistsLabel = 
+        		(Label)windowSerializer.getNamespace().get("numArtistsLabel");
+		components.add(numArtistsLabel);
         actionBorder = 
         		(Border)windowSerializer.getNamespace().get("actionBorder");
 		components.add(actionBorder);

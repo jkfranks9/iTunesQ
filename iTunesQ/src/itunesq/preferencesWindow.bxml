@@ -72,7 +72,17 @@
                						</BoxPane>
                					</Border>
                    			</ScrollPane>
-           				</TablePane.Row>           
+           				</TablePane.Row>
+            
+			            <!-- Reset to defaults row. -->
+           				<TablePane.Row height="1*">
+               				<Border bxml:id="tab1ResetBorder">
+                				<BoxPane bxml:id="tab1ResetBoxPane" orientation="horizontal"
+                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+           	        				<PushButton bxml:id="tab1ResetButton" buttonData="Reset to Defaults"/>
+                				</BoxPane>
+                			</Border>
+           				</TablePane.Row>
        				</TablePane>
        			</FillPane> 
     				
@@ -89,7 +99,7 @@
            				</columns>
             
            				<!-- Track column preferences row. -->
-           				<TablePane.Row height="2*">
+           				<TablePane.Row height="4*">
            					<BoxPane orientation="vertical">
            						<Label bxml:id="columnPrefsBorderLabel" text="Track Display Columns"
            						styles="{font:{bold:true}, padding:5}"/>
@@ -171,7 +181,17 @@
                    					</TablePane>
                					</Border>
                				</BoxPane>
-           				</TablePane.Row>            
+           				</TablePane.Row>
+            
+			            <!-- Reset to defaults row. -->
+           				<TablePane.Row height="1*">
+               				<Border bxml:id="tab2ResetBorder">
+                				<BoxPane bxml:id="tab2ResetBoxPane" orientation="horizontal"
+                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+           	        				<PushButton bxml:id="tab2ResetButton" buttonData="Reset to Defaults"/>
+                				</BoxPane>
+                			</Border>
+           				</TablePane.Row>
        				</TablePane>
        			</BoxPane> 
     				
@@ -188,7 +208,7 @@
            				</columns>
             
            				<!-- Miscellaneous preferences row. -->
-           				<TablePane.Row height="1*">
+           				<TablePane.Row height="4*">
            					<BoxPane orientation="horizontal"
            						styles="{spacing:90}">
            						<BoxPane orientation="vertical">
@@ -227,7 +247,7 @@
            				</TablePane.Row>
             
            				<!-- Log level preferences row. -->
-           				<TablePane.Row height="9*">
+           				<TablePane.Row height="11*">
            					<BoxPane orientation="vertical">
            						<Label bxml:id="logLevelPrefsBorderLabel" text="Log Level"
            							styles="{font:{bold:true}, padding:5}"/>
@@ -242,7 +262,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="logLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                       							styles="{spacing:5, padding:3, verticalAlignment:'center'}">
                									<Spinner bxml:id="logLevelPrefsSpinner"/>
                									<Checkbox bxml:id="logLevelPrefsCheckbox" 
                										buttonData="Apply To All?"/>
@@ -252,7 +272,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="uiLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:10, verticalAlignment:'center'}">
+                       							styles="{padding:3, verticalAlignment:'center'}">
            										<Label bxml:id="uiLogLevelPrefsLabel" 
            											text="UI Log Level:" 
            											preferredWidth="130"
@@ -264,7 +284,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="xmlLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:10, verticalAlignment:'center'}">
+                       							styles="{padding:3, verticalAlignment:'center'}">
            										<Label bxml:id="xmlLogLevelPrefsLabel" 
            											text="XML Log Level:" 
            											preferredWidth="130"
@@ -276,7 +296,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="trackLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:10, verticalAlignment:'center'}">
+                       							styles="{padding:3, verticalAlignment:'center'}">
            										<Label bxml:id="trackLogLevelPrefsLabel" 
            											text="Track Log Level:" 
            											preferredWidth="130"
@@ -288,7 +308,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="playlistLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:10, verticalAlignment:'center'}">
+                       							styles="{padding:3, verticalAlignment:'center'}">
            										<Label bxml:id="playlistLogLevelPrefsLabel" 
            											text="Playlist Log Level:" 
            											preferredWidth="130"
@@ -300,7 +320,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="filterLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:10, verticalAlignment:'center'}">
+                       							styles="{padding:3, verticalAlignment:'center'}">
            										<Label bxml:id="filterLogLevelPrefsLabel" 
            											text="Filter Log Level:" 
            											preferredWidth="130"
@@ -311,7 +331,17 @@
                    					</TablePane>
                					</Border>
                				</BoxPane>
-           				</TablePane.Row> 
+           				</TablePane.Row>
+            
+			            <!-- Reset to defaults row. -->
+           				<TablePane.Row height="2*">
+               				<Border bxml:id="tab3ResetBorder">
+                				<BoxPane bxml:id="tab3ResetBoxPane" orientation="horizontal"
+                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+           	        				<PushButton bxml:id="tab3ResetButton" buttonData="Reset to Defaults"/>
+                				</BoxPane>
+                			</Border>
+           				</TablePane.Row>
        				</TablePane>    
    				</BoxPane>
 			</TabPane>

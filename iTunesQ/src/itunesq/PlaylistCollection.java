@@ -74,8 +74,7 @@ public final class PlaylistCollection
 	}
 	
 	/**
-	 * Finds and marks all playlists for which we don't want to update track 
-	 * playlist info. Such a playlist is also known as bypassed.
+	 * Finds and marks all playlists that are bypassed by user preferences.
 	 */
 	public static void markPlaylists ()
 	{
@@ -92,18 +91,18 @@ public final class PlaylistCollection
         	Playlist playlistObj = playlists.get(playlistKey);
         	
         	/*
-        	 * If this playlist should not be considered, mark it so.
+        	 * If this playlist is bypassed, mark it so.
         	 */
         	boolean[] result = checkBypassedPlaylist(playlistObj);
         	if (result[0] == true)
         	{
-    			logger.debug("skipping playlist info for '" + playlistObj.getName() + "'");
-        		playlistObj.setSkipPlaylistInfo(true);
+    			logger.debug("marking playlist '" + playlistObj.getName() + "' as bypassed");
+        		playlistObj.setBypassed(true);
         		continue;
         	}
         	
         	/*
-        	 * If one of the parents of this playlist should not be considered, mark it so.
+        	 * If one of the parents of this playlist is bypassed, mark it so.
         	 */
     		String parentID;
     		Playlist workingPlaylistObj = playlistObj;
@@ -113,9 +112,9 @@ public final class PlaylistCollection
     			result = checkBypassedPlaylist(workingPlaylistObj);
     			if (result[0] == true && result[1] == true)
     			{
-        			logger.debug("skipping playlist info for '" + playlistObj.getName() + 
-        					"' due to parent playlist '" + workingPlaylistObj.getName() + "'");
-    				playlistObj.setSkipPlaylistInfo(true);
+        			logger.debug("marking playlist '" + playlistObj.getName() + 
+        					"' as bypassed due to parent playlist '" + workingPlaylistObj.getName() + "'");
+    				playlistObj.setBypassed(true);
     				break;
     			}
     		}
@@ -124,6 +123,8 @@ public final class PlaylistCollection
 	
 	/**
 	 * Updates the track playlist info for all playlists that are not ignored.
+	 * The playlist info consists of the playlist name and a bypassed 
+	 * indicator.
 	 */
 	public static void updateTrackPlaylistInfo ()
 	{
@@ -171,7 +172,7 @@ public final class PlaylistCollection
         				 */
         				TrackPlaylistInfo playlistInfo = new TrackPlaylistInfo();
         				playlistInfo.setPlaylistName(playlistObj.getName());
-        				playlistInfo.setBypassed(playlistObj.getSkipPlaylistInfo());
+        				playlistInfo.setBypassed(playlistObj.getBypassed());
         				track.addPlaylistInfoToTrack(playlistInfo);
         			}
         		}
@@ -182,7 +183,7 @@ public final class PlaylistCollection
     //---------------- Private methods -------------------------------------
 	
 	/*
-	 * Check if a playlist should not be considered when collecting playlist names for a track.
+	 * Check if a playlist is bypassed.
 	 */
 	private static boolean[] checkBypassedPlaylist (Playlist playlistObj)
 	{
@@ -191,7 +192,7 @@ public final class PlaylistCollection
 		/*
 		 * The result is 2 booleans:
 		 * 
-		 * [0] = playlist should not be considered
+		 * [0] = playlist is bypassed
 		 * [1] = include the children of the playlist
 		 */
 		boolean[] result = {false, false};
