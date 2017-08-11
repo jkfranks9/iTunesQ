@@ -34,6 +34,7 @@ import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TableViewHeader;
 import org.apache.pivot.wtk.TextInput;
 import org.apache.pivot.wtk.TextInputContentListener;
+import org.apache.pivot.wtk.content.ButtonData;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -58,6 +59,8 @@ public class PreferencesWindow
 	private Preferences userPrefs = null;
 	private Dialog skinPreviewDialog = null;
 	private Logging logging = null;
+	private Logger logger;
+	private String owningWindowTitle;
 	
 	private boolean bypassPrefsUpdated;
 	private boolean ignoredPrefsUpdated;
@@ -68,8 +71,6 @@ public class PreferencesWindow
 	private boolean logLevelPrefsUpdated;
 	private boolean saveDirectoryUpdated;
 	private boolean logHistoryPrefsUpdated;
-	private Logger logger;
-	private String owningWindowTitle;
 
 	/*
 	 * BXML variables ...
@@ -141,6 +142,7 @@ public class PreferencesWindow
 	/*
 	 * ... third tab.
 	 */
+	@BXML private BoxPane miscPrefsBoxPane = null;
 	@BXML private Label skinPrefsBorderLabel = null;
 	@BXML private Border skinPrefsBorder = null;
 	@BXML private BoxPane skinPrefsBoxPane = null;
@@ -189,12 +191,16 @@ public class PreferencesWindow
 	/*
 	 * ... skin preview window.
 	 */
+	@BXML private TablePane mainTablePane = null;
 	@BXML private Border previewTextBorder = null;
 	@BXML private BoxPane previewTextBoxPane = null;
 	@BXML private Label previewTextLabel = null;
 	@BXML private TextInput previewTextInput = null;
 	@BXML private Border previewTableBorder = null;
 	@BXML private TableView previewTableView = null;
+	@BXML private TableView.Column previewTableColumnWeekday = null;
+	@BXML private TableView.Column previewTableColumnColor = null;
+	@BXML private TableView.Column previewTableColumnMood = null;
 	@BXML private TableViewHeader previewTableViewHeader = null;
 	@BXML private Border previewButtonBorder = null;
 	@BXML private BoxPane previewButtonBoxPane = null;
@@ -243,8 +249,8 @@ public class PreferencesWindow
 	 * Displays the user preferences in a new window.
 	 * 
 	 * @param display display object for managing windows
-	 * @throws IOException If an exception occurs trying to read the BXML file.
-	 * @throws SerializationException If an exception occurs trying to 
+	 * @throws IOException If an error occurs trying to read the BXML file.
+	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 */
     public void displayPreferences (Display display) 
@@ -452,8 +458,13 @@ public class PreferencesWindow
 		            	 * We want to match weekdays in the text input box.
 		            	 */
 						ArrayList<String> weekdays = new ArrayList<String>(
-								"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", 
-								"Friday", "Saturday");
+								StringConstants.PREFS_SKIN_PREVIEW_SUNDAY,
+								StringConstants.PREFS_SKIN_PREVIEW_MONDAY,
+								StringConstants.PREFS_SKIN_PREVIEW_TUESDAY,
+								StringConstants.PREFS_SKIN_PREVIEW_WEDNESDAY, 
+								StringConstants.PREFS_SKIN_PREVIEW_THURSDAY, 
+								StringConstants.PREFS_SKIN_PREVIEW_FRIDAY,
+								StringConstants.PREFS_SKIN_PREVIEW_SATURDAY);
 						weekdays.setComparator(String.CASE_INSENSITIVE_ORDER);
 		            	boolean result = Utilities.typingAssistant(textInput, weekdays, 
 		            			textInput.getText(), Filter.Operator.IS);
@@ -489,6 +500,93 @@ public class PreferencesWindow
 		            	}
 		            }    		
 		    	});
+				
+				/*
+				 * Set the size of the skin preview dialog.
+				 */
+				mainTablePane.setPreferredWidth(InternalConstants.SKIN_PREVIEW_DIALOG_WIDTH);
+				mainTablePane.setPreferredHeight(InternalConstants.SKIN_PREVIEW_DIALOG_HEIGHT);
+				
+				/*
+				 * Add widget texts.
+				 */
+		        previewTextLabel.setText(StringConstants.PREFS_SKIN_PREVIEW_TEXT);
+		        previewTableColumnWeekday.setHeaderData(StringConstants.PREFS_SKIN_PREVIEW_WEEKDAY);
+		        previewTableColumnColor.setHeaderData(StringConstants.PREFS_SKIN_PREVIEW_COLOR);
+		        previewTableColumnMood.setHeaderData(StringConstants.PREFS_SKIN_PREVIEW_MOOD);
+		        previewButton.setButtonData(StringConstants.PREFS_SKIN_PREVIEW_CLOSE_BUTTON);
+				
+				/*
+				 * Set the window title.
+				 */
+				skinPreviewDialog.setTitle(Skins.Window.SKINPREVIEW.getDisplayValue());
+		        
+		        /*
+		         * Populate the skin preview table view. Start by creating a list suitable for the 
+		         * setTableData() method.
+		         */
+		        List<HashMap<String, String>> previewTableData = new ArrayList<HashMap<String, String>>();
+		        
+		        /*
+		         * Set up the table for the 7 weekdays. Yeah, this is ugly :O
+		         */
+		        for (int i = 0; i < 7; i++)
+		        {
+		            HashMap<String, String> weekdayStr = new HashMap<String, String>();
+		            
+		            switch (i)
+		            {
+		            case 0:
+		                weekdayStr.put("weekday", StringConstants.PREFS_SKIN_PREVIEW_SUNDAY);
+		                weekdayStr.put("color", StringConstants.PREFS_SKIN_PREVIEW_YELLOW);
+		                weekdayStr.put("mood", StringConstants.PREFS_SKIN_PREVIEW_GRATEFUL);
+		            	break;
+
+		            case 1:
+		                weekdayStr.put("weekday", StringConstants.PREFS_SKIN_PREVIEW_MONDAY);
+		                weekdayStr.put("color", StringConstants.PREFS_SKIN_PREVIEW_BLACK);
+		                weekdayStr.put("mood", StringConstants.PREFS_SKIN_PREVIEW_HATEFUL);
+		            	break;
+
+		            case 2:
+		                weekdayStr.put("weekday", StringConstants.PREFS_SKIN_PREVIEW_TUESDAY);
+		                weekdayStr.put("color", StringConstants.PREFS_SKIN_PREVIEW_GRAY);
+		                weekdayStr.put("mood", StringConstants.PREFS_SKIN_PREVIEW_SOMBER);
+		            	break;
+
+		            case 3:
+		                weekdayStr.put("weekday", StringConstants.PREFS_SKIN_PREVIEW_WEDNESDAY);
+		                weekdayStr.put("color", StringConstants.PREFS_SKIN_PREVIEW_SILVER);
+		                weekdayStr.put("mood", StringConstants.PREFS_SKIN_PREVIEW_DETERMINED);
+		            	break;
+
+		            case 4:
+		                weekdayStr.put("weekday", StringConstants.PREFS_SKIN_PREVIEW_THURSDAY);
+		                weekdayStr.put("color", StringConstants.PREFS_SKIN_PREVIEW_LIGHT_GREEN);
+		                weekdayStr.put("mood", StringConstants.PREFS_SKIN_PREVIEW_OPTIMISTIC);
+		            	break;
+
+		            case 5:
+		                weekdayStr.put("weekday", StringConstants.PREFS_SKIN_PREVIEW_FRIDAY);
+		                weekdayStr.put("color", StringConstants.PREFS_SKIN_PREVIEW_GREEN);
+		                weekdayStr.put("mood", StringConstants.PREFS_SKIN_PREVIEW_HAPPY);
+		            	break;
+
+		            case 6:
+		                weekdayStr.put("weekday", StringConstants.PREFS_SKIN_PREVIEW_SATURDAY);
+		                weekdayStr.put("color", StringConstants.PREFS_SKIN_PREVIEW_RAINBOW);
+		                weekdayStr.put("mood", StringConstants.PREFS_SKIN_PREVIEW_RELAXED);
+		            	break;
+		            	
+		            }
+		            
+		            previewTableData.add(weekdayStr);
+		        }
+		        
+		        /*
+		         * Finally, set the preview table data.
+		         */
+		        previewTableView.setTableData(previewTableData);
 
 				/*
 				 * Register the preview dialog skin elements.
@@ -573,8 +671,7 @@ public class PreferencesWindow
                 if (badInput == true || maxHistory <= 0)
                 {
                 	Alert.alert(MessageType.WARNING, 
-        					"You must specify a positive numeric value for the log history.", 
-        					textInput.getWindow());
+                			StringConstants.ALERT_LOG_HISTORY_VALUE, textInput.getWindow());
                 }
             }    		
     	});
@@ -746,7 +843,15 @@ public class PreferencesWindow
             	 */
             	if (prefsUpdated == true)
             	{
-            		userPrefs.writePreferences();
+            		try
+            		{
+						userPrefs.writePreferences();
+					}
+            		catch (IOException e)
+            		{
+						logger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
             	}
             	
             	owningWindow.setTitle(owningWindowTitle);
@@ -772,74 +877,163 @@ public class PreferencesWindow
         });
         
         /*
-         * Add tooltip texts ...
+         * So tab pane data is a royal pain. There seems to be no simple way to set the tab text.
+         * So we have to run the sequence of tabs, get and ensure the tab data is a ButtonData,
+         * then replace the button data text. The BXML uses replacement text that I check here and
+         * replace. The extra paranoia resulting in exceptions is because I don't feel good about
+         * this code.
+         */
+        TabPane.TabSequence tabs = tabPane.getTabs();
+        Iterator<Component> tabsIter = tabs.iterator();
+        while (tabsIter.hasNext())
+        {
+        	Component component = tabsIter.next();
+        	
+        	Object tabData = TabPane.getTabData(component);
+        	if (tabData instanceof ButtonData)
+        	{
+        		ButtonData buttonData = (ButtonData) tabData;
+        		String buttonText = buttonData.getText();
+        		if (buttonText.startsWith("TAB1"))
+        		{
+            		buttonData.setText(StringConstants.PREFS_TAB1_BUTTON);
+        		}
+        		else if (buttonText.startsWith("TAB2"))
+        		{
+            		buttonData.setText(StringConstants.PREFS_TAB2_BUTTON);
+        		}
+        		else if (buttonText.startsWith("TAB3"))
+        		{
+            		buttonData.setText(StringConstants.PREFS_TAB3_BUTTON);
+        		}
+        		else
+        		{
+        			throw new IllegalStateException("unexpected tab pane button data '" + buttonText + "'");
+        		}
+        	}
+        	else
+        	{
+        		throw new IllegalStateException("tab pane data not of type ButtonData");
+        	}
+        }
+        
+        /*
+         * Set the widths of the column preferences labels.
+         */
+        fullColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
+        filteredColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
+        playlistColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
+        
+        /*
+         * Set the spacing of the miscellaneous preferences row elements.
+         */
+		Map<String, Object> boxStyles = new HashMap<String, Object>();
+		boxStyles.put("spacing", InternalConstants.PREFS_MISC_ELEMENT_SPACING);
+		miscPrefsBoxPane.setStyles(boxStyles);
+		
+		/*
+		 * Set the widths of the log level preferences labels.
+		 */
+		uiLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
+		xmlLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
+		trackLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
+		playlistLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
+		filterLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
+        
+        /*
+         * Add widget texts ...
          */
         
         /*
          * ... first tab.
          */
-        bypassPrefsBorderLabel.setTooltipText("A list of playlists is accumulated for every track."
-        		+ "\nBut you can indicate if certain playlists, and optionally their children, "
-        		+ "should be bypassed."
-        		+ "\nBypassed playlists are not counted when filtering tracks based on the playlist count.");
-        ignoredPrefsBorderLabel.setTooltipText("iTunes includes built-in playlists that might be "
-        		+ "considered clutter."
-        		+ "\nYou can ignore them if you want, and also add your own "
-        		+ "playlists to completely ignore."
-        		+ "\nThe default ignored playlists are automatically selected.");
-        tab1ResetButton.setTooltipText("Reset the ignored playlists to the default value.");
+        bypassPrefsBorderLabel.setText(StringConstants.PREFS_BYPASS_BORDER);
+        bypassPrefsBorderLabel.setTooltipText(StringConstants.PREFS_BYPASS_TIP);
+        ignoredPrefsBorderLabel.setText(StringConstants.PREFS_IGNORED_BORDER);
+        ignoredPrefsBorderLabel.setTooltipText(StringConstants.PREFS_IGNORED_TIP);
+        tab1ResetButton.setButtonData(StringConstants.PREFS_RESET);
+        tab1ResetButton.setTooltipText(StringConstants.PREFS_TAB1_RESET_TIP);
         
         /*
          * ... second tab.
          */
-        columnPrefsBorderLabel.setTooltipText("Select the columns you want to be displayed when "
-        		+ "showing all tracks, filtered tracks, and the tracks shown for a "
-        		+ "selected playlist.");
-        tab2ResetButton.setTooltipText("Reset the track display columns to the default value.");
+        columnPrefsBorderLabel.setText(StringConstants.PREFS_COLUMN_BORDER);
+        columnPrefsBorderLabel.setTooltipText(StringConstants.PREFS_COLUMN_TIP);
+        fullColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_FULL);
+        fullNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
+        fullNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
+        fullArtistCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ARTIST);
+        fullAlbumCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ALBUM);
+        fullKindCheckbox.setButtonData(StringConstants.TRACK_COLUMN_KIND);
+        fullDurationCheckbox.setButtonData(StringConstants.TRACK_COLUMN_DURATION);
+        fullYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
+        fullAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
+        fullRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
+        filteredColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_FILTERED);
+        filteredNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
+        filteredNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
+        filteredArtistCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ARTIST);
+        filteredAlbumCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ALBUM);
+        filteredKindCheckbox.setButtonData(StringConstants.TRACK_COLUMN_KIND);
+        filteredDurationCheckbox.setButtonData(StringConstants.TRACK_COLUMN_DURATION);
+        filteredYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
+        filteredAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
+        filteredRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
+        playlistColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_PLAYLIST);
+        playlistNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
+        playlistNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
+        playlistArtistCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ARTIST);
+        playlistAlbumCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ALBUM);
+        playlistKindCheckbox.setButtonData(StringConstants.TRACK_COLUMN_KIND);
+        playlistDurationCheckbox.setButtonData(StringConstants.TRACK_COLUMN_DURATION);
+        playlistYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
+        playlistAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
+        playlistRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
+        tab2ResetButton.setButtonData(StringConstants.PREFS_RESET);
+        tab2ResetButton.setTooltipText(StringConstants.PREFS_TAB2_RESET_TIP);
         
         /*
          * ... third tab.
          */
-        skinPrefsBorderLabel.setTooltipText("Select a skin name and click the 'Preview' "
-        		+ "button to see how it looks.");
-        saveDirectoryBorderLabel.setTooltipText("Select the directory keeping files such as "
-        		+ "user preferences and log files.");
-        logHistoryPrefsBorderLabel.setTooltipText("Select the number of days to keep log file history.");
-        logLevelPrefsBorderLabel.setTooltipText("Log levels determine how much information is "
-        		+ "logged for debugging purposes. \nThese should only be changed if directed by "
-        		+ "support personnel.");
+        skinPrefsBorderLabel.setText(StringConstants.PREFS_SKIN_BORDER);
+        skinPrefsBorderLabel.setTooltipText(StringConstants.PREFS_SKIN_TIP);
+        skinPrefsButton.setButtonData(StringConstants.PREFS_SKIN_PREVIEW);
+        saveDirectoryBorderLabel.setText(StringConstants.PREFS_SAVE_DIR_BORDER);
+        saveDirectoryBorderLabel.setTooltipText(StringConstants.PREFS_SAVE_DIR_TIP);
+        logHistoryPrefsBorderLabel.setText(StringConstants.PREFS_LOG_HISTORY_BORDER);
+        logHistoryPrefsBorderLabel.setTooltipText(StringConstants.PREFS_LOG_HISTORY_TIP);
+        logLevelPrefsBorderLabel.setText(StringConstants.PREFS_LOG_LEVEL_BORDER);
+        logLevelPrefsBorderLabel.setTooltipText(StringConstants.PREFS_LOG_LEVEL_TIP);
+        logLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
+        logLevelPrefsCheckbox.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
+        uiLogLevelPrefsLabel.setText(StringConstants.PREFS_UI_LOG_LEVEL);
+        uiLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_UI_LOG_LEVEL_TIP);
+        uiLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_UI_LOG_LEVEL_TIP);
+        xmlLogLevelPrefsLabel.setText(StringConstants.PREFS_XML_LOG_LEVEL);
+        xmlLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_XML_LOG_LEVEL_TIP);
+        xmlLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_XML_LOG_LEVEL_TIP);
+        trackLogLevelPrefsLabel.setText(StringConstants.PREFS_TRACK_LOG_LEVEL);
+        trackLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_TRACK_LOG_LEVEL_TIP);
+        trackLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_TRACK_LOG_LEVEL_TIP);
+        playlistLogLevelPrefsLabel.setText(StringConstants.PREFS_PLAYLIST_LOG_LEVEL);
+        playlistLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_PLAYLIST_LOG_LEVEL_TIP);
+        playlistLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_PLAYLIST_LOG_LEVEL_TIP);
+        filterLogLevelPrefsLabel.setText(StringConstants.PREFS_FILTER_LOG_LEVEL);
+        filterLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_FILTER_LOG_LEVEL_TIP);
+        filterLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_FILTER_LOG_LEVEL_TIP);
+        tab3ResetButton.setButtonData(StringConstants.PREFS_RESET);
+        tab3ResetButton.setTooltipText(StringConstants.PREFS_TAB3_RESET_TIP);
         
-        final String globalLogLevelTooltip = "This is the global log level, if '" 
-        		+ logLevelPrefsCheckbox.getButtonData() + "' is checked.";
-        logLevelPrefsSpinner.setTooltipText(globalLogLevelTooltip);
-        logLevelPrefsCheckbox.setTooltipText(globalLogLevelTooltip);
-        
-        final String uiLogLevelTooltip = "This is the log level for the user interface component.";
-        uiLogLevelPrefsLabel.setTooltipText(uiLogLevelTooltip);
-        uiLogLevelPrefsSpinner.setTooltipText(uiLogLevelTooltip);
-        
-        final String xmlLogLevelTooltip = "This is the log level for the XML management component.";
-        xmlLogLevelPrefsLabel.setTooltipText(xmlLogLevelTooltip);
-        xmlLogLevelPrefsSpinner.setTooltipText(xmlLogLevelTooltip);
-        
-        final String trackLogLevelTooltip = "This is the log level for the track management component.";
-        trackLogLevelPrefsLabel.setTooltipText(trackLogLevelTooltip);
-        trackLogLevelPrefsSpinner.setTooltipText(trackLogLevelTooltip);
-        
-        final String playlistLogLevelTooltip = "This is the log level for the playlist management component.";
-        playlistLogLevelPrefsLabel.setTooltipText(playlistLogLevelTooltip);
-        playlistLogLevelPrefsSpinner.setTooltipText(playlistLogLevelTooltip);
-        
-        final String filterLogLevelTooltip = "This is the log level for the filter management component.";
-        filterLogLevelPrefsLabel.setTooltipText(filterLogLevelTooltip);
-        filterLogLevelPrefsSpinner.setTooltipText(filterLogLevelTooltip);
-
-        tab3ResetButton.setTooltipText("Reset all but the skin name to the default value.");
+        preferencesDoneButton.setButtonData(StringConstants.DONE);
 		
 		/*
 		 * Set the window title.
 		 */
 		preferencesSheet.setTitle(Skins.Window.PREFERENCES.getDisplayValue());
+		
+		/*
+		 * Set up the first tab.
+		 */
         
         /*
          * Add bypass playlist preference rows if such preferences exist. This populates the 
@@ -901,13 +1095,28 @@ public class PreferencesWindow
         }
         
         /*
+         * Set up the second tab.
+         */
+        
+        /*
+         * Fill in the track column checkboxes if preferences exist.
+         */
+        createFullTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFullView());
+        createFilteredTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFilteredView());
+        createPlaylistTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsPlaylistView());
+        
+        /*
+         * Set up the third tab.
+         */
+        
+        /*
          * Populate the list of skin names.
          */
         Sequence<String> skinNames = skins.getSkinNames();
         List<String> skinArray = new ArrayList<String>(skinNames);
         skinPrefsSpinner.setSpinnerData(skinArray);
         skinPrefsSpinner.setCircular(true);
-        skinPrefsSpinner.setPreferredWidth(120);
+        skinPrefsSpinner.setPreferredWidth(InternalConstants.PREFS_SKIN_SPINNER_WIDTH);
         
         /*
          * Set the spinner selected index to the current preference if one exists. Otherwise set it
@@ -948,8 +1157,7 @@ public class PreferencesWindow
         /*
          * Set up the dimensional log levels according to the global log level preference.
          */
-        boolean globalLogLevel = userPrefs.getGlobalLogLevel();
-        if (globalLogLevel == true)
+        if (userPrefs.getGlobalLogLevel() == true)
         {
         	logLevelPrefsCheckbox.setSelected(true);
         	uiLogLevelPrefsLabel.setEnabled(false);
@@ -977,19 +1185,17 @@ public class PreferencesWindow
         	filterLogLevelPrefsLabel.setEnabled(true);
         	filterLogLevelPrefsSpinner.setEnabled(true);
         }
+        
+        /*
+         * Set the global log level checkbox text.
+         */
+        logLevelPrefsCheckbox.setButtonData(StringConstants.PREFS_GLOBAL);
 
     	/*
     	 * Now register the preferences window skin elements.
     	 */
         Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
 		skins.registerWindowElements(Skins.Window.PREFERENCES, windowElements);
-        
-        /*
-         * Fill in the column checkboxes if preferences exist.
-         */
-        createFullTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFullView());
-        createFilteredTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFilteredView());
-        createPlaylistTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsPlaylistView());
         
         /*
          * Reset the updated indicators.
@@ -1014,7 +1220,7 @@ public class PreferencesWindow
     	 */
     	logger.info("opening preferences window");
     	owningWindowTitle = owningWindow.getTitle();
-    	owningWindow.setTitle("Preferences");
+    	owningWindow.setTitle(Skins.Window.PREFERENCES.getDisplayValue());
     	preferencesSheet.open(display, owningWindow);
     }
 	
@@ -1044,7 +1250,7 @@ public class PreferencesWindow
          * Create the label for the text box.
          */
     	Label textLabel = new Label();
-    	textLabel.setText("Playlist Name");
+    	textLabel.setText(StringConstants.PLAYLIST_NAME);
         
         /*
          * Create the text input box. Add the playlist name if we were provided a playlist 
@@ -1079,8 +1285,8 @@ public class PreferencesWindow
     	 * Create the include children checkbox. Set the selected box according to any provided 
     	 * playlist preference object.
     	 */
-    	Checkbox includeChildren = new Checkbox("Include Children?");
-    	includeChildren.setTooltipText("Should counts also be bypassed for children playlists?");
+    	Checkbox includeChildren = new Checkbox(StringConstants.PREFS_BYPASS_INCLUDE);
+    	includeChildren.setTooltipText(StringConstants.PREFS_BYPASS_INCLUDE_TIP);
 		if (bypassPref != null)
 		{
 			includeChildren.setSelected((bypassPref.getIncludeChildren()));
@@ -1094,11 +1300,11 @@ public class PreferencesWindow
     	 */
     	PushButton plusButton = new PushButton();
     	plusButton.setButtonData("+");
-    	plusButton.setTooltipText("Add a new playlist for which counts should be bypassed.");
+    	plusButton.setTooltipText(StringConstants.PREFS_BYPASS_PLUS_BUTTON);
     	
     	PushButton minusButton = new PushButton();
     	minusButton.setButtonData("-");
-    	minusButton.setTooltipText("Remove this playlist from the bypass counts list.");
+    	minusButton.setTooltipText(StringConstants.PREFS_BYPASS_MINUS_BUTTON);
         
     	/*
     	 * We need the ability to insert and remove playlist preference rows based on the specific 
@@ -1239,7 +1445,7 @@ public class PreferencesWindow
          * Create the label for the text box.
          */
     	Label textLabel = new Label();
-    	textLabel.setText("Playlist Name");
+    	textLabel.setText(StringConstants.PLAYLIST_NAME);
         
         /*
          * Create the text input box. Add the playlist name if we were provided a playlist 
@@ -1278,11 +1484,11 @@ public class PreferencesWindow
     	 */
     	PushButton plusButton = new PushButton();
     	plusButton.setButtonData("+");
-    	plusButton.setTooltipText("Add a new playlist to be completely ignored.");
+    	plusButton.setTooltipText(StringConstants.PREFS_IGNORED_PLUS_BUTTON);
     	
     	PushButton minusButton = new PushButton();
     	minusButton.setButtonData("-");
-    	minusButton.setTooltipText("Remove this playlist from being completely ignored.");
+    	minusButton.setTooltipText(StringConstants.PREFS_IGNORED_MINUS_BUTTON);
         
     	/*
     	 * We need the ability to insert and remove playlist preference rows based on the specific 
@@ -1415,7 +1621,7 @@ public class PreferencesWindow
     	 * Indexes into the row elements.
     	 * 
     	 * IMPORTANT: These must match the design of the row. See preferencesWindow.bxml for the column
-    	 * definition, and addPlaylistPrefsTableRow() for the logic to create a row.
+    	 * definition, and createBypassPrefsTableRow() for the logic to create a row.
     	 */
     	final int textIndex            = 1;
     	final int includeChildrenIndex = 2;
@@ -1441,6 +1647,9 @@ public class PreferencesWindow
 			TextInput text = (TextInput) row.get(textIndex);
 			bypassPref.setPlaylistName(text.getText());
 			
+			/*
+			 * Handle the include children checkbox.
+			 */
 			Checkbox includeChildren = (Checkbox) row.get(includeChildrenIndex);
 			boolean selected = includeChildren.isSelected();
 			bypassPref.setIncludeChildren(selected);
@@ -1464,7 +1673,7 @@ public class PreferencesWindow
     	 * Indexes into the row elements.
     	 * 
     	 * IMPORTANT: These must match the design of the row. See preferencesWindow.bxml for the column
-    	 * definition, and addPlaylistPrefsTableRow() for the logic to create a row.
+    	 * definition, and createIgnoredPrefsTableRow() for the logic to create a row.
     	 */
     	final int textIndex = 1;
     	
@@ -1963,6 +2172,7 @@ public class PreferencesWindow
             	fullTrackColumnsUpdated = true;;
             }
         });
+    	
     	fullNameCheckbox = 
         		(Checkbox)prefsWindowSerializer.getNamespace().get("fullNameCheckbox");
 		components.add(fullNameCheckbox);
@@ -2470,7 +2680,6 @@ public class PreferencesWindow
     {
     	logger.trace("setupLogLevelSpinner: " + this.hashCode());
     	
-        int spinnerWidth = 70;
     	Logging logging = Logging.getInstance();
         Sequence<String> levelNames = logging.getLogLevelValues();
         List<String> levelArray = new ArrayList<String>(levelNames);
@@ -2492,7 +2701,7 @@ public class PreferencesWindow
         
         spinner.setSpinnerData(levelArray);
         spinner.setCircular(true);
-        spinner.setPreferredWidth(spinnerWidth);
+        spinner.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_SPINNER_WIDTH);
         spinner.setSelectedIndex(index);
     }
     
@@ -2592,6 +2801,15 @@ public class PreferencesWindow
 		/*
 		 * Third tab.
 		 */
+
+		/*
+		 * This doesn't need to be added to the components. It's an invisible box pane. We
+		 * only need it to control the spacing of the elements on the miscellaneous preferences
+		 * row.
+		 */
+		miscPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("miscPrefsBoxPane");
+		
         skinPrefsBorderLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("skinPrefsBorderLabel");
 		components.add(skinPrefsBorderLabel);
@@ -2709,6 +2927,13 @@ public class PreferencesWindow
     	skinPreviewDialog = (Dialog)dialogSerializer.readObject(getClass().
 				getResource("skinPreviewWindow.bxml"));
 
+    	/*
+    	 * This doesn't need to be added to the components. It's an invisible table pane. It's only
+    	 * needed to control the size of the skin preview dialog.
+    	 */
+    	mainTablePane = 
+        		(TablePane)dialogSerializer.getNamespace().get("mainTablePane");
+		
 		previewTextBorder = 
         		(Border)dialogSerializer.getNamespace().get("previewTextBorder");
 		components.add(previewTextBorder);
@@ -2727,6 +2952,17 @@ public class PreferencesWindow
 		previewTableView = 
         		(TableView)dialogSerializer.getNamespace().get("previewTableView");
 		components.add(previewTableView);
+
+		/*
+		 * These don't need to be added to the components list because they're subcomponents.
+		 */
+		previewTableColumnWeekday = 
+        		(TableView.Column)dialogSerializer.getNamespace().get("previewTableColumnWeekday");
+		previewTableColumnColor = 
+        		(TableView.Column)dialogSerializer.getNamespace().get("previewTableColumnColor");
+		previewTableColumnMood = 
+        		(TableView.Column)dialogSerializer.getNamespace().get("previewTableColumnMood");
+		
 		previewTableViewHeader = 
         		(TableViewHeader)dialogSerializer.getNamespace().get("previewTableViewHeader");
 		components.add(previewTableViewHeader);

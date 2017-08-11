@@ -187,17 +187,24 @@ public class Logging
 		return defaultLevel;
 	}
 	
+    //---------------- Public methods --------------------------------------
+	
 	/**
-	 * Sets the default log level.
+	 * Sets the default log level. This is called once early in initialization.
 	 * 
 	 * @param level default log level
 	 */
 	public void setDefaultLogLevel (Level level)
 	{
 		this.defaultLevel = level;
+
+		/*
+		 * Bootstrap logging by setting the global log level flag true and setting the input
+		 * default log level for the ALL dimension.
+		 */
+		globalLogLevel = true;
+		Dimension.ALL.setLogLevel(level);
 	}
-	
-    //---------------- Public methods --------------------------------------
 	
 	/**
 	 * Registers a logger.
@@ -211,6 +218,16 @@ public class Logging
 	 */
 	public void registerLogger (Dimension dimension, Logger logger)
 	{
+		if (dimension == null)
+		{
+			throw new IllegalArgumentException("dimension argument is null");
+		}
+		
+		if (logger == null)
+		{
+			throw new IllegalArgumentException("logger argument is null");
+		}
+		
 		boolean registrationNeeded = true;
 		
 		/*

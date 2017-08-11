@@ -76,9 +76,9 @@ public final class PlaylistCollection
 	/**
 	 * Finds and marks all playlists that are bypassed by user preferences.
 	 */
-	public static void markPlaylists ()
+	public static void markBypassedPlaylists ()
 	{
-    	logger.trace("markPlaylists");
+    	logger.trace("markBypassedPlaylists");
 		
 		/*
 		 * Walk through all playlists.
@@ -102,7 +102,7 @@ public final class PlaylistCollection
         	}
         	
         	/*
-        	 * If one of the parents of this playlist is bypassed, mark it so.
+        	 * If one of the parents of this playlist is bypassed, mark this one so.
         	 */
     		String parentID;
     		Playlist workingPlaylistObj = playlistObj;

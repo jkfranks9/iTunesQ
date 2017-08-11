@@ -1,5 +1,6 @@
 package itunesq;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -41,7 +42,7 @@ public final class Utilities
 	private static final String DATE_FORMAT = "EEE, MMM dd yyyy, HH:mm:ss";
 	private static final String FORMATTED_DATE = "yyyy-MM-dd'T'HH:mm:ssX";
 	private static final String HHMM_FORMAT = "%02d:%02d";
-	private static final String UNKNOWN     = "--unknown--";
+	private static final String UNKNOWN = StringConstants.UTILITY_UNKNOWN_DATE;
 	
     //---------------- Public methods --------------------------------------
 	
@@ -55,8 +56,7 @@ public final class Utilities
 	{
 		if (date != null)
 		{
-			String dateFormat = new String(DATE_FORMAT);
-			SimpleDateFormat dateFormatter = new SimpleDateFormat(dateFormat);
+			SimpleDateFormat dateFormatter = new SimpleDateFormat(new String(DATE_FORMAT));
 			return dateFormatter.format(date);
 		}
 		else
@@ -70,14 +70,13 @@ public final class Utilities
 	 * 
 	 * @param dateStr formatted date string
 	 * @return date object
-	 * @throws ParseException If an exception occurs trying to parse the date 
+	 * @throws ParseException If an error occurs trying to parse the date 
 	 * string.
 	 */
 	public static Date parseDate (String dateStr) 
 			throws ParseException
 	{
-    	String dateFormat = new String(FORMATTED_DATE);
-    	SimpleDateFormat dateParser = new SimpleDateFormat(dateFormat);
+    	SimpleDateFormat dateParser = new SimpleDateFormat(new String(FORMATTED_DATE));
     	
 		return dateParser.parse(dateStr);
 	}
@@ -133,10 +132,11 @@ public final class Utilities
 	 * <code>false</code>
 	 */
 	public static boolean typingAssistant (TextInput textInput, ArrayList<String> names, 
-			                            String text, Filter.Operator operator)
+			String text, Filter.Operator operator)
 	{
 		boolean result = false;
 		boolean operatorIS;
+		
 		switch (operator)
 		{
 		case IS:
@@ -150,6 +150,7 @@ public final class Utilities
 		default:
 			return result;
 		}
+		
 		/*
 		 * A negative return from binarySearch() is the negative value of the index at which the
 		 * name would be inserted, meaning it wasn't found. We use this as a trigger to keep looking.
@@ -262,11 +263,13 @@ public final class Utilities
 	 * information.
 	 * 
 	 * @param xmlFileName name of the XML file to be processed
-	 * @throws JDOMException If an exception occurs trying to read the iTunes 
+	 * @throws JDOMException If an error occurs trying to process the iTunes 
+	 * XML file.
+	 * @throws IOException If an error occurs trying to read the iTunes 
 	 * XML file.
 	 */
 	public static void updateFromXMLFile (String xmlFileName) 
-			throws JDOMException
+			throws JDOMException, IOException
 	{
 
 		/*
@@ -292,12 +295,13 @@ public final class Utilities
 	 */
 	public static void updateMainWindowLabels (String xmlFileName)
 	{
-		fileLabel.setText(xmlFileName + ", dated " + XMLHandler.getXMLFileTimestamp());
-		numTracksLabel.setText("Number of tracks: " + 
+		fileLabel.setText(xmlFileName + StringConstants.UTILITY_XMLFILE_DATE + 
+				XMLHandler.getXMLFileTimestamp());
+		numTracksLabel.setText(StringConstants.UTILITY_NUMTRACKS + 
 				Integer.toString(XMLHandler.getNumberOfTracks()));
-		numPlaylistsLabel.setText("Number of playlists: " + 
+		numPlaylistsLabel.setText(StringConstants.UTILITY_NUMPLAYLISTS + 
 				Integer.toString(XMLHandler.getNumberOfPlaylists()));
-		numArtistsLabel.setText("Number of artists: " + 
+		numArtistsLabel.setText(StringConstants.UTILITY_NUMARTISTS + 
 				Integer.toString(XMLHandler.getNumberOfArtists()));
 	}
 	

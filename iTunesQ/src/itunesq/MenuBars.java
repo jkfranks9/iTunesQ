@@ -4,7 +4,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import org.apache.pivot.beans.BXML;
+import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.beans.Bindable;
+import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.util.Resources;
@@ -15,9 +17,12 @@ import org.apache.pivot.wtk.DesktopApplicationContext;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.FileBrowserSheet;
 import org.apache.pivot.wtk.Frame;
+import org.apache.pivot.wtk.Menu;
+import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.Sheet;
 import org.apache.pivot.wtk.SheetCloseListener;
+import org.apache.pivot.wtk.content.MenuItemData;
 import org.jdom2.JDOMException;
 import org.slf4j.LoggerFactory;
 
@@ -85,6 +90,19 @@ public class MenuBars extends Frame implements Bindable
 	 * BXML variable for the preferences sheet.
 	 */
 	@BXML private Sheet preferencesSheet;
+	
+	/*
+	 * Other BXML variables.
+	 */
+	@BXML private MenuBar menuBarHolder = null;
+	@BXML private MenuBar.Item fileMenu = null;
+	@BXML private Menu fileMenuItems = null;
+	@BXML private Menu.Item fileMenuOpen = null;
+	@BXML private Menu.Item fileMenuSave = null;
+	@BXML private Menu.Item fileMenuExit= null;
+	@BXML private MenuBar.Item editMenu = null;
+	@BXML private Menu editMenuItems = null;
+	@BXML private Menu.Item editMenuPreferences = null;
 
 	/**
 	 * Class constructor. This creates named actions for the following menu
@@ -155,7 +173,15 @@ public class MenuBars extends Frame implements Bindable
 								 */
 								Preferences userPrefs = Preferences.getInstance();
 								userPrefs.setXMLFileName(xmlFileName);
-								userPrefs.writePreferences();
+								try
+								{
+									userPrefs.writePreferences();
+								}
+								catch (IOException e)
+								{
+									logger.error("caught " + e.getClass().getSimpleName());
+									e.printStackTrace();
+								}
 
 								logger.info("updating for new XML file '" + xmlFileName + "'");
 
@@ -166,12 +192,11 @@ public class MenuBars extends Frame implements Bindable
 								{
 									Utilities.updateFromXMLFile(xmlFileName);
 								}							
-								catch (JDOMException e)
+								catch (JDOMException | IOException e)
 								{
-									logger.error("caught JDOMException");
+						    		logger.error("caught " + e.getClass().getSimpleName());
 									Alert.alert(MessageType.ERROR, 
-											"Unable to read and process XML file: " + 
-													xmlFileName, MenuBars.this);
+											StringConstants.ALERT_XML_FILE_ERROR + xmlFileName, MenuBars.this);
 									e.printStackTrace();
 								}
 
@@ -182,7 +207,8 @@ public class MenuBars extends Frame implements Bindable
 							}
 							else
 							{
-								Alert.alert(MessageType.INFO, "You didn't select anything.", MenuBars.this);
+								Alert.alert(MessageType.INFO, 
+										StringConstants.ALERT_NO_FILE_SELECTED, MenuBars.this);
 							}
 						}
 					}
@@ -253,6 +279,78 @@ public class MenuBars extends Frame implements Bindable
 				}
 			}
 		});
+	}
+	
+	/**
+	 * Initialize the BXML variables and data for the menu bar that appears on 
+	 * all primary windows.
+	 * 
+	 * @param windowSerializer BXML serializer used to read the window BXML 
+	 * file
+	 * @param components list of window components that is extended with menu 
+	 * bar components
+	 * @param showFileSave flag that indicates whether or not to show the File 
+	 * {@literal ->} Save menu item
+	 */
+	public void initializeMenuBxmlVariables (BXMLSerializer windowSerializer, 
+			List<Component> components, boolean showFileSave)
+	{
+		
+		/*
+		 * Initialize the menu bar BXML variables.
+		 * 
+		 * NOTE: Not all components that we deal with require skinning, as they are subcomponents of
+		 * other components. For example, MenuBar includes MenuBar.Item. So we only need to add the
+		 * top level components to the input component list.
+		 */
+        menuBarHolder = 
+        		(MenuBar)windowSerializer.getNamespace().get("menuBarHolder");
+		components.add(menuBarHolder);
+        fileMenu = 
+        		(MenuBar.Item)windowSerializer.getNamespace().get("fileMenu");
+        fileMenuItems = 
+        		(Menu)windowSerializer.getNamespace().get("fileMenuItems");
+		components.add(fileMenuItems);
+        fileMenuOpen = 
+        		(Menu.Item)windowSerializer.getNamespace().get("fileMenuOpen");
+    	fileMenuSave = 
+    			(Menu.Item)windowSerializer.getNamespace().get("fileMenuSave");
+        fileMenuExit = 
+        		(Menu.Item)windowSerializer.getNamespace().get("fileMenuExit");
+        editMenu = 
+        		(MenuBar.Item)windowSerializer.getNamespace().get("editMenu");
+        editMenuItems = 
+        		(Menu)windowSerializer.getNamespace().get("editMenuItems");
+		components.add(editMenuItems);
+        editMenuPreferences = 
+        		(Menu.Item)windowSerializer.getNamespace().get("editMenuPreferences");
+		
+		/*
+		 * Initialize the 'File' menu text.
+		 */
+    	fileMenu.setButtonData(StringConstants.FILE);
+		MenuItemData fileMenuOpenData = new MenuItemData(StringConstants.OPEN);
+    	fileMenuOpen.setButtonData(fileMenuOpenData);
+    	MenuItemData fileMenuSaveData = new MenuItemData(StringConstants.SAVE);
+    	fileMenuSave.setButtonData(fileMenuSaveData);
+		MenuItemData fileMenuExitData = new MenuItemData(StringConstants.EXIT);
+    	fileMenuExit.setButtonData(fileMenuExitData);
+
+    	/*
+    	 * Disable the File -> Save menu item if requested.
+    	 */
+    	if (showFileSave == false)
+    	{
+    		fileMenuSave.getAction().setEnabled(false);
+    		fileMenuSave.setEnabled(false);
+    	}
+
+    	/*
+    	 * Initialize the 'Edit' menu text.
+    	 */
+    	editMenu.setButtonData(StringConstants.EDIT);
+		MenuItemData editMenuPreferencesData = new MenuItemData(StringConstants.PREFERENCES);
+    	editMenuPreferences.setButtonData(editMenuPreferencesData);
 	}
 
 	/**

@@ -1,5 +1,6 @@
 package itunesq;
 
+import java.io.IOException;
 import java.util.Iterator;
 
 import org.apache.pivot.collections.ArrayList;
@@ -40,92 +41,92 @@ public class TrackDisplayColumns
 		/**
 		 * relative track number within a list
 		 */
-		NUMBER("Number"),
+		NUMBER(StringConstants.TRACK_COLUMN_NUMBER),
 		
 		/**
 		 * track ID
 		 */
-		ID("ID"),
+		ID(StringConstants.TRACK_COLUMN_ID),
 		
 		/**
 		 * track name
 		 */
-		NAME("Name"),
+		NAME(StringConstants.TRACK_COLUMN_NAME),
 		
 		/**
 		 * artist name
 		 */
-		ARTIST("Artist"),
+		ARTIST(StringConstants.TRACK_COLUMN_ARTIST),
 		
 		/**
 		 * composer name
 		 */
-		COMPOSER("Composer"),
+		COMPOSER(StringConstants.TRACK_COLUMN_COMPOSER),
 		
 		/**
 		 * album name
 		 */
-		ALBUM("Album"),
+		ALBUM(StringConstants.TRACK_COLUMN_ALBUM),
 		
 		/**
 		 * genre
 		 */
-		GENRE("Genre"),
+		GENRE(StringConstants.TRACK_COLUMN_GENRE),
 		
 		/**
 		 * kind of track
 		 */
-		KIND("Kind"),
+		KIND(StringConstants.TRACK_COLUMN_KIND),
 		
 		/**
 		 * size in bytes
 		 */
-		SIZE("Size"),
+		SIZE(StringConstants.TRACK_COLUMN_SIZE),
 		
 		/**
 		 * duration
 		 */
-		DURATION("Duration"),
+		DURATION(StringConstants.TRACK_COLUMN_DURATION),
 		
 		/**
 		 * year of release
 		 */
-		YEAR("Year"),
+		YEAR(StringConstants.TRACK_COLUMN_YEAR),
 		
 		/**
 		 * modified date
 		 */
-		MODIFIED("Modified"),
+		MODIFIED(StringConstants.TRACK_COLUMN_MODIFIED),
 		
 		/**
 		 * added date
 		 */
-		ADDED("Added"),
+		ADDED(StringConstants.TRACK_COLUMN_ADDED),
 		
 		/**
 		 * bit rate
 		 */
-		BITRATE("Bit Rate"),
+		BITRATE(StringConstants.TRACK_COLUMN_BITRATE),
 		
 		/**
 		 * sample rate
 		 */
-		SAMPLERATE("Sample Rate"),
+		SAMPLERATE(StringConstants.TRACK_COLUMN_SAMPLERATE),
 		
 		/**
 		 * play count
 		 */
-		PLAYCOUNT("Play Count"),
+		PLAYCOUNT(StringConstants.TRACK_COLUMN_PLAYCOUNT),
 		
 		/**
 		 * released date
 		 */
-		RELEASED("Released"),
+		RELEASED(StringConstants.TRACK_COLUMN_RELEASED),
 		
 		/**
 		 * rating from 0 to 5
 		 */
-		RATING("Rating");
+		RATING(StringConstants.TRACK_COLUMN_RATING);
 		
 		private String displayValue;
 		
@@ -282,8 +283,11 @@ public class TrackDisplayColumns
 	/**
 	 * Initializes the default column sets. This is called once during 
 	 * initialization.
+	 * @throws IOException If an error occurs trying to write the user 
+	 * preferences.
 	 */
-	public static void initializeDefaults ()
+	public static void initializeDefaults () 
+			throws IOException
 	{
 		prefsAltered = false;
 		
@@ -371,6 +375,10 @@ public class TrackDisplayColumns
 	 */
 	public static void createColumnSet (ColumnSet type, TableView table)
 	{
+		if (table == null)
+		{
+			throw new IllegalArgumentException("table argument is null");
+		}
 		
 		TableView.ColumnSequence columns = table.getColumns();
 		

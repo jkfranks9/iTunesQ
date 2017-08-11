@@ -19,8 +19,6 @@ import org.apache.pivot.wtk.DesktopApplicationContext;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.FillPane;
 import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.Menu;
-import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.Separator;
@@ -69,9 +67,6 @@ public class MainWindow implements Application
 	/*
 	 * BXML variables.
 	 */
-	@BXML private MenuBar mainMenuBar = null;
-	@BXML private Menu mainFileMenu = null;
-	@BXML private Menu mainEditMenu = null;
 	@BXML private Border infoBorder = null;
 	@BXML private FillPane infoFillPane = null;
     @BXML private Label titleLabel = null;
@@ -106,8 +101,11 @@ public class MainWindow implements Application
     	 *    obtained from there when we register the first logger. Note that this is a static
     	 *    method, because we haven't done step 3 yet.
     	 *    
-    	 * 3) Create the user preferences singleton. Its constructor will create and register 
-    	 *    the first logger, which relies on steps 1 and 2.
+    	 * 3) Create the user preferences singleton. Its constructor sets the default max log
+    	 *    history, and the global log level flag. These logging variables may get changed when 
+    	 *    the user preferences are read from disk (in the startup() method).
+    	 *    
+    	 * 4) Create and register the first logger, which relies on steps 1 through 3.
     	 */
         
 		/*
@@ -129,21 +127,27 @@ public class MainWindow implements Application
 		userPrefs = Preferences.getInstance();
     	
     	/*
+    	 * Create the logging object singleton.
+    	 */
+    	logging = Logging.getInstance();
+    	
+    	/*
     	 * Create a UI logger.
     	 */
     	String className = getClass().getSimpleName();
     	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
     	
     	/*
-    	 * Create the logging object singleton.
+    	 * Set the default log level, which is obtained from the logback configuration file. 
+    	 * This bootstraps logging so that we use the default level until such time as we 
+    	 * read and process any saved user preferences.
     	 */
-    	logging = Logging.getInstance();
+    	logging.setDefaultLogLevel(logger.getEffectiveLevel());
     	
     	/*
-    	 * Register our logger, and set the default logging level.
+    	 * Now register our logger, which is the first one registered.
     	 */
     	logging.registerLogger(Logging.Dimension.UI, logger);
-    	logging.setDefaultLogLevel(logger.getEffectiveLevel());
     	
     	/*
     	 * Initialize the Preferences logger. This could not be done in the Preferences constructor,
@@ -168,12 +172,18 @@ public class MainWindow implements Application
      * 
      * @param display display object for managing windows
      * @param properties properties passed to the application
-     * @throws Exception If an exception occurs by the thread that reads the 
+	 * @throws IOException If an error occurs trying to read the BXML file;
+	 * or an error occurs trying to read or write the user preferences; 
+	 * @throws SerializationException If an error occurs trying to 
+	 * deserialize the BXML file.
+	 * @throws ClassNotFoundException If the class of a serialized object 
+	 * cannot be found.
+     * @throws Exception If an exception occurs on the thread that reads the 
      * iTunes XML file.
      */
     @Override
-    public void startup (Display display, Map<String, String> properties) 
-    		throws Exception
+    public void startup (Display display, Map<String, String> properties)
+    		throws IOException, SerializationException, ClassNotFoundException, Exception
     {
     	logger.info("application started");
     	
@@ -182,15 +192,7 @@ public class MainWindow implements Application
     	 * to be skinned.
     	 */
 		List<Component> components = new ArrayList<Component>();
-    	try
-		{
-			initializeBxmlVariables(components);
-		} 
-    	catch (IOException | SerializationException e)
-		{
-    		logger.error("caught " + e.getClass().getSimpleName());
-			e.printStackTrace();
-		}
+		initializeBxmlVariables(components);
         
         /*
          * Listener to handle the view tracks button press.
@@ -298,12 +300,25 @@ public class MainWindow implements Application
         		{
         			logger.info("XML file does not exist");
         			
-        			Alert.alert(MessageType.INFO, 
-        					"No XML file has been saved. Use the File ... Open menu to select a file.", 
-        					mainWindow);
+        			Alert.alert(MessageType.INFO, StringConstants.ALERT_NO_XML_FILE, mainWindow);
         		}
         	}
         });
+        
+        /*
+         * Add widget texts.
+         */
+        titleLabel.setText(StringConstants.SKIN_WINDOW_MAIN);
+        fileSeparator.setHeading(StringConstants.MAIN_XML_FILE_INFO);
+        dataSeparator.setHeading(StringConstants.MAIN_XML_FILE_STATS);
+        viewTracksButton.setButtonData(StringConstants.MAIN_VIEW_TRACKS);
+        viewTracksButton.setTooltipText(StringConstants.MAIN_VIEW_TRACKS_TIP);
+        viewPlaylistsButton.setButtonData(StringConstants.MAIN_VIEW_PLAYLISTS);
+        viewPlaylistsButton.setTooltipText(StringConstants.MAIN_VIEW_PLAYLISTS_TIP);
+        queryTracksButton.setButtonData(StringConstants.QUERY_TRACKS);
+        queryTracksButton.setTooltipText(StringConstants.MAIN_QUERY_TRACKS_TIP);
+        queryPlaylistsButton.setButtonData(StringConstants.QUERY_PLAYLISTS);
+        queryPlaylistsButton.setTooltipText(StringConstants.MAIN_QUERY_PLAYLISTS_TIP);
         
         //---------------- Start of Initialization -----------------------------
 		
@@ -384,7 +399,6 @@ public class MainWindow implements Application
     	/*
     	 * If we have an XML file name, proceed to digest it.
     	 */
-    	Thread xmlThread = null;
     	if (xmlFileExists == true)
     	{
     		
@@ -392,7 +406,7 @@ public class MainWindow implements Application
     		 * Process the XML file in a new thread.
     		 */
         	logger.info("starting thread to process XML file '" + xmlFileName + "'");
-    		xmlThread = new Thread(new ProcessXMLThread(xmlFileName));
+        	Thread xmlThread = new Thread(new ProcessXMLThread(xmlFileName));
     		xmlThread.start();
         	
         	/*
@@ -401,10 +415,14 @@ public class MainWindow implements Application
         	try
 			{
 				xmlThread.join();
-			} 
+			}
+        	
+        	/*
+        	 * I'm not expecting this to happen, but would like to know if it does.
+        	 */
         	catch (InterruptedException e)
 			{
-        		logger.error("caught InterruptedException");
+        		logger.error("caught " + e.getClass().getSimpleName());
 				e.printStackTrace();
 			}
         	
@@ -472,7 +490,7 @@ public class MainWindow implements Application
     {
     	
     	/*
-    	 * This method calls our startup() method.
+    	 * This method instantiates our class, then calls our startup() method.
     	 */
         DesktopApplicationContext.main(MainWindow.class, args);
     }
@@ -490,16 +508,13 @@ public class MainWindow implements Application
         BXMLSerializer windowSerializer = new BXMLSerializer();
         mainWindow = 
         		(Window)windowSerializer.readObject(getClass().getResource("mainWindow.bxml"));
+        
+        /*
+         * Initialize the menu bar.
+         */
+        MenuBars menuBar = (MenuBars)mainWindow;
+        menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        mainMenuBar = 
-        		(MenuBar)windowSerializer.getNamespace().get("mainMenuBar");
-		components.add(mainMenuBar);
-        mainFileMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainFileMenu");
-		components.add(mainFileMenu);
-        mainEditMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
-		components.add(mainEditMenu);
         infoBorder = 
         		(Border)windowSerializer.getNamespace().get("infoBorder");
 		components.add(infoBorder);

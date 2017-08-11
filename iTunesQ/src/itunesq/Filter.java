@@ -60,12 +60,12 @@ public class Filter
 		/**
 		 * matches all of the following filters
 		 */
-		AND("All"),
+		AND(StringConstants.FILTER_LOGIC_ALL),
 		
 		/**
 		 * matches any of the following filters
 		 */
-		OR("Any");
+		OR(StringConstants.FILTER_LOGIC_ANY);
 		
 		private String displayValue;
 		
@@ -120,33 +120,33 @@ public class Filter
 		/**
 		 * artist name
 		 */
-		ARTIST("Artist"),
+		ARTIST(StringConstants.FILTER_SUBJECT_ARTIST),
 		
 		/**
 		 * kind of track, for example AAC audio file or QuickTime movie file
 		 */
-		KIND("Kind"),
+		KIND(StringConstants.FILTER_SUBJECT_KIND),
 		
 		/**
 		 * number of playlists that contain this track. Bypassed playlists
 		 * are not counted.
 		 */
-		PLAYLIST_COUNT("Playlist Count"),
+		PLAYLIST_COUNT(StringConstants.FILTER_SUBJECT_PLAYLIST_COUNT),
 		
 		/**
 		 * rating of this track, from 0 through 5
 		 */
-		RATING("Rating"),
+		RATING(StringConstants.FILTER_SUBJECT_RATING),
 		
 		/**
 		 * year of release
 		 */
-		YEAR("Year"),
+		YEAR(StringConstants.FILTER_SUBJECT_YEAR),
 		
 		/**
 		 * name of this track
 		 */
-		NAME("Name");
+		NAME(StringConstants.FILTER_SUBJECT_NAME);
 		
 		private final String displayValue;
 		
@@ -201,27 +201,27 @@ public class Filter
 		/**
 		 * equals the specified value
 		 */
-		IS("is"),
+		IS(StringConstants.FILTER_OPERATOR_IS),
 		
 		/**
 		 * less than or equal to the specified value
 		 */
-		LESS("less than or equal"),
+		LESS(StringConstants.FILTER_OPERATOR_LESS),
 		
 		/**
 		 * greater than or equal to the specified value
 		 */
-		GREATER("greater than or equal"),
+		GREATER(StringConstants.FILTER_OPERATOR_GREATER),
 		
 		/**
 		 * contains the specified value
 		 */
-		CONTAINS("contains"),
+		CONTAINS(StringConstants.FILTER_OPERATOR_CONTAINS),
 		
 		/**
 		 * does not equal the specified value
 		 */
-		IS_NOT("is not");
+		IS_NOT(StringConstants.FILTER_OPERATOR_IS_NOT);
 		
 		private String displayValue;
 		

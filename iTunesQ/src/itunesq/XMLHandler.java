@@ -34,20 +34,33 @@ import ch.qos.logback.classic.Logger;
  */
 public final class XMLHandler 
 {
-	
-	/*
-	 * Special note: The iTunes XML is rather ridiculous and difficult to work with. See 
-     * comments scattered throughout for details.
-	 */
 
     //---------------- Class variables -------------------------------------
 	
 	/*
-	 * The lists of tracks and playlists.
+	 * The list of tracks; just a simple list.
 	 */
 	private static List<Track> Tracks = null;
+	
+	/*
+	 * The tracks map is a map of the track ID to its index value in the tracks list. This 
+	 * means it can't be created until the entire list has been created and sorted. This map
+	 * facilitates quick searches of a track given its track ID (tracks within a playlist are
+	 * identified only by ID).
+	 */
 	private static Map<Integer, Integer> TracksMap = null;
+	
+	/*
+	 * The list of playlists. This is a map of the playlist ID to its corresponding Playlist
+	 * object.
+	 */
 	private static Map<String, Playlist> Playlists = null;
+	
+	/*
+	 * The playlist map is a map of the playlist name to its playlist ID. This map
+	 * facilitates quick searches of a playlist given its name (playlists referenced by a track
+	 * are identified by name).
+	 */
 	private static Map<String, String> PlaylistsMap = null;
 	
 	/*
@@ -72,7 +85,7 @@ public final class XMLHandler
 	private static int playlistIgnoredCount = 0;
 	
 	/*
-	 * Static string definitions.
+	 * Static string definitions for the XML file.
 	 */
 	private static final String ELEM_ARRAY    = "array";
 	private static final String ELEM_DATE     = "date";
@@ -204,11 +217,13 @@ public final class XMLHandler
 	 * Reads and processes the XML file.
 	 * 
 	 * @param xmlFileName XML file name
-	 * @throws JDOMException If an exception occurs trying to read the iTunes 
+	 * @throws JDOMException If an error occurs trying to process the iTunes 
+	 * XML file.
+	 * @throws IOException If an error occurs trying to read the iTunes 
 	 * XML file.
 	 */
 	public static void processXML (String xmlFileName)
-		throws JDOMException
+		throws JDOMException, IOException
 	{
 		logger.trace("processXML");
 		
@@ -222,159 +237,150 @@ public final class XMLHandler
          * Build the JDOM document.
          */
         Document jdomDocument;
-		try
-		{
-	    	logger.info("creating JDOM document");
-			jdomDocument = jdomBuilder.build(xmlFileName);
-			  
-	        /*
-	         * The first 2 elements look like this:
-	         * 
-	         * <plist version="...">
-	         * <dict>
-	         */
-	    	logger.info("looking for root elements");
-	    	
-	        Element root = jdomDocument.getRootElement();
-	        Element mainDict = nextSibling(root);
-	        if (mainDict == null || !mainDict.getName().equals(ELEM_DICT))
-	        {
-	        	throw new JDOMException("could not find main <" + ELEM_DICT + "> element");
-	        }
+        logger.info("creating JDOM document");
+        jdomDocument = jdomBuilder.build(xmlFileName);
 
-	        Element dateKey = null;
-	        Element dateValue = null;
-	        Element trackKey = null;
-	        Element tracksHolder = null;
-	        Element playlistKey = null;
-	        Element playlistsHolder = null;
-	  
-	        /*
-	         * Get the children of the top level <dict> element. These represent global information
-	         * and the lists of tracks and playlists.
-	         */
-	        List<Element> mainChildren = javaListToPivotList(mainDict);
-	        
-	        /*
-	         * Try to locate the following elements:
-	         * 
-	         * <key>Date</key>
-	         * <key>Tracks</key>
-	         * <key>Playlists</key>
-	         */
-	    	logger.info("looking for global information elements");
-	    	
-	        Iterator<Element> elementIter = mainChildren.iterator();
-	        while (elementIter.hasNext())
-	        {
-	        	Element elem = elementIter.next();
-	        	
-	        	if (elem.getName().equals(ELEM_KEY) && elem.getTextTrim().equals(KEY_DATE))
-	        	{
-	        		dateKey = elem;
-	        	}
-	        	if (elem.getName().equals(ELEM_KEY) && elem.getTextTrim().equals(KEY_TRACKS))
-	        	{
-	        		trackKey = elem;
-	        	}
-	        	if (elem.getName().equals(ELEM_KEY) && elem.getTextTrim().equals(KEY_PLAYLISTS))
-	        	{
-	        		playlistKey = elem;
-	        	}
-	        }
-	        
-	        /*
-	         * Locate the following <date> element for the date key.
-	         */
-	        if (dateKey != null)
-	        {
-	        	dateValue = nextSibling(dateKey);
-		        if (dateValue != null && dateValue.getName().equals(ELEM_DATE))
-		        {
-		        	try
-		    		{
-			        	XMLDate = Utilities.parseDate(dateValue.getValue());
-		    		}		        	
-		        	catch (ParseException e)
-		    		{
-		        		logger.error("caught " + e.getClass().getSimpleName());
-		            	throw new JDOMException("unable to parse date value " + dateValue.getValue());
-		    		}
-		        }
-		        else
-		        {
-		        	throw new JDOMException(
-		        			"could not find <" + ELEM_DATE + "> element after '" + KEY_DATE + "' key");
-		        }
-	        }
-	        else
-	        {
-	        	throw new JDOMException("could not find '" + KEY_DATE + "' key");
-	        }
-	        
-	        /*
-	         * Locate the following <dict> element for the track key, which in turn contains the 
-	         * tracks as children.
-	         */
-	        if (trackKey != null)
-	        {
-	        	tracksHolder = nextSibling(trackKey);
-		        if (tracksHolder == null || !tracksHolder.getName().equals(ELEM_DICT))
-		        {
-		        	throw new JDOMException(
-		        			"could not find <" + ELEM_DICT + "> element after '" + KEY_TRACKS + "' key");
-		        }
-	        }
-	        else
-	        {
-	        	throw new JDOMException("could not find '" + KEY_TRACKS + "' key");
-	        }
+        /*
+         * The first 2 elements look like this:
+         * 
+         * <plist version="...">
+         * <dict>
+         */
+        logger.info("looking for root elements");
 
-	        /*
-	         * Locate the following <array> element for the playlists key, which in turn contains the 
-	         * playlists as children.
-	         */
-	        if (playlistKey != null)
-	        {
-	        	playlistsHolder = nextSibling(playlistKey);
-		        if (playlistsHolder == null || !playlistsHolder.getName().equals(ELEM_ARRAY))
-		        {
-		        	throw new JDOMException(
-		        			"could not find <" + ELEM_ARRAY + "> element after '" + KEY_PLAYLISTS + "' key");
-		        }
-	        }
-	        else
-	        {
-	        	throw new JDOMException("could not find '" + KEY_PLAYLISTS + "' key");
-	        }
-	  
-	        /*
-	         * Now gather the actual tracks and playlists.
-	         */
-	    	logger.info("gathering tracks");
-	        generateTracks(tracksHolder);
-	        
-	    	logger.info("gathering playlists");
-	        generatePlaylists(playlistsHolder);
-	        
-	        /*
-	         * We don't want to update track playlists for certain playlist names, identified as
-	         * such through a preference. Mark such playlists now.
-	         */
-	        PlaylistCollection.markPlaylists();
-	        
-	        /*
-	         * Now we can go through all the playlists, and for those not skipped, update the track
-	         * playlist information.
-	         */
-	        PlaylistCollection.updateTrackPlaylistInfo();
-		}
-		
-		catch (IOException | JDOMException e)
-		{
-    		logger.error("caught " + e.getClass().getSimpleName());
-			e.printStackTrace();
-		}
+        Element root = jdomDocument.getRootElement();
+        Element mainDict = nextSibling(root);
+        if (mainDict == null || !mainDict.getName().equals(ELEM_DICT))
+        {
+        	throw new JDOMException("could not find main <" + ELEM_DICT + "> element");
+        }
+
+        Element dateKey = null;
+        Element dateValue = null;
+        Element trackKey = null;
+        Element tracksHolder = null;
+        Element playlistKey = null;
+        Element playlistsHolder = null;
+
+        /*
+         * Get the children of the top level <dict> element. These represent global information
+         * and the lists of tracks and playlists.
+         */
+        List<Element> mainChildren = javaListToPivotList(mainDict);
+
+        /*
+         * Try to locate the following elements:
+         * 
+         * <key>Date</key>
+         * <key>Tracks</key>
+         * <key>Playlists</key>
+         */
+        logger.info("looking for global information elements");
+
+        Iterator<Element> elementIter = mainChildren.iterator();
+        while (elementIter.hasNext())
+        {
+        	Element elem = elementIter.next();
+
+        	if (elem.getName().equals(ELEM_KEY) && elem.getTextTrim().equals(KEY_DATE))
+        	{
+        		dateKey = elem;
+        	}
+        	if (elem.getName().equals(ELEM_KEY) && elem.getTextTrim().equals(KEY_TRACKS))
+        	{
+        		trackKey = elem;
+        	}
+        	if (elem.getName().equals(ELEM_KEY) && elem.getTextTrim().equals(KEY_PLAYLISTS))
+        	{
+        		playlistKey = elem;
+        	}
+        }
+
+        /*
+         * Locate the following <date> element for the date key.
+         */
+        if (dateKey != null)
+        {
+        	dateValue = nextSibling(dateKey);
+        	if (dateValue != null && dateValue.getName().equals(ELEM_DATE))
+        	{
+        		try
+        		{
+        			XMLDate = Utilities.parseDate(dateValue.getValue());
+        		}		        	
+        		catch (ParseException e)
+        		{
+        			logger.error("caught " + e.getClass().getSimpleName());
+        			throw new JDOMException("unable to parse date value " + dateValue.getValue());
+        		}
+        	}
+        	else
+        	{
+        		throw new JDOMException(
+        				"could not find <" + ELEM_DATE + "> element after '" + KEY_DATE + "' key");
+        	}
+        }
+        else
+        {
+        	throw new JDOMException("could not find '" + KEY_DATE + "' key");
+        }
+
+        /*
+         * Locate the following <dict> element for the track key, which in turn contains the 
+         * tracks as children.
+         */
+        if (trackKey != null)
+        {
+        	tracksHolder = nextSibling(trackKey);
+        	if (tracksHolder == null || !tracksHolder.getName().equals(ELEM_DICT))
+        	{
+        		throw new JDOMException(
+        				"could not find <" + ELEM_DICT + "> element after '" + KEY_TRACKS + "' key");
+        	}
+        }
+        else
+        {
+        	throw new JDOMException("could not find '" + KEY_TRACKS + "' key");
+        }
+
+        /*
+         * Locate the following <array> element for the playlists key, which in turn contains the 
+         * playlists as children.
+         */
+        if (playlistKey != null)
+        {
+        	playlistsHolder = nextSibling(playlistKey);
+        	if (playlistsHolder == null || !playlistsHolder.getName().equals(ELEM_ARRAY))
+        	{
+        		throw new JDOMException(
+        				"could not find <" + ELEM_ARRAY + "> element after '" + KEY_PLAYLISTS + "' key");
+        	}
+        }
+        else
+        {
+        	throw new JDOMException("could not find '" + KEY_PLAYLISTS + "' key");
+        }
+
+        /*
+         * Now gather the actual tracks and playlists.
+         */
+        logger.info("gathering tracks");
+        generateTracks(tracksHolder);
+
+        logger.info("gathering playlists");
+        generatePlaylists(playlistsHolder);
+
+        /*
+         * We don't want to update track playlist counts for bypassed playlists, identified 
+         * as such through a preference. Mark such playlists now.
+         */
+        PlaylistCollection.markBypassedPlaylists();
+
+        /*
+         * Now we can go through all the playlists, and for those not skipped, update the track
+         * playlist information.
+         */
+        PlaylistCollection.updateTrackPlaylistInfo();
     }
 	
     //---------------- Private methods -------------------------------------
@@ -632,7 +638,8 @@ public final class XMLHandler
         List<Element> playlistsXML = javaListToPivotList(playlistsHolder);
 		
 		/*
-		 * We collect all the playlists into a HashMap of type Playlist. Initialize it now.
+		 * We collect all the playlists into a HashMap of the playlist name to its Playlist
+		 * object. Initialize it now.
 		 */
 		Playlists = new HashMap<String, Playlist>();
 		
@@ -658,7 +665,7 @@ public final class XMLHandler
         	Element playlistElem = playlistsIter.next();
 
         	/*
-        	 * Create a new playlist object and add it to the playlists collection.
+        	 * Create a new playlist object.
         	 */
         	Playlist playlistObj = new Playlist();
     			
@@ -973,14 +980,15 @@ public final class XMLHandler
 		{
 			return true;
 		}
-		else if (nextTrackAttr.getName().equals(ELEM_TRUE))
+		else if (nextTrackAttr.getName().equals(ELEM_FALSE))
 		{
 			return false;
 		}
 		else
 		{
         	throw new JDOMException(
-        			"expected <" + ELEM_TRUE + "> or <" + ELEM_FALSE + "> element not found after '" + keyName + "' key");
+        			"expected <" + ELEM_TRUE + "> or <" + ELEM_FALSE + "> element not found after '" + 
+        					keyName + "' key");
 		}
 	}
 	

@@ -1,5 +1,7 @@
 package itunesq;
 
+import java.io.IOException;
+
 import org.jdom2.JDOMException;
 
 /**
@@ -52,7 +54,7 @@ public class ProcessXMLThread implements Runnable
 			savedException = null;
 			XMLHandler.processXML(xmlFileName);
 		} 
-		catch (JDOMException e)
+		catch (JDOMException | IOException e)
 		{
 			savedException = e;
 		}

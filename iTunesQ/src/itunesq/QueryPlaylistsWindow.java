@@ -21,8 +21,6 @@ import org.apache.pivot.wtk.Component;
 import org.apache.pivot.wtk.ComponentMouseButtonListener;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.Menu;
-import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
@@ -63,9 +61,6 @@ public class QueryPlaylistsWindow
 	/*
 	 * BXML variables.
 	 */
-	@BXML private MenuBar mainMenuBar = null;
-	@BXML private Menu mainFileMenu = null;
-	@BXML private Menu mainEditMenu = null;
 	@BXML private Border compareBorder = null;
 	@BXML private BoxPane compareBoxPane = null;
 	@BXML private Label compareBorderLabel = null;
@@ -127,8 +122,8 @@ public class QueryPlaylistsWindow
 	 * Displays the query playlists in a new window.
 	 * 
 	 * @param display display object for managing windows
-	 * @throws IOException If an exception occurs trying to read the BXML file.
-	 * @throws SerializationException If an exception occurs trying to 
+	 * @throws IOException If an error occurs trying to read the BXML file.
+	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 */
     public void displayQueryPlaylists (Display display) 
@@ -169,7 +164,15 @@ public class QueryPlaylistsWindow
             	 */
             	if (good2Go == true)
             	{
-                	displayComparedPlaylistTracks(display, CompareType.ALL);
+                	try
+                	{
+						displayComparedPlaylistTracks(display, CompareType.ALL);
+					}
+                	catch (IOException | SerializationException e)
+                	{
+						uiLogger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
             	}
             }
         });
@@ -200,7 +203,15 @@ public class QueryPlaylistsWindow
             	 */
             	if (good2Go == true)
             	{
-                	displayComparedPlaylistTracks(display, CompareType.SOME);
+                	try
+                	{
+						displayComparedPlaylistTracks(display, CompareType.ALL);
+					}
+                	catch (IOException | SerializationException e)
+                	{
+						uiLogger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
             	}
             }
         });
@@ -231,7 +242,15 @@ public class QueryPlaylistsWindow
             	 */
             	if (good2Go == true)
             	{
-                	displayComparedPlaylistTracks(display, CompareType.ONE);
+                	try
+                	{
+						displayComparedPlaylistTracks(display, CompareType.ALL);
+					}
+                	catch (IOException | SerializationException e)
+                	{
+						uiLogger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
             	}
             }
         });
@@ -257,6 +276,18 @@ public class QueryPlaylistsWindow
             	skins.popSkinnedWindow();
             }
         });
+        
+        /*
+         * Add widget texts.
+         */
+        compareBorderLabel.setText(StringConstants.QUERY_PLAYLIST_COMPARE_BORDER);
+        showAllButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_ALL_BUTTON);
+        showAllButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_ALL_BUTTON_TIP);
+        showSomeButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_SOME_BUTTON);
+        showSomeButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_SOME_BUTTON_TIP);
+        showOneButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_ONE_BUTTON);
+        showOneButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_ONE_BUTTON_TIP);
+        queryDoneButton.setButtonData(StringConstants.DONE);
 		
 		/*
 		 * Set the window title.
@@ -333,7 +364,7 @@ public class QueryPlaylistsWindow
          * Create the label for the text box.
          */
     	Label textLabel = new Label();
-    	textLabel.setText("Playlist Name");
+    	textLabel.setText(StringConstants.PLAYLIST_NAME);
         
         /*
          * Create the text input box.
@@ -378,11 +409,11 @@ public class QueryPlaylistsWindow
     	 */
     	PushButton plusButton = new PushButton();
     	plusButton.setButtonData("+");
-    	plusButton.setTooltipText("Add a new playlist for comparison.");
+    	plusButton.setTooltipText(StringConstants.QUERY_PLAYLIST_PLUS_BUTTON);
     	
     	PushButton minusButton = new PushButton();
     	minusButton.setButtonData("-");
-    	minusButton.setTooltipText("Remove this playlist from the list.");
+    	minusButton.setTooltipText(StringConstants.QUERY_PLAYLIST_MINUS_BUTTON);
         
     	/*
     	 * We need the ability to insert and remove playlist rows based on the specific 
@@ -636,7 +667,8 @@ public class QueryPlaylistsWindow
 			{
 				playlistsValid = false;
 				Alert.alert(MessageType.ERROR, 
-    					"Playlist name '" + playlistName + "' is not valid.", queryPlaylistsWindow);
+    					StringConstants.ALERT_PLAYLIST_INVALID_NAME_1 + playlistName + 
+    					StringConstants.ALERT_PLAYLIST_INVALID_NAME_2, queryPlaylistsWindow);
 				break;
 			}
 			
@@ -780,7 +812,8 @@ public class QueryPlaylistsWindow
      * Display the set of tracks from the comparison evaluation according to which button was
      * pressed (compareType).
      */
-    private void displayComparedPlaylistTracks (Display display, CompareType compareType)
+    private void displayComparedPlaylistTracks (Display display, CompareType compareType) 
+    		throws IOException, SerializationException
     {
     	filterLogger.trace("displayComparedPlaylistTracks: " + this.hashCode());
 		
@@ -804,17 +837,17 @@ public class QueryPlaylistsWindow
 		{
 		case ALL:
 			trackIDsIter = allIDs.iterator();
-			compareStr = "(show all)";
+			compareStr = StringConstants.QUERY_PLAYLIST_COMPARE_ALL;
 			break;
 			
 		case SOME:
 			trackIDsIter = someIDs.iterator();
-			compareStr = "(show some)";
+			compareStr = StringConstants.QUERY_PLAYLIST_COMPARE_SOME;
 			break;
 			
 		case ONE:
 			trackIDsIter = oneIDs.iterator();
-			compareStr = "(show one)";
+			compareStr = StringConstants.QUERY_PLAYLIST_COMPARE_ONE;
 			break;
 			
 		default: ;
@@ -839,17 +872,9 @@ public class QueryPlaylistsWindow
 		 * Now display the list of tracks.
 		 */
 		TracksWindow tracksWindowHandler = new TracksWindow();
-		try
-		{
-			tracksWindowHandler.displayTracks(display, displayableTracks, 
-					TracksWindow.QueryType.PLAYLISTS, 
-					TracksWindow.QueryType.PLAYLISTS.getDisplayValue() + " " + compareStr + ": " + queryStr);
-		} 
-		catch (IOException | SerializationException e)
-		{
-    		uiLogger.error("caught " + e.getClass().getSimpleName());
-			e.printStackTrace();
-		}
+		tracksWindowHandler.displayTracks(display, displayableTracks, 
+				TracksWindow.QueryType.PLAYLISTS, 
+				TracksWindow.QueryType.PLAYLISTS.getDisplayValue() + " " + compareStr + ": " + queryStr);
     }
     
     /*
@@ -894,16 +919,13 @@ public class QueryPlaylistsWindow
         BXMLSerializer windowSerializer = new BXMLSerializer();
         queryPlaylistsWindow = (Window)windowSerializer.
         		readObject(getClass().getResource("queryPlaylistsWindow.bxml"));
-
-        mainMenuBar = 
-        		(MenuBar)windowSerializer.getNamespace().get("mainMenuBar");
-		components.add(mainMenuBar);
-        mainFileMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainFileMenu");
-		components.add(mainFileMenu);
-        mainEditMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
-		components.add(mainEditMenu);
+        
+        /*
+         * Initialize the menu bar.
+         */
+        MenuBars menuBar = (MenuBars)queryPlaylistsWindow;
+        menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
+        
         compareBorder = 
         		(Border)windowSerializer.getNamespace().get("compareBorder");
 		components.add(compareBorder);

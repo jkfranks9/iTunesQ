@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Dialog title="Track Details" modal="false"
+<Dialog modal="true"
 	styles="{backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns="org.apache.pivot.wtk">

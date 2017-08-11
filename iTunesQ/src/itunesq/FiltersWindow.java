@@ -17,8 +17,6 @@ import org.apache.pivot.wtk.ButtonPressListener;
 import org.apache.pivot.wtk.Component;
 import org.apache.pivot.wtk.ComponentMouseButtonListener;
 import org.apache.pivot.wtk.Display;
-import org.apache.pivot.wtk.Menu;
-import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
@@ -56,9 +54,6 @@ public class FiltersWindow
 	/*
 	 * BXML variables.
 	 */
-	@BXML private MenuBar mainMenuBar = null;
-	@BXML private Menu mainFileMenu = null;
-	@BXML private Menu mainEditMenu = null;
 	@BXML private Border filtersBorder = null;
 	@BXML private TablePane filterTablePane = null;
 	@BXML private Border actionBorder = null;
@@ -108,8 +103,8 @@ public class FiltersWindow
 	 * Displays the filters in a new window.
 	 * 
 	 * @param display display object for managing windows
-	 * @throws IOException If an exception occurs trying to read the BXML file.
-	 * @throws SerializationException If an exception occurs trying to 
+	 * @throws IOException If an error occurs trying to read the BXML file.
+	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 */
     public void displayFilters (Display display) 
@@ -144,51 +139,57 @@ public class FiltersWindow
             	 */
             	if (filterCollection != null)
             	{
-            		try
+        			
+        			/*
+        			 * Execute the set of filters.
+        			 */
+					if (filterCollection.executeFilterList() == true)
 					{
-            			
-            			/*
-            			 * Execute the set of filters.
-            			 */
-						filterCollection.executeFilterList();
-						
+					
 						/*
 						 * Get the resulting filtered tracks, if any.
 						 */
 						List<Track> filteredTracks = filterCollection.getFilteredTracks();
 						int numTracks = filteredTracks.getLength();
-						
+
 						filterLogger.info((Integer.toString(numTracks) 
 								+ ((numTracks == 1) ? " track matches" : " tracks match") 
 								+ " the set of filters"));
-						
+
 						/*
 						 * If anything is to be displayed, uh, display it.
 						 */
 						if (!filteredTracks.isEmpty())
 						{
-							String queryStr = filterCollection.getFiltersAsString();
-							TracksWindow tracksWindowHandler = new TracksWindow();
-							tracksWindowHandler.displayTracks(display, filteredTracks, 
-									TracksWindow.QueryType.TRACKS, 
-									TracksWindow.QueryType.TRACKS.getDisplayValue() + ": " + queryStr);
+							try
+							{
+								String queryStr = filterCollection.getFiltersAsString();
+								TracksWindow tracksWindowHandler = new TracksWindow();
+								tracksWindowHandler.displayTracks(display, filteredTracks, 
+										TracksWindow.QueryType.TRACKS, 
+										TracksWindow.QueryType.TRACKS.getDisplayValue() + ": " + queryStr);
+							}
+							catch (IOException | SerializationException e)
+							{
+								filterLogger.error("caught " + e.getClass().getSimpleName());
+								e.printStackTrace();
+							}
 						}
 						else
 						{
 							Alert.alert(MessageType.INFO, 
-		        					"There are no tracks matching the set of filters", filtersWindow);
+									StringConstants.ALERT_NO_TRACKS, filtersWindow);
 						}
-					} 
-            		catch (FilterException e)
+					}
+					
+					/*
+					 * Oh no Mr. Bill! Something is wrong with one or more filters.
+					 */
+					else
 					{
-            			filterLogger.error("caught FilterException");
 						Alert.alert(MessageType.ERROR, 
-	        					"Filter error: " + e.getMessage(), filtersWindow);
-					} 
-            		catch (IOException | SerializationException e)
-					{
-            			filterLogger.error("caught " + e.getClass().getSimpleName());
-						e.printStackTrace();
+								StringConstants.ALERT_FILTER_ERROR + 
+								filterCollection.getFilterErrorString(), filtersWindow);
 					}
             	}
             }
@@ -215,6 +216,13 @@ public class FiltersWindow
             	skins.popSkinnedWindow();
             }
         });
+        
+        /*
+         * Add widget texts.
+         */
+        showResultsButton.setButtonData(StringConstants.FILTER_SHOW_ME_BUTTON);
+        showResultsButton.setTooltipText(StringConstants.FILTER_SHOW_ME_BUTTON_TIP);
+        queryDoneButton.setButtonData(StringConstants.DONE);
 		
 		/*
 		 * Set the window title.
@@ -295,7 +303,7 @@ public class FiltersWindow
     	logic.setCircular(true);
     	logic.setSpinnerData(Filter.getLogicLabels());
     	logic.setSelectedIndex(0);
-    	logic.setTooltipText("You can match 'All' or 'Any' of the following filters.");
+    	logic.setTooltipText(StringConstants.FILTER_LOGIC_TIP);
     	
     	/*
     	 * Create the 'subject' spinner.
@@ -304,7 +312,7 @@ public class FiltersWindow
     	subject.setCircular(true);
     	subject.setSpinnerData(Filter.getSubjectLabels());
         subject.setSelectedIndex(0);
-        subject.setTooltipText("What is the subject of this filter?");
+        subject.setTooltipText(StringConstants.FILTER_SUBJECT_TIP);
         
         /*
          * Create the 'operator' spinner.
@@ -313,15 +321,13 @@ public class FiltersWindow
     	operator.setCircular(true);
     	operator.setSpinnerData(Filter.getOperatorLabels());
         operator.setSelectedIndex(0);
-        operator.setTooltipText("What operator should be applied? "
-        		+ "Note that not all operators apply to all subjects. "
-        		+ "For example 'Artist' 'greater than or equal' does not make sense.");
+        operator.setTooltipText(StringConstants.FILTER_OPERATOR_TIP);
         
         /*
          * Create the text input box.
          */
     	TextInput text = new TextInput();
-    	text.setTooltipText("Enter the value that applies to the subject of this filter.");
+    	text.setTooltipText(StringConstants.FILTER_TEXT_TIP);
     	
     	/*
     	 * Text input listener for the text input. We call the typing assistant to fill in the 
@@ -343,7 +349,7 @@ public class FiltersWindow
                 	 * Indexes into the row elements.
                 	 * 
                 	 * IMPORTANT: These must match the design of the row. See filtersWindow.bxml 
-                	 * for the column definition, and addFilterTableRow() for the logic to create 
+                	 * for the column definition, and createFilterTableRow() for the logic to create 
                 	 * a row.
                 	 */
                 	final int subjectIndex  = 1;
@@ -389,16 +395,15 @@ public class FiltersWindow
     	 */
     	PushButton plusButton = new PushButton();
     	plusButton.setButtonData("+");
-    	plusButton.setTooltipText("Add a new filter of the same type ('All' or 'Any').");
+    	plusButton.setTooltipText(StringConstants.FILTER_PLUS_BUTTON_TIP);
     	
     	PushButton minusButton = new PushButton();
     	minusButton.setButtonData("-");
-    	minusButton.setTooltipText("Remove this filter.");
+    	minusButton.setTooltipText(StringConstants.FILTER_MINUS_BUTTON_TIP);
     	
     	PushButton complexButton = new PushButton();
-    	complexButton.setButtonData("Complex");
-    	complexButton.setTooltipText("Switch the type of filter from 'All' to 'Any' or vice versa. "
-    			+ "You can only include 2 such switches in the set of filters.");
+    	complexButton.setButtonData(StringConstants.FILTER_COMPLEX);
+    	complexButton.setTooltipText(StringConstants.FILTER_COMPLEX_BUTTON_TIP);
     	
     	/*
     	 * Mouse click listener for the + button.
@@ -574,7 +579,7 @@ public class FiltersWindow
     	 * Indexes into the row elements.
     	 * 
     	 * IMPORTANT: These must match the design of the row. See filtersWindow.bxml for the column
-    	 * definition, and addFilterTableRow() for the logic to create a row.
+    	 * definition, and createFilterTableRow() for the logic to create a row.
     	 */
     	final int logicIndex    = 0;
     	final int subjectIndex  = 1;
@@ -649,16 +654,13 @@ public class FiltersWindow
         BXMLSerializer windowSerializer = new BXMLSerializer();
         filtersWindow = (Window)windowSerializer.
         		readObject(getClass().getResource("filtersWindow.bxml"));
+        
+        /*
+         * Initialize the menu bar.
+         */
+        MenuBars menuBar = (MenuBars)filtersWindow;
+        menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        mainMenuBar = 
-        		(MenuBar)windowSerializer.getNamespace().get("mainMenuBar");
-		components.add(mainMenuBar);
-        mainFileMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainFileMenu");
-		components.add(mainFileMenu);
-        mainEditMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
-		components.add(mainEditMenu);
         filtersBorder = 
         		(Border)windowSerializer.getNamespace().get("filtersBorder");
 		components.add(filtersBorder);

@@ -1,62 +1,45 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <itq:MenuBars maximized="true"
-    styles="{padding:{top:0, left:4, bottom:4, right:4}, showWindowControls:false, backgroundColor:5}"
+    styles="{padding:{top:4, left:4, bottom:4, right:4}, showWindowControls:false, backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
-    xmlns:content="org.apache.pivot.wtk.content"
     xmlns:itq="itunesq"
     xmlns="org.apache.pivot.wtk">
-    
-    <!-- Create the file browser sheet for file open. -->
-    <bxml:define>
-        <FileBrowserSheet bxml:id="fileBrowserSheet"/>
-    </bxml:define>
-    
-    <!-- Create the preferences sheet. -->
-    <bxml:define>
-        <Sheet bxml:id="preferencesSheet"/>
-    </bxml:define>
 
-    <!-- Define the menu bar. -->
+	<!-- Define the menu bar. -->
     <menuBar>
-        <MenuBar bxml:id="mainMenuBar">
+		<MenuBar bxml:id="menuBarHolder">
+    
+			<!-- Create the file browser sheet for file open. -->
+			<bxml:define>
+		    	<FileBrowserSheet bxml:id="fileBrowserSheet"/>
+			</bxml:define>
+    
+			<!-- Create the preferences sheet. -->
+			<bxml:define>
+			    <Sheet bxml:id="preferencesSheet"/>
+			</bxml:define>
         
-        	<!-- File menu. -->
-            <MenuBar.Item buttonData="File">
-                <Menu bxml:id="mainFileMenu">
-                    <Menu.Section>
-                        <Menu.Item action="fileOpen">
-                            <buttonData>
-                                <content:MenuItemData text="Open"/>
-                            </buttonData>
-                        </Menu.Item>
-                        <Menu.Item action="fileSave">
-                            <buttonData>
-                                <content:MenuItemData text="Save"/>
-                            </buttonData>
-                        </Menu.Item>
-                        <Menu.Item action="exit">
-                            <buttonData>
-                                <content:MenuItemData text="Exit"/>
-                            </buttonData>
-                        </Menu.Item>
-                    </Menu.Section>
-                </Menu>
-            </MenuBar.Item>
+			<!-- File menu. -->
+	    	<MenuBar.Item bxml:id="fileMenu">
+ 		       	<Menu bxml:id="fileMenuItems">
+ 		           	<Menu.Section>
+ 		               	<Menu.Item bxml:id="fileMenuOpen" action="fileOpen"/>
+	    	            <Menu.Item bxml:id="fileMenuSave" action="fileSave"/>
+    	    	        <Menu.Item bxml:id="fileMenuExit" action="exit"/>
+        	    	</Menu.Section>
+  		      	</Menu>
+	    	</MenuBar.Item>
             
-        	<!-- Edit menu. -->
-            <MenuBar.Item buttonData="Edit">
-                <Menu bxml:id="mainEditMenu">
-                    <Menu.Section>
-                        <Menu.Item action="preferences">
-                            <buttonData>
-                                <content:MenuItemData text="Preferences"/>
-                            </buttonData>
-                        </Menu.Item>
-                    </Menu.Section>
-                </Menu>
-            </MenuBar.Item>
-        </MenuBar>
+		 	<!-- Edit menu. -->
+    		<MenuBar.Item bxml:id="editMenu">
+        		<Menu bxml:id="editMenuItems">
+            		<Menu.Section>
+                		<Menu.Item bxml:id="editMenuPreferences" action="preferences"/>
+		            </Menu.Section>
+    		    </Menu>
+	    	</MenuBar.Item>
+		</MenuBar>
     </menuBar>
     
     <!-- Lay out the window elements in a single column table pane. -->
@@ -106,8 +89,10 @@
                        	<TableView bxml:id="trackPlaylistsTableView" selectMode="single"
                            	styles="{includeTrailingVerticalGridLine:true}">
 	                       	<columns>
-                           		<TableView.Column name="name" width="8*" headerData="Playlist Names"/>
-                           		<TableView.Column name="bypass" width="3*" headerData="Bypassed"/>
+                           		<TableView.Column bxml:id="trackPlaylistsTableViewNameColumn" 
+                           			name="name" width="8*"/>
+                           		<TableView.Column bxml:id="trackPlaylistsTableViewBypassColumn" 
+                           			name="bypass" width="3*"/>
                            	</columns>
                        	</TableView>
 
@@ -127,7 +112,7 @@
             <Border bxml:id="actionBorder">
                 <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
                     styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-               	    <PushButton bxml:id="tracksDoneButton" buttonData="Done"/>
+               	    <PushButton bxml:id="tracksDoneButton"/>
                 </BoxPane>
             </Border>
         </TablePane.Row>

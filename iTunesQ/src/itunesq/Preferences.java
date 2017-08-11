@@ -27,6 +27,11 @@ import ch.qos.logback.classic.Logger;
  */
 public final class Preferences implements Serializable
 {
+	
+	/*
+	 * NOTE: This class is serializable, but only a subset of variables actually need to be
+	 * serialized. The rest are declared as transient to prevent serialization.
+	 */
 
     //---------------- Singleton implementation ----------------------------
 	
@@ -61,7 +66,7 @@ public final class Preferences implements Serializable
 	 * - various track column sets
 	 * - skin name
 	 * - maximum log file history
-	 * - global log level
+	 * - global log level flag
 	 * - log levels
 	 */
 	private String xmlFileName;
@@ -84,11 +89,6 @@ public final class Preferences implements Serializable
 	private static transient final String DEFAULT_SAVE_DIRECTORY = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
 	
 	/*
-	 * Default maximum log history.
-	 */
-	private static transient final int DEFAULT_MAX_HISTORY = 30;
-	
-	/*
 	 * Save directory name.
 	 */
 	private static transient String saveDirectory;
@@ -101,7 +101,7 @@ public final class Preferences implements Serializable
 	private static transient final String PREFS_SUFFIX = ".ser";
 	
 	/*
-	 * The serialized file name includes the class name. That's initialized in setSaveDirectory(),
+	 * The serialized file name includes the class name. That's initialized in updateSaveDirectory(),
 	 * which is called by MainWindow() before our constructor.
 	 */
 	private static transient String prefsFile;
@@ -130,7 +130,7 @@ public final class Preferences implements Serializable
 		bypassPrefs = new ArrayList<BypassPreference>();
 		ignoredPrefs = new ArrayList<String>(Playlist.DEFAULT_IGNORED_PLAYLISTS);
 		
-		maxLogHistory = DEFAULT_MAX_HISTORY;
+		maxLogHistory = InternalConstants.DEFAULT_MAX_HISTORY;
 		
 		logLevels = new HashMap<String, Level>();
 		globalLogLevel = true;
@@ -338,7 +338,7 @@ public final class Preferences implements Serializable
 	 */
 	public static int getDefaultMaxLogHistory ()
 	{
-		return DEFAULT_MAX_HISTORY;
+		return InternalConstants.DEFAULT_MAX_HISTORY;
 	}
 	
 	/**
@@ -440,11 +440,7 @@ public final class Preferences implements Serializable
 	
 	/**
 	 * Sets the preferences save directory, and moves the existing preferences 
-	 * file to the new directory.
-	 * <p>
-	 * Note that this method is called during initialization before our 
-	 * constructor. That's because the constructor registers a logger, which 
-	 * in turn requires the correct save directory to be set.
+	 * file and log files to the new directory.
 	 * 
 	 * @param directory preferences save directory
 	 */
@@ -452,10 +448,26 @@ public final class Preferences implements Serializable
 	{
 		
 		/*
+	     * This method is called in two places:
+	     * 
+	     * 1) During initialization. In this case, it is called before our constructor. 
+	     *    That's because our constructor registers a logger, which in turn requires 
+	     *    the correct save directory to be set.
+	     *    
+	     *    If this is the very first time the application has been run, we won't have an
+	     *    existing preferences file, and saveDirectory will be null.
+	     *    
+	     *    If the application has been run before, then the directory cannot have
+	     *    changed, so we have very little to do.
+	     *    
+	     * 2) When the directory has been changed via user preferences. In this case we need
+	     *    to move all relevant files to the new directory.
+		 */
+		
+		/*
 		 * Initialize the save path suffix (everything after the directory name).
 		 */
-		String prefsName = Preferences.class.getName();
-		String savePathSuffix = "/" + prefsName + PREFS_SUFFIX;
+		String savePathSuffix = "/" + Preferences.class.getName() + PREFS_SUFFIX;
 		
 		/*
 		 * Create File objects for the existing and new files. It's possible we don't have an
@@ -473,18 +485,13 @@ public final class Preferences implements Serializable
 		File newFile = new File(directory + savePathSuffix);
 		
 		/*
-		 * Rename (move) the existing file to the new directory if it exists.
+		 * If we have an existing file, and it's different than the new file, rename (move)
+		 * the existing file and log files to the new directory.
 		 */
-		if (existingFile.exists())
+		if (existingFile.exists() && !existingFile.equals(newFile))
 		{
 			existingFile.renameTo(newFile);
-		}
-		
-		/*
-		 * Move all log files to the new directory as well.
-		 */
-		if (saveDirectory != null)
-		{
+
 			Logging.saveDirectoryUpdated(saveDirectory, directory);
 		}
 		
@@ -561,8 +568,13 @@ public final class Preferences implements Serializable
 	 * Deserializes the preferences from disk.
 	 * 
 	 * @return deserialized preferences
+	 * @throws IOException If an error occurs trying to read the preferences 
+	 * file.
+	 * @throws ClassNotFoundException If the class of a serialized object 
+	 * cannot be found.
 	 */
-	public Preferences readPreferences ()
+	public Preferences readPreferences () 
+			throws IOException, ClassNotFoundException
 	{
 		Preferences prefs = null;
 		logger.info("reading preferences from '" + prefsFile + "'");
@@ -578,11 +590,6 @@ public final class Preferences implements Serializable
 		catch (FileNotFoundException e)
 		{
 			// Not an error - ignore.
-		} 
-		catch (IOException | ClassNotFoundException e)
-		{
-			logger.error("caught " + e.getClass().getSimpleName());
-			e.printStackTrace();
 		}
 		
 		return prefs;
@@ -590,23 +597,18 @@ public final class Preferences implements Serializable
 	
 	/**
 	 * Serializes the preferences to disk.
+	 * @throws IOException If an error occurs trying to write the preferences 
+	 * file. 
 	 */
-	public void writePreferences ()
+	public void writePreferences () 
+			throws IOException
 	{
 		logger.info("writing preferences to '" + prefsFile + "'");
-		
-		try
-		{
-			prefsOutputStream = new FileOutputStream(prefsFile);
-			ObjectOutputStream output = new ObjectOutputStream(prefsOutputStream);
-			output.writeObject(this);
-			output.close();
-			prefsOutputStream.close();
-		} 
-		catch (IOException e)
-		{
-			logger.error("caught " + e.getClass().getSimpleName());
-			e.printStackTrace();
-		}
+
+		prefsOutputStream = new FileOutputStream(prefsFile);
+		ObjectOutputStream output = new ObjectOutputStream(prefsOutputStream);
+		output.writeObject(this);
+		output.close();
+		prefsOutputStream.close();
 	}
 }

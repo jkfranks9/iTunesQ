@@ -42,6 +42,7 @@ import org.apache.pivot.wtk.Label;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.Separator;
+import org.apache.pivot.wtk.TablePane;
 import org.apache.pivot.wtk.TextInput;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +62,6 @@ public class FileSaveDialog
 	
     //---------------- Private variables -----------------------------------
 	
-	private static final String FILE_HEADER = "iTunesQ Query Results\n";
 	private static final String SINGLE_SPACE = "\n";
 	private static final String DOUBLE_SPACE = "\n\n";
 	private static final int OUTPUT_WIDTH = 120;
@@ -85,6 +85,7 @@ public class FileSaveDialog
 	/*
 	 * BXML variables.
 	 */
+    @BXML private TablePane fileSaveTablePane = null;
 	@BXML private Border fileSaveDetailsBorder = null;
 	@BXML private BoxPane fileSaveDetailsBoxPane = null;
 	@BXML private Separator fileSaveDetailsFileSeparator = null;
@@ -140,8 +141,8 @@ public class FileSaveDialog
 	 * Displays the file save dialog.
 	 * 
 	 * @param display display object for managing windows
-	 * @throws IOException If an exception occurs trying to read the BXML file.
-	 * @throws SerializationException If an exception occurs trying to 
+	 * @throws IOException If an error occurs trying to read the BXML file.
+	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 */
 	public void displayFileSaveDialog (Display display) 
@@ -196,27 +197,45 @@ public class FileSaveDialog
         switch (queryType)
         {
         case TRACKS:
-        	fileSaveDetailsLimitCheckbox.setButtonData("Exclude bypassed playlists?");
-        	fileSaveDetailsLimitCheckbox.setTooltipText("Select to exclude playlists that are bypassed " +
-        			"from the saved output.");
+        	fileSaveDetailsLimitCheckbox.setButtonData(StringConstants.FILESAVE_TRACKS_LIMIT);
+        	fileSaveDetailsLimitCheckbox.setTooltipText(StringConstants.FILESAVE_TRACKS_LIMIT_TIP);
         	break;
 
         case PLAYLISTS:
-        	fileSaveDetailsLimitCheckbox.setButtonData("Include only queried playlists?");
-        	fileSaveDetailsLimitCheckbox.setTooltipText("Select to include only playlists that you " +
-        			"specified to be compared in the saved output.");
+        	fileSaveDetailsLimitCheckbox.setButtonData(StringConstants.FILESAVE_PLAYLISTS_LIMIT);
+        	fileSaveDetailsLimitCheckbox.setTooltipText(StringConstants.FILESAVE_PLAYLISTS_LIMIT_TIP);
         	break;
         	
         default: ;
         }
         
         /*
-         * Add tooltip texts.
+         * Set the width of the dialog.
          */
-        final String fileSaveTooltip = "Specify a file name for saving the queried tracks.";
-        fileSaveDetailsLabel.setTooltipText(fileSaveTooltip);
-        fileSaveDetailsTextInput.setTooltipText(fileSaveTooltip);
-        fileSaveDetailsPrintCheckbox.setTooltipText("Select to print the queried tracks.");
+        fileSaveTablePane.setPreferredWidth(InternalConstants.FILE_SAVE_DIALOG_WIDTH);
+        
+        /*
+         * Set the size of the text input for the file name.
+         */
+        fileSaveDetailsTextInput.setTextSize(InternalConstants.FILE_SAVE_FILENAME_TEXT_SIZE);
+        
+        /*
+         * Add widget texts.
+         */
+        fileSaveDetailsFileSeparator.setHeading(StringConstants.FILESAVE_SAVE_TO_FILE);
+        fileSaveDetailsLabel.setTooltipText(StringConstants.FILESAVE_NAME_TIP);
+        fileSaveDetailsTextInput.setTooltipText(StringConstants.FILESAVE_NAME_TIP);
+        fileSaveDetailsPrintSeparator.setHeading(StringConstants.FILESAVE_SAVE_TO_PRINTER);
+        fileSaveDetailsPrintCheckbox.setTooltipText(StringConstants.FILESAVE_PRINT_TIP);
+        fileSaveDetailsLabel.setText(StringConstants.FILESAVE_ENTER_FILE_NAME);
+        fileSaveDetailsPrintCheckbox.setButtonData(StringConstants.FILESAVE_SAVE_TO_PRINTER);
+        fileSaveDetailsOptionsSeparator.setHeading(StringConstants.FILESAVE_OPTIONS);
+        fileSaveDoneButton.setButtonData(StringConstants.DONE);
+		
+		/*
+		 * Set the window title.
+		 */
+        fileSaveDialog.setTitle(Skins.Window.FILESAVE.getDisplayValue());
 
 		/*
 		 * Get the skins singleton.
@@ -265,7 +284,7 @@ public class FileSaveDialog
 		/*
 		 * ... header line.
 		 */
-		output.append(FILE_HEADER);
+		output.append(StringConstants.FILESAVE_HEADER);
 		
 		/*
 		 * ... time stamp.
@@ -357,7 +376,8 @@ public class FileSaveDialog
 	/*
 	 * Save the generated track list output to a file or printer.
 	 */
-	private void saveOutput (String output)
+	private void saveOutput (String output) 
+			throws IOException, PrintException
 	{
     	logger.trace("saveOutput: " + this.hashCode());
     	
@@ -367,21 +387,11 @@ public class FileSaveDialog
 		}
 		else if (saveFileName != null && !saveFileName.isEmpty())
 		{
-			try
-			{
-				writeTextFile(saveFileName, output);
-			}
-			catch (IOException e)
-			{
-	    		logger.error("caught " + e.getClass().getSimpleName());
-				e.printStackTrace();
-			}
+			writeTextFile(saveFileName, output);
 		}
 		else
 		{
-			Alert.alert(MessageType.INFO, 
-					"You didn't select a destination, so nothing was saved.", 
-					owningWindow);
+			Alert.alert(MessageType.INFO, StringConstants.ALERT_NOTHING_SAVED, owningWindow);
 		}
 	}
 	
@@ -400,7 +410,8 @@ public class FileSaveDialog
 	/*
 	 * Print the track list.
 	 */
-	private void printOutput (String output)
+	private void printOutput (String output) 
+			throws PrintException
 	{
     	logger.trace("printOutput: " + this.hashCode());
     	
@@ -420,72 +431,61 @@ public class FileSaveDialog
 		 */
 		PrintService[] services = PrintServiceLookup.lookupPrintServices(flavor, null);
 		PrintService defaultService = PrintServiceLookup.lookupDefaultPrintService();
-
-		try
+		
+		/*
+		 * Create printer attributes.
+		 */
+		PrintRequestAttributeSet attributes = new HashPrintRequestAttributeSet();
+		attributes.add(Sides.DUPLEX);
+		
+		/*
+		 * If there are no services we might still have a default. Don't ask me why, but I stole
+		 * this code from someone else.
+		 */
+		if (services.length == 0)
 		{
-			
-			/*
-			 * Create printer attributes.
-			 */
-			PrintRequestAttributeSet attributes = new HashPrintRequestAttributeSet();
-			attributes.add(Sides.DUPLEX);
-			
-			/*
-			 * If there are no services we might still have a default. Don't ask me why, but I stole
-			 * this code from someone else.
-			 */
-			if(services.length == 0)
+			if (defaultService == null)
 			{
-				if(defaultService == null)
-				{
-					Alert.alert(MessageType.ERROR, 
-							"Could not locate a printer service.", 
-							owningWindow);
-				}
-				
-				/*
-				 * Print using the default service.
-				 */
-				else
-				{
-					DocPrintJob job = defaultService.createPrintJob();
-					job.print(mydoc, attributes);
-				}
+				Alert.alert(MessageType.ERROR, StringConstants.ALERT_NO_PRINTER, owningWindow);
 			}
 			
 			/*
-			 * At least one service was found, so put up a dialog to let the user play with settings.
+			 * Print using the default service.
 			 */
 			else
 			{
-				
-				/*
-				 * Get our base X and Y coordinates, for the print dialog.
-				 */
-				java.awt.Window hostWindow = owningWindow.getDisplay().getHostWindow();
-				int xcoord = hostWindow.getX();
-				int ycoord = hostWindow.getY();
-				
-				/*
-				 * Display the print dialog.
-				 */
-				PrintService service = ServiceUI.printDialog(null, xcoord, ycoord, services, 
-						defaultService, flavor, attributes);
-				
-				/*
-				 * If a print service was returned from the dialog, print.
-				 */
-				if (service != null)
-		        {
-		           DocPrintJob job = service.createPrintJob();
-		           job.print(mydoc, attributes);
-		        }
+				DocPrintJob job = defaultService.createPrintJob();
+				job.print(mydoc, attributes);
 			}
 		}
-		catch (PrintException e)
+		
+		/*
+		 * At least one service was found, so put up a dialog to let the user play with settings.
+		 */
+		else
 		{
-    		logger.error("caught " + e.getClass().getSimpleName());
-			e.printStackTrace();
+			
+			/*
+			 * Get our base X and Y coordinates, for the print dialog.
+			 */
+			java.awt.Window hostWindow = owningWindow.getDisplay().getHostWindow();
+			int xcoord = hostWindow.getX();
+			int ycoord = hostWindow.getY();
+			
+			/*
+			 * Display the print dialog.
+			 */
+			PrintService service = ServiceUI.printDialog(null, xcoord, ycoord, services, 
+					defaultService, flavor, attributes);
+			
+			/*
+			 * If a print service was returned from the dialog, print.
+			 */
+			if (service != null)
+	        {
+	           DocPrintJob job = service.createPrintJob();
+	           job.print(mydoc, attributes);
+	        }
 		}
 	}
 	
@@ -522,7 +522,6 @@ public class FileSaveDialog
         default: ;
         }
 		
-		
 		return result;
 	}
 
@@ -537,7 +536,14 @@ public class FileSaveDialog
         BXMLSerializer dialogSerializer = new BXMLSerializer();
         fileSaveDialog = (Dialog)dialogSerializer.readObject(getClass().
 				getResource("fileSaveDialog.bxml"));
-
+		
+        /*
+         * This doesn't need to be added to the components; it's the overall, invisible,
+         * table pane. We just need it to control the width of the file save dialog.
+         */
+		fileSaveTablePane = 
+        		(TablePane)dialogSerializer.getNamespace().get("fileSaveTablePane");
+		
 		fileSaveDetailsBorder = 
         		(Border)dialogSerializer.getNamespace().get("fileSaveDetailsBorder");
 		components.add(fileSaveDetailsBorder);
@@ -594,7 +600,15 @@ public class FileSaveDialog
         	 * Generate and save the query results.
         	 */
     		String output = generateOutput();
-    		saveOutput(output);
+    		try
+    		{
+				saveOutput(output);
+			}
+    		catch (IOException | PrintException e)
+    		{
+				logger.error("caught " + e.getClass().getSimpleName());
+				e.printStackTrace();
+			}
         }
     }
 }

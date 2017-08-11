@@ -20,8 +20,6 @@ import org.apache.pivot.wtk.Dialog;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.FillPane;
 import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.Menu;
-import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.Orientation;
 import org.apache.pivot.wtk.PushButton;
@@ -31,7 +29,6 @@ import org.apache.pivot.wtk.TableViewHeader;
 import org.apache.pivot.wtk.TableViewSelectionListener;
 import org.apache.pivot.wtk.TableViewSortListener;
 import org.apache.pivot.wtk.Window;
-import org.apache.pivot.wtk.content.TableViewRowComparator;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
@@ -62,12 +59,12 @@ public class TracksWindow
 		/**
 		 * the tracks list is the result of a tracks query
 		 */
-		TRACKS("Query tracks"),
+		TRACKS(StringConstants.TRACK_QUERY_TRACKS),
 		
 		/**
 		 * the tracks list is the result of a playlist query
 		 */
-		PLAYLISTS("Query playlists");
+		PLAYLISTS(StringConstants.TRACK_QUERY_PLAYLISTS);
 		
 		private String displayValue;
 		
@@ -100,9 +97,6 @@ public class TracksWindow
 	/*
 	 * BXML variables.
 	 */
-	@BXML private MenuBar mainMenuBar = null;
-	@BXML private Menu mainFileMenu = null;
-	@BXML private Menu mainEditMenu = null;
 	@BXML private Border infoBorder = null;
 	@BXML private FillPane infoFillPane = null;
 	@BXML private Label numTracksLabel = null;
@@ -110,6 +104,8 @@ public class TracksWindow
 	@BXML private TableView tracksTableView = null;
 	@BXML private TableViewHeader tracksTableViewHeader = null;
 	@BXML private TableView trackPlaylistsTableView = null;
+	@BXML private TableView.Column trackPlaylistsTableViewNameColumn = null;
+	@BXML private TableView.Column trackPlaylistsTableViewBypassColumn = null;
 	@BXML private TableViewHeader trackPlaylistsTableViewHeader = null;
 	@BXML private Border actionBorder = null;
 	@BXML private BoxPane actionBoxPane = null;
@@ -158,8 +154,8 @@ public class TracksWindow
 	 * @param queryType type of query (if any) that generated the tracks to be 
 	 * displayed
 	 * @param queryStr string representation of the query, or null
-	 * @throws IOException If an exception occurs trying to read the BXML file.
-	 * @throws SerializationException If an exception occurs trying to 
+	 * @throws IOException If an error occurs trying to read the BXML file.
+	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 */
     public void displayTracks (Display display, List<Track> tracks, QueryType queryType, String queryStr) 
@@ -234,39 +230,50 @@ public class TracksWindow
                     @SuppressWarnings("unchecked")
 					HashMap<String, String> rowData = (HashMap<String, String>) tableView.getSelectedRow();
                     
-                    String trackName = rowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
-                	logger.debug("track '" + trackName + "' selected");
-                    
-                	/*
-                	 * Get the playlists and bypassed indicator for the selected track.
-                	 */
-                    String playlistNames = rowData.get(Track.MAP_PLAYLISTS);
-                    String[] playlists = playlistNames.split(",");
-                    String bypassedFlags = rowData.get(Track.MAP_BYPASSED);
-                    String[] bypassed = bypassedFlags.split(",");
-                    
-                    for (int i = 0; i < playlists.length; i++)
+                    /*
+                     * We may get called for an actual selected row, or for other reasons such as
+                     * a sort by column. No need to build a list of playlist information unless we 
+                     * actually have a selected row.
+                     */
+                    if (rowData != null)
                     {
-                        HashMap<String, String> playlistStr = new HashMap<String, String>();
-                    	playlistStr.put("name", playlists[i]);
-                    	
+                    	String trackName = rowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+                    	logger.debug("track '" + trackName + "' selected");
+
                     	/*
-                    	 * I find it more aesthetically pleasing to only show a value for the bypassed 
-                    	 * column for playlists that are actually bypassed.
+                    	 * Get the playlists and bypassed indicator for the selected track.
                     	 */
-                    	if (bypassed[i].equals("Y"))
+                    	String[] playlists = rowData.get(Track.MAP_PLAYLISTS).split(",");
+                    	String[] bypassed = rowData.get(Track.MAP_BYPASSED).split(",");
+
+                    	for (int i = 0; i < playlists.length; i++)
                     	{
-                    		playlistStr.put("bypass", bypassed[i]);
+                    		HashMap<String, String> playlistStr = new HashMap<String, String>();
+                    		playlistStr.put("name", playlists[i]);
+
+                    		/*
+                    		 * I find it more aesthetically pleasing to only show a value for the bypassed 
+                    		 * column for playlists that are actually bypassed.
+                    		 */
+                    		if (bypassed[i].equals("Y"))
+                    		{
+                    			playlistStr.put("bypass", bypassed[i]);
+                    		}
+                    		else
+                    		{
+                    			playlistStr.put("bypass", "");
+                    		}
+
+                    		displayPlaylists.add(playlistStr);
                     	}
-                    	else
-                    	{
-                    		playlistStr.put("bypass", "");
-                    	}
-                    	
-                        displayPlaylists.add(playlistStr);
                     }
-                    
-                    trackPlaylistsTableView.setTableData(displayPlaylists);
+
+                	/*
+                	 * Fill in the table of playlists. If a row is not selected (for example the
+                	 * columns were just sorted), this clears any playlist information that was
+                	 * already displayed from a previously selected row.
+                	 */
+                	trackPlaylistsTableView.setTableData(displayPlaylists);
                 }
             });
         }
@@ -276,7 +283,6 @@ public class TracksWindow
     	 */
         tracksTableView.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
 		{
-            @SuppressWarnings("unchecked")
             @Override
             public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
             {
@@ -298,18 +304,32 @@ public class TracksWindow
                 	/*
                 	 * Get the data for the selected row.
                 	 */
-                	HashMap<String, String> selectedTrackRowData = 
+                	@SuppressWarnings("unchecked")
+					HashMap<String, String> selectedTrackRowData = 
                 			(HashMap<String, String>) table.getSelectedRow();
 					
 					/*
 					 * Create and open the track details popup dialog.
 					 */
-					handleTrackDetailsPopup(selectedTrackRowData, display);
+					try
+					{
+						handleTrackDetailsPopup(selectedTrackRowData, display, tracksWindow);
+					}
+					catch (IOException | SerializationException e)
+					{
+						logger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
             	}
  
                 return false;
             }
-        });  
+        });
+        
+        /*
+         * Add widget texts.
+         */
+        tracksDoneButton.setButtonData(StringConstants.DONE);
 		
 		/*
 		 * Set the window title.
@@ -325,7 +345,7 @@ public class TracksWindow
         /*
          * Set the number of tracks label.
          */
-    	numTracksLabel.setText("Number of Tracks: " + tracks.getLength());
+    	numTracksLabel.setText(StringConstants.TRACK_NUMBER + tracks.getLength());
         
         /*
          * Create a list suitable for the setTableData() method.
@@ -362,14 +382,26 @@ public class TracksWindow
         /*
          * Add a sort listener to allow column sorting.
          */
-        tracksTableView.getTableViewSortListeners().add(new TableViewSortListener.Adapter() {
+        tracksTableView.getTableViewSortListeners().add(new TableViewSortListener.Adapter()
+        {
             @Override
             @SuppressWarnings("unchecked")
             public void sortChanged(TableView tableView) {
                 List<Object> tableDataOfTableView = (List<Object>)tableView.getTableData();
-                tableDataOfTableView.setComparator(new TableViewRowComparator(tableView));
+                tableDataOfTableView.setComparator(new TracksTableViewRowComparator(tableView));
             }
         });
+
+    	/*
+    	 * Set the playlist information column header text if we're here because of a query.
+    	 */
+        if (queryType != QueryType.NONE)
+        {
+        	trackPlaylistsTableViewNameColumn.
+        		setHeaderData(StringConstants.TRACK_PLAYLISTS_NAME_COLUMN);
+        	trackPlaylistsTableViewBypassColumn.
+        		setHeaderData(StringConstants.TRACK_PLAYLISTS_BYPASS_COLUMN);
+        }
 		
 		/*
 		 * Skin the tracks window.
@@ -399,8 +431,14 @@ public class TracksWindow
      * @param trackRowData map of the track data from the table view row that
      * was clicked
      * @param display display for opening the dialog
+     * @param owningWindow window that owns the track info dialog
+	 * @throws IOException If an error occurs trying to read the BXML file.
+	 * @throws SerializationException If an error occurs trying to 
+	 * deserialize the BXML file.
      */
-    public void handleTrackDetailsPopup (Map<String, String> trackRowData, Display display)
+    public void handleTrackDetailsPopup (Map<String, String> trackRowData, Display display,
+    		Window owningWindow) 
+    		throws IOException, SerializationException
     {
     	logger.trace("handleTrackDetailsPopup: " + this.hashCode());
         
@@ -416,15 +454,7 @@ public class TracksWindow
 		 * components to be skinned.
 		 */
 		List<Component> components = new ArrayList<Component>();
-		try
-		{
-			initializeInfoDialogBxmlVariables(components);
-		}
-		catch (IOException | SerializationException e)
-		{
-    		logger.error("caught " + e.getClass().getSimpleName());
-			e.printStackTrace();
-		}
+		initializeInfoDialogBxmlVariables(components);
 
 		/*
 		 * Build table rows to represent the track details. This method also adds
@@ -442,6 +472,11 @@ public class TracksWindow
 			TablePane.Row detailRow = detailsRowsIter.next();
 			detailsTablePane.getRows().add(detailRow);
 		}
+		
+		/*
+		 * Set the window title.
+		 */
+		trackInfoDialog.setTitle(Skins.Window.TRACKINFO.getDisplayValue());
 
 		/*
 		 * Register the window elements.
@@ -459,7 +494,7 @@ public class TracksWindow
 		 * close the dialog using the host controls.
 		 */
 		logger.info("opening track info dialog");
-		trackInfoDialog.open(display);
+		trackInfoDialog.open(display, owningWindow);
     }
     
     /**
@@ -476,7 +511,7 @@ public class TracksWindow
     //---------------- Private methods -------------------------------------
     
     /*
-     * Build the track info data for the track "show all" dialog.
+     * Build the track info data for the track details dialog.
      */
     private List<TablePane.Row> buildTrackInfoRows (Map<String, String> rowData, 
     		List<Component> components)
@@ -484,7 +519,6 @@ public class TracksWindow
     	logger.trace("buildTrackInfoRows: " + this.hashCode());
     	
     	List<TablePane.Row> result = new ArrayList<TablePane.Row>();
-    	int preferredWidth = 130;
 
 		/*
 		 * Track columns are used to contain the names of all possible track data. Loop through
@@ -529,7 +563,6 @@ public class TracksWindow
     			BoxPane infoBox = new BoxPane(Orientation.HORIZONTAL);
     			Map<String, Object> boxStyles = new HashMap<String, Object>();
     			boxStyles.put("padding", 0);
-    			//boxStyles.put("verticalAlignment:", "center");
     			infoBox.setStyles(boxStyles);
     			
     			/*
@@ -541,7 +574,7 @@ public class TracksWindow
     			infoStaticLabelFontStyles.put("bold", true);
     			infoStaticLabelStyles.put("font", infoStaticLabelFontStyles);
     			infoStaticLabelStyles.put("padding", 0);
-    			infoStaticLabel.setPreferredWidth(preferredWidth);
+    			infoStaticLabel.setPreferredWidth(InternalConstants.TRACK_DETAILS_LABEL_WIDTH);
     			infoStaticLabel.setStyles(infoStaticLabelStyles);
     			
     			/*
@@ -589,26 +622,27 @@ public class TracksWindow
     	logger.trace("initializeWindowBxmlVariables: " + this.hashCode());
     	
         BXMLSerializer windowSerializer = new BXMLSerializer();
+        boolean showFileSave;
+        
         if (queryType != QueryType.NONE)
         {
+        	showFileSave = true;
         	tracksWindow = (Window)windowSerializer.
         			readObject(getClass().getResource("filteredTracksWindow.bxml"));
         }
         else
         {
+        	showFileSave = false;
         	tracksWindow = (Window)windowSerializer.
         			readObject(getClass().getResource("tracksWindow.bxml"));
         }
+        
+        /*
+         * Initialize the menu bar.
+         */
+        MenuBars menuBar = (MenuBars)tracksWindow;
+        menuBar.initializeMenuBxmlVariables(windowSerializer, components, showFileSave);
 
-        mainMenuBar = 
-        		(MenuBar)windowSerializer.getNamespace().get("mainMenuBar");
-		components.add(mainMenuBar);
-        mainFileMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainFileMenu");
-		components.add(mainFileMenu);
-        mainEditMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
-		components.add(mainEditMenu);
         infoBorder = 
         		(Border)windowSerializer.getNamespace().get("infoBorder");
 		components.add(infoBorder);
@@ -645,6 +679,15 @@ public class TracksWindow
         	trackPlaylistsTableViewHeader = (TableViewHeader)windowSerializer.getNamespace().
         			get("trackPlaylistsTableViewHeader");
     		components.add(trackPlaylistsTableViewHeader);
+    		
+    		/*
+    		 * These don't need to be added to the components list because they're subcomponents
+    		 * of TableView.
+    		 */
+        	trackPlaylistsTableViewNameColumn = (TableView.Column)windowSerializer.getNamespace().
+        			get("trackPlaylistsTableViewNameColumn");
+        	trackPlaylistsTableViewBypassColumn = (TableView.Column)windowSerializer.getNamespace().
+        			get("trackPlaylistsTableViewBypassColumn");
         }
     }
     

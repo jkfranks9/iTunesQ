@@ -17,12 +17,11 @@ import org.apache.pivot.wtk.ButtonPressListener;
 import org.apache.pivot.wtk.Component;
 import org.apache.pivot.wtk.ComponentMouseButtonListener;
 import org.apache.pivot.wtk.Display;
-import org.apache.pivot.wtk.Menu;
-import org.apache.pivot.wtk.MenuBar;
 import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TableViewHeader;
+import org.apache.pivot.wtk.TableViewSortListener;
 import org.apache.pivot.wtk.TreeView;
 import org.apache.pivot.wtk.TreeViewSelectionListener;
 import org.apache.pivot.wtk.Window;
@@ -52,9 +51,6 @@ public class PlaylistsWindow
 	/*
 	 * BXML variables.
 	 */
-	@BXML private MenuBar mainMenuBar = null;
-	@BXML private Menu mainFileMenu = null;
-	@BXML private Menu mainEditMenu = null;
 	@BXML private Border playlistsBorder = null;
 	@BXML private TreeView playlistsTreeView = null;
 	@BXML private TableView playlistTracksTableView = null;
@@ -105,8 +101,8 @@ public class PlaylistsWindow
 	 * Displays the playlists in a new window.
 	 * 
 	 * @param display display object for managing windows
-	 * @throws IOException If an exception occurs trying to read the BXML file.
-	 * @throws SerializationException If an exception occurs trying to 
+	 * @throws IOException If an error occurs trying to read the BXML file.
+	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 */
     public void displayPlaylists (Display display) 
@@ -142,27 +138,10 @@ public class PlaylistsWindow
             	skins.popSkinnedWindow();
             }
         });
-		
-		/*
-		 * Set the window title.
-		 */
-		playlistsWindow.setTitle(Skins.Window.PLAYLISTS.getDisplayValue());
-		
-		/*
-		 * Register the tracks window skin elements.
-		 */
-		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);		
-		skins.registerWindowElements(Skins.Window.PLAYLISTS, windowElements);
         
         /*
-         * Create the playlist column set.
-         */
-    	TrackDisplayColumns.
-    		createColumnSet(TrackDisplayColumns.ColumnSet.PLAYLIST_VIEW, playlistTracksTableView);
-        
-        /*
-         * Populate the display tracks from the list of track IDs in the playlist. This gets
-         * control when a playlist is selected in the tree.
+         * Listener to populate the display tracks from the list of track IDs in the playlist. 
+         * This gets control when a playlist is selected in the tree.
          */
         playlistsTreeView.getTreeViewSelectionListeners().add(new TreeViewSelectionListener.Adapter() 
         {
@@ -224,12 +203,27 @@ public class PlaylistsWindow
                  * Add the tracks to the window table view.
                  */
                 playlistTracksTableView.setTableData(displayTracks);
+
+                /*
+                 * Add a sort listener to allow column sorting.
+                 */
+                playlistTracksTableView.getTableViewSortListeners().add(new TableViewSortListener.Adapter()
+                {
+                    @Override
+                    @SuppressWarnings("unchecked")
+                    public void sortChanged(TableView tableView) {
+                        List<Object> tableDataOfTableView = (List<Object>)tableView.getTableData();
+                        tableDataOfTableView.setComparator(new TracksTableViewRowComparator(tableView));
+                    }
+                });
             }
         });
         
+        /*
+         * Listener to pop up a dialog of all track info.
+         */
         playlistTracksTableView.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
 		{
-            @SuppressWarnings("unchecked")
             @Override
             public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
             {
@@ -251,19 +245,51 @@ public class PlaylistsWindow
                 	/*
                 	 * Get the data for the selected row.
                 	 */
-                	HashMap<String, String> selectedTrackRowData = 
+                	@SuppressWarnings("unchecked")
+					HashMap<String, String> selectedTrackRowData = 
                 			(HashMap<String, String>) table.getSelectedRow();
 					
 					/*
 					 * Create and open the track details popup dialog.
 					 */
                 	TracksWindow tracksWindowHandler = new TracksWindow();
-					tracksWindowHandler.handleTrackDetailsPopup(selectedTrackRowData, display);
+					try
+					{
+						tracksWindowHandler.handleTrackDetailsPopup(selectedTrackRowData, 
+								display, playlistsWindow);
+					}
+					catch (IOException | SerializationException e)
+					{
+						uiLogger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
             	}
  
                 return false;
             }
         });
+        
+        /*
+         * Add widget texts.
+         */
+        playlistsDoneButton.setButtonData(StringConstants.DONE);
+		
+		/*
+		 * Set the window title.
+		 */
+		playlistsWindow.setTitle(Skins.Window.PLAYLISTS.getDisplayValue());
+		
+		/*
+		 * Register the tracks window skin elements.
+		 */
+		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);		
+		skins.registerWindowElements(Skins.Window.PLAYLISTS, windowElements);
+        
+        /*
+         * Create the playlist column set.
+         */
+    	TrackDisplayColumns.
+    		createColumnSet(TrackDisplayColumns.ColumnSet.PLAYLIST_VIEW, playlistTracksTableView);
         
         /*
          * Gather the playlist tree.
@@ -301,16 +327,13 @@ public class PlaylistsWindow
         BXMLSerializer windowSerializer = new BXMLSerializer();
         playlistsWindow = (Window)windowSerializer.
         		readObject(getClass().getResource("playlistsWindow.bxml"));
+        
+        /*
+         * Initialize the menu bar.
+         */
+        MenuBars menuBar = (MenuBars)playlistsWindow;
+        menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        mainMenuBar = 
-        		(MenuBar)windowSerializer.getNamespace().get("mainMenuBar");
-		components.add(mainMenuBar);
-        mainFileMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainFileMenu");
-		components.add(mainFileMenu);
-        mainEditMenu = 
-        		(Menu)windowSerializer.getNamespace().get("mainEditMenu");
-		components.add(mainEditMenu);
         playlistsBorder = 
         		(Border)windowSerializer.getNamespace().get("playlistsBorder");
 		components.add(playlistsBorder);

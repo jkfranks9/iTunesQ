@@ -14,6 +14,8 @@ import ch.qos.logback.classic.Logger;
 /**
  * Class that represents a playlist tree.
  * <p>
+ * This is a final class consisting entirely of <code>static</code> methods.
+ * <p>
  * There is one primary method, <code>createPlaylistTree</code>, that gathers 
  * the playlists into a form suitable for the <code>treeData</code> field of 
  * a <code>TreeView</code> class. This in turn consists of a 
@@ -162,6 +164,16 @@ public final class PlaylistTree
 	private static TreeBranch addOrUpdateParent (TreeBranch enclosingBranch, Playlist playlistObj)
 	{
 		logger.trace("addOrUpdateParent");
+
+		if (enclosingBranch == null)
+		{
+			throw new IllegalArgumentException("enclosingBranch argument is null");
+		}
+
+		if (playlistObj == null)
+		{
+			throw new IllegalArgumentException("playlistObj argument is null");
+		}
 		
 		TreeBranch searchBranch = enclosingBranch;
 		
@@ -255,6 +267,16 @@ public final class PlaylistTree
     private static int indexOfBranchParent (TreeBranch searchBranch, TreeBranch parentBranch) 
     {
 		logger.trace("indexOfBranchParent");
+
+		if (searchBranch == null)
+		{
+			throw new IllegalArgumentException("searchBranch argument is null");
+		}
+
+		if (parentBranch == null)
+		{
+			throw new IllegalArgumentException("parentBranch argument is null");
+		}
 		
         int index = 0;
         

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Dialog title="Save File" modal="true"
+<Dialog modal="true"
 	styles="{backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns="org.apache.pivot.wtk">
         
     <!-- Lay out the window elements in a single column table pane. -->
-   	<TablePane preferredWidth="500"
+   	<TablePane bxml:id="fileSaveTablePane"
    		styles="{verticalSpacing:10, padding:10}">
     		
        	<columns>
@@ -18,13 +18,13 @@
        		<Border bxml:id="fileSaveDetailsBorder">
            		<BoxPane bxml:id="fileSaveDetailsBoxPane" orientation="vertical"
            		    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-               		<Separator bxml:id="fileSaveDetailsFileSeparator" heading="Save to File"/>
-           			<Label bxml:id="fileSaveDetailsLabel" text="Enter file name"
+               		<Separator bxml:id="fileSaveDetailsFileSeparator"/>
+           			<Label bxml:id="fileSaveDetailsLabel"
                			styles="{horizontalAlignment:'center', verticalAlignment:'center'}"/>
                		<TextInput bxml:id="fileSaveDetailsTextInput"/>
-               		<Separator bxml:id="fileSaveDetailsPrintSeparator" heading="Save to Printer"/>
-               		<Checkbox bxml:id="fileSaveDetailsPrintCheckbox" buttonData="Save to printer"/>
-               		<Separator bxml:id="fileSaveDetailsOptionsSeparator" heading="Options"/>
+               		<Separator bxml:id="fileSaveDetailsPrintSeparator"/>
+               		<Checkbox bxml:id="fileSaveDetailsPrintCheckbox"/>
+               		<Separator bxml:id="fileSaveDetailsOptionsSeparator"/>
                		<Checkbox bxml:id="fileSaveDetailsLimitCheckbox"/>
            		</BoxPane>
            	</Border>
@@ -35,7 +35,7 @@
        		<Border bxml:id="fileSaveButtonBorder">
            		<BoxPane bxml:id="fileSaveButtonBoxPane" orientation="horizontal"
        		   	    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
-           		   	<PushButton bxml:id="fileSaveDoneButton" buttonData="Done"/>
+           		   	<PushButton bxml:id="fileSaveDoneButton"/>
            		</BoxPane>
            	</Border>
        	</TablePane.Row>

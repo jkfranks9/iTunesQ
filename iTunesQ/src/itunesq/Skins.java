@@ -84,7 +84,7 @@ public class Skins
 	/*
 	 * Default skin.
 	 */
-	private static final String duskyGray = "Dusky Gray";
+	private static final String duskyGray = StringConstants.SKIN_NAME_DUSKY;
 	private static final Map<Element, String> DUSKY_GRAY;	
 	static
 	{
@@ -106,7 +106,7 @@ public class Skins
 	/*
 	 * Alternate skins selectable with a preference.
 	 */
-	private static final String pumpkinPatch = "Pumpkin Patch";
+	private static final String pumpkinPatch = StringConstants.SKIN_NAME_PUMPKIN;
 	private static final Map<Element, String> PUMPKIN_PATCH;	
 	static
 	{
@@ -125,7 +125,7 @@ public class Skins
 		PUMPKIN_PATCH = result;
 	}
 	
-	private static final String seasideDaze = "Seaside Daze";
+	private static final String seasideDaze = StringConstants.SKIN_NAME_SEASIDE;
 	private static final Map<Element, String> SEASIDE_DAZE;	
 	static
 	{
@@ -270,47 +270,47 @@ public class Skins
 		/**
 		 * main window
 		 */
-		MAIN("iTunes Query Tool"),
+		MAIN(StringConstants.SKIN_WINDOW_MAIN),
 		
 		/**
 		 * tracks window
 		 */
-		TRACKS("Tracks"),
+		TRACKS(StringConstants.SKIN_WINDOW_TRACKS),
 		
 		/**
 		 * playlists window
 		 */
-		PLAYLISTS("Playlists"),
+		PLAYLISTS(StringConstants.SKIN_WINDOW_PLAYLISTS),
 		
 		/**
 		 * filters (query tracks) window
 		 */
-		FILTERS("Query Tracks"),
+		FILTERS(StringConstants.QUERY_TRACKS),
 		
 		/**
 		 * query playlists window
 		 */
-		QUERYPLAYLISTS("Query Playlists"),
+		QUERYPLAYLISTS(StringConstants.QUERY_PLAYLISTS),
 		
 		/**
 		 * preferences window
 		 */
-		PREFERENCES("Preferences"),
+		PREFERENCES(StringConstants.SKIN_WINDOW_PREFERENCES),
 		
 		/**
 		 * skin preview window
 		 */
-		SKINPREVIEW("Preview"),
+		SKINPREVIEW(StringConstants.SKIN_WINDOW_SKINPREVIEW),
 		
 		/**
 		 * window that displays track details
 		 */
-		TRACKINFO("Track Info"),
+		TRACKINFO(StringConstants.SKIN_WINDOW_TRACKINFO),
 		
 		/**
 		 * file save window
 		 */
-		FILESAVE("File Save");
+		FILESAVE(StringConstants.SKIN_WINDOW_FILESAVE);
 		
 		private String displayValue;
 		
@@ -379,24 +379,24 @@ public class Skins
 	 * IMPORTANT: The mask number values must match the corresponding values in the constructor
 	 * for each element type.
 	 */
-	private static final int borderMask          = 4 + 16 + 512;
+	private static final int borderMask          =         4 +     16 +                       512;
 	private static final int boxPaneMask         = 1;
-	private static final int checkboxMask        = 16 + 512;
+	private static final int checkboxMask        =                 16 +                       512;
 	private static final int fileBrowserMask     = 1;
 	private static final int fillPaneMask        = 1;
-	private static final int labelMask           = 16 + 512;
-	private static final int menuBarMask         = 1 + 16 + 64 + 512;
-	private static final int menuMask            = 1 + 16 + 64 + 512;
-	private static final int pushButtonMask      = 4 + 8 + 32 + 512;
+	private static final int labelMask           =                 16 +                       512;
+	private static final int menuBarMask         = 1 +             16 +      64 +             512;
+	private static final int menuMask            = 1 +             16 +      64 +             512;
+	private static final int pushButtonMask      =         4 + 8 +      32 +                  512;
 	private static final int scrollPaneMask      = 1;
-	private static final int separatorMask       = 16 + 512;
-	private static final int spinnerMask         = 1 + 4 + 16 + 512;
+	private static final int separatorMask       =                 16 +                       512;
+	private static final int spinnerMask         = 1 +     4 +     16 +                       512;
 	private static final int tablePaneMask       = 1;
-	private static final int tabPaneMask         = 2 + 4 + 16 + 128 + 512;
-	private static final int tableViewHeaderMask = 1 + 4 + 32 + 256 + 512;
-	private static final int tableViewMask       = 1 + 2 + 4 + 16 + 64 + 128 + 512;
-	private static final int textInputMask       = 2 + 4 + 16 + 64 + 512;
-	private static final int treeViewMask        = 1 + 16 + 64 + 128 + 512;
+	private static final int tabPaneMask         =     2 + 4 +     16 +           128 +       512;
+	private static final int tableViewHeaderMask = 1 +     4 +          32 +            256 + 512;
+	private static final int tableViewMask       = 1 + 2 + 4 +     16 +      64 + 128 +       512;
+	private static final int textInputMask       =     2 + 4 +     16 +      64 +             512;
+	private static final int treeViewMask        = 1 +             16 +      64 + 128 +       512;
 	
 	/*
 	 * The window registry is a map of the Window enum to a map of the Element enum to a list
@@ -405,7 +405,7 @@ public class Skins
 	private Map<Window, Map<Element, List<Component>>> windowRegistry;
 	
 	/*
-	 * The skin registry is a map of the skin definition to a user-friendly skin name.
+	 * The skin registry is a map of the user-friendly skin name to its skin definition.
 	 */
 	private Map<String, Map<Element, String>> skinRegistry;
 	

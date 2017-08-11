@@ -3,6 +3,9 @@
 	<!-- 
 	Ridiculously simple configuration. We do everything in code so we can control the directory
 	for log files.
+	
+	The log level here is only used as a global level during bootstrap initialization. Once the 
+	user preferences have been read, those control the various log levels.
 	-->
   <root level="info">
   </root>

@@ -24,7 +24,7 @@ public class FilterCollection
     //---------------- Class variables -------------------------------------
 	
 	/*
-	 * A filter collection is a List of Object.
+	 * List of filters.
 	 */
 	private List<Filter> filters;
 	
@@ -32,6 +32,11 @@ public class FilterCollection
 	 * Result list of filtered tracks.
 	 */
 	private List<Track> filteredTracks;
+	
+	/*
+	 * Filter error string. This is non-null only when one or more filters contains an error.
+	 */
+	private String filterError;
 
     //---------------- Private variables -----------------------------------
 	
@@ -63,6 +68,7 @@ public class FilterCollection
     	 * Initialize variables.
     	 */
 		filters = new ArrayList<Filter>();
+		filterError = null;
 		
 		logger.trace("FilterCollection constructor: " + this.hashCode());
 	}
@@ -98,6 +104,16 @@ public class FilterCollection
 	{
 		return filteredTracks;
 	}
+	
+	/**
+	 * Gets the filter error string.
+	 * 
+	 * @return filter error string, or null
+	 */
+	public String getFilterErrorString ()
+	{
+		return filterError;
+	}
 
     //---------------- Public methods --------------------------------------
 	
@@ -106,17 +122,22 @@ public class FilterCollection
 	 * list of tracks can be retrieved using the <code>getFilteredTracks</code>
 	 * method.
 	 * 
-	 * @throws FilterException If an exception occurs because the filter 
-	 * logic is too complex.
+	 * @return <code>true</code> if the filters were executed without errors, and 
+	 * <code>false</code> otherwise
 	 */
-	public void executeFilterList () 
-			throws FilterException
+	public boolean executeFilterList () 
 	{
+		boolean result = false;
 		int startSubIndex = -1;
 		int stopSubIndex = -1;
 		int subRange = -1;
 		
 		logger.trace("executeFilterList: " + this.hashCode());
+		
+		/*
+		 * Clear the error string before starting.
+		 */
+		filterError = null;
 		
 		/*
 		 * Get the initial filter logic (AND = true, OR = false).
@@ -153,44 +174,57 @@ public class FilterCollection
 				{
 					logger.warn("multiple subgroups detected, start index=" + startSubIndex +
 							", stop index=" + stopSubIndex);
-					throw new FilterException("filter logic is too complex");
+					filterError = StringConstants.FILTER_ERROR_COMPLEX_LOGIC;
+					break;
 				}
 				currentAnd = !currentAnd;
 			}
 		}
 		
 		/*
-		 * Did we find a subgroup?
+		 * Continue if we didn't find an error in subgroup detection.
 		 */
-		if (startSubIndex != -1)
+		if (filterError == null)
 		{
-			logger.debug("subgroup detected, start index=" + startSubIndex +
-					", stop index=" + stopSubIndex);
-			
-			/*
-			 * Determine the range of filters that constitute the group.
-			 */
-			if (stopSubIndex != -1)
-			{
-				subRange = stopSubIndex - startSubIndex;
-			}
-			else
-			{
-				subRange = filters.getLength() - startSubIndex;
-			}
-			
-			/*
-			 * Since we only support a single subgroup, we can just reorder the filter list to
-			 * place the subgroup at the end. This makes it easier to evaluate the list against a
-			 * track.
-			 */
-			Sequence<Filter> filterSubgroup = filters.remove(startSubIndex, subRange);
-			for (int i = 0; i < subRange; i++)
-			{
-				filters.add(filterSubgroup.get(i));
-			}
-		}
 		
+			/*
+			 * Did we find a subgroup?
+			 */
+			if (startSubIndex != -1)
+			{
+				logger.debug("subgroup detected, start index=" + startSubIndex +
+						", stop index=" + stopSubIndex);
+
+				/*
+				 * Determine the range of filters that constitute the group.
+				 */
+				if (stopSubIndex != -1)
+				{
+					subRange = stopSubIndex - startSubIndex;
+				}
+				else
+				{
+					subRange = filters.getLength() - startSubIndex;
+				}
+
+				/*
+				 * Since we only support a single subgroup, we can just reorder the filter list to
+				 * place the subgroup at the end. This makes it easier to evaluate the list against a
+				 * track.
+				 */
+				Sequence<Filter> filterSubgroup = filters.remove(startSubIndex, subRange);
+				for (int i = 0; i < subRange; i++)
+				{
+					filters.add(filterSubgroup.get(i));
+				}
+			}
+
+			/*
+			 * Now evaluate the filter list against the list of all tracks.
+			 */
+			result = evaluateFilters();
+		}
+
 		/*
 		 * Dump all filters to the log if trace level is enabled.
 		 */
@@ -199,10 +233,7 @@ public class FilterCollection
 			dumpAllFilters();
 		}
 		
-		/*
-		 * Now evaluate the filter list against the list of all tracks.
-		 */
-		evaluateFilters();
+		return result;
 	}
 	
 	/**
@@ -268,16 +299,15 @@ public class FilterCollection
 	/*
 	 * Evaluate the filters.
 	 */
-	private void evaluateFilters () 
-			throws FilterException
+	private boolean evaluateFilters () 
 	{
+		boolean evaluation = true;
 		boolean result;
 		
 		logger.trace("evaluateFilters: " + this.hashCode());
 
         /*
-         * Create a list suitable for the setTableData() method. This holds the tracks to be
-         * displayed. Make sure it's sorted by track name.
+         * Create a list of tracks to be displayed. Make sure it's sorted by track name.
          */
         filteredTracks = new ArrayList<Track>();
         filteredTracks.setComparator(new Comparator<Track>() {
@@ -290,8 +320,8 @@ public class FilterCollection
         /*
          * Get the initial filter logic (AND = true, OR = false).
          */
-		boolean currentAnd = (filters.get(0).getFilterLogic() == Filter.Logic.AND);
-		logger.debug("initial filter logic is " + ((currentAnd == true) ? "AND" : "OR"));
+		boolean initialAnd = (filters.get(0).getFilterLogic() == Filter.Logic.AND);
+		logger.debug("initial filter logic is " + ((initialAnd == true) ? "AND" : "OR"));
 		
 		/*
 		 * Walk through all tracks.
@@ -304,6 +334,11 @@ public class FilterCollection
         	
     		boolean logicSwitch;
     		int index;
+    		
+    		/*
+    		 * Reset to the initial filter logic.
+    		 */
+        	boolean currentAnd = initialAnd;
     		
     		/*
     		 * Process when the initial filter logic is AND.
@@ -378,16 +413,16 @@ public class FilterCollection
         		logicSwitch = false;
         		
         		/*
-        		 * Set the result to false, so we can exit out of the loop on the first true
-        		 * result.
+        		 * Set the result to false.
         		 */
         		result = false;
         		
         		/*
-        		 * Loop through the filters until we run out, get a true result, or encounter
-        		 * a subgroup.
+        		 * Loop through the filters until we run out or encounter a subgroup. Once we get a
+        		 * true result we can stop checking the track against the rest of the filters in the
+        		 * OR group. But we have to check all filters, in case we have a subgroup.
         		 */
-        		for (index = 0; index < filters.getLength() && result == false; index++)
+        		for (index = 0; index < filters.getLength(); index++)
         		{
         			Filter filter = filters.get(index);
         			
@@ -403,22 +438,20 @@ public class FilterCollection
         			}
         			
         			/*
-        			 * Check this track against the current filter.
+        			 * Check this track against the current filter if the result so far is false.
         			 */
-        			result = checkTrackAgainstFilter(track, filter);        			
+        			if (result == false)
+        			{
+        				result = checkTrackAgainstFilter(track, filter);
+        			}
         		}
         		
         		/*
-        		 * If we detected a subgroup, handle that now.
+        		 * If we detected a subgroup, and the result of checking the OR group is true, 
+        		 * handle the subgroup now.
         		 */
-        		if (logicSwitch == true)
+        		if (logicSwitch == true && result == true)
         		{
-            		
-            		/*
-            		 * Set the result to true, so we can exit out of the loop on the first false
-            		 * result.
-            		 */
-        			result = true;
         			
             		/*
             		 * Loop through the remaining filters until we run out or get a false result.
@@ -443,14 +476,25 @@ public class FilterCollection
         		logger.debug("track ID " + track.getID() + " matched all filters");
             	filteredTracks.add(track);
         	}
+        	
+        	/*
+        	 * If the result is false, it could mean a simple mismatch, or it could mean one or
+        	 * more filters has an error. If so, the error string is set and we should return
+        	 * a false value.
+        	 */
+        	else if (filterError != null)
+        	{
+        		evaluation = false;
+        	}
         }
+        
+        return evaluation;
 	}
 	
 	/*
 	 * Check a given track against a single filter.
 	 */
 	private boolean checkTrackAgainstFilter (Track track, Filter filter) 
-			throws FilterException
 	{
 		boolean result = false;
 		String filterText = filter.getFilterText();
@@ -488,10 +532,10 @@ public class FilterCollection
 				break;
 				
 			default:
-				throw new FilterException(
-						"'" + filter.getFilterOperator().getDisplayValue() + 
-						"' operator not applicable to " + 
-						filter.getFilterSubject().getDisplayValue());
+				filterError = 
+						"'" + filter.getFilterOperator().getDisplayValue() + "'" +
+						StringConstants.FILTER_ERROR_BAD_OPERATOR + 
+						"'" + filter.getFilterSubject().getDisplayValue() + "'";
 			}
 			
 			if (result == true)
@@ -529,10 +573,10 @@ public class FilterCollection
 				break;
 				
 			default:
-				throw new FilterException(
-						"'" + filter.getFilterOperator().getDisplayValue() + 
-						"' operator not applicable to " + 
-						filter.getFilterSubject().getDisplayValue());
+				filterError =  
+						"'" + filter.getFilterOperator().getDisplayValue() + "'" +
+						StringConstants.FILTER_ERROR_BAD_OPERATOR + 
+						"'" + filter.getFilterSubject().getDisplayValue() + "'";
 			}
 			
 			if (result == true)
@@ -580,10 +624,10 @@ public class FilterCollection
 				break;
 				
 			default:
-				throw new FilterException(
-						"'" + filter.getFilterOperator().getDisplayValue() + 
-						"' operator not applicable to " + 
-						filter.getFilterSubject().getDisplayValue());
+				filterError =  
+						"'" + filter.getFilterOperator().getDisplayValue() + "'" +
+						StringConstants.FILTER_ERROR_BAD_OPERATOR + 
+						"'" + filter.getFilterSubject().getDisplayValue() + "'";
 			}
 			
 			if (result == true)
@@ -631,10 +675,10 @@ public class FilterCollection
 				break;
 				
 			default:
-				throw new FilterException(
-						"'" + filter.getFilterOperator().getDisplayValue() + 
-						"' operator not applicable to " + 
-						filter.getFilterSubject().getDisplayValue());
+				filterError =  
+						"'" + filter.getFilterOperator().getDisplayValue() + "'" +
+						StringConstants.FILTER_ERROR_BAD_OPERATOR + 
+						"'" + filter.getFilterSubject().getDisplayValue() + "'";
 			}
 			
 			if (result == true)
@@ -682,10 +726,10 @@ public class FilterCollection
 				break;
 				
 			default:
-				throw new FilterException(
-						"'" + filter.getFilterOperator().getDisplayValue() + 
-						"' operator not applicable to " + 
-						filter.getFilterSubject().getDisplayValue());
+				filterError =  
+						"'" + filter.getFilterOperator().getDisplayValue() + "'" +
+						StringConstants.FILTER_ERROR_BAD_OPERATOR + 
+						"'" + filter.getFilterSubject().getDisplayValue() + "'";
 			}
 			
 			if (result == true)
@@ -723,10 +767,10 @@ public class FilterCollection
 				break;
 				
 			default:
-				throw new FilterException(
-						"'" + filter.getFilterOperator().getDisplayValue() + 
-						"' operator not applicable to " + 
-						filter.getFilterSubject().getDisplayValue());
+				filterError =  
+						"'" + filter.getFilterOperator().getDisplayValue() + "'" +
+						StringConstants.FILTER_ERROR_BAD_OPERATOR + 
+						"'" + filter.getFilterSubject().getDisplayValue() + "'";
 			}
 			
 			if (result == true)
