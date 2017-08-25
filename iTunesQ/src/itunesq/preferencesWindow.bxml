@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Sheet maximized="true" styles="{backgroundColor:'white'}"
+<Sheet maximized="true" styles="{backgroundColor:'white', stateTransitionDuration:1}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns:content="org.apache.pivot.wtk.content"
     xmlns="org.apache.pivot.wtk">

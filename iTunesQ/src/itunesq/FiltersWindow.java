@@ -257,6 +257,13 @@ public class FiltersWindow
     	 */
     	uiLogger.info("opening filters window");
         filtersWindow.open(display);
+    	
+    	/*
+    	 * Request focus for the table pane. This gives focus to the first component in the row, which
+    	 * is the logic spinner. Ideally, I'd like the text input to be focused, but that isn't 
+    	 * possible.
+    	 */
+        filterTablePane.requestFocus();
     }
 
     //---------------- Private methods -------------------------------------

@@ -255,6 +255,10 @@ public class FileSaveDialog
 		
 		/*
 		 * Open the file save dialog.
+		 * 
+		 * NOTE: Because this dialog contains a focusable component (a TextInput), focus is shifted
+		 * to that component when the dialog opens. This results in the dialog title bar being 
+		 * grayed out. I can find no way to fix this.
 		 */
     	logger.info("opening file save dialog");
     	CloseAdapter closeAdapter = new CloseAdapter();

@@ -576,7 +576,7 @@ public class Skins
 	}
 	
 	/**
-	 * Re-skin all the windows on the window stack. This is called when the 
+	 * Re-skins all the windows on the window stack. This is called when the 
 	 * skin is changed via preferences.
 	 */
 	public void reskinWindowStack ()

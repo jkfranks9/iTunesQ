@@ -728,6 +728,8 @@ public final class XMLHandler
     					List<Integer> playlistTracks = new LinkedList<Integer>();
     					playlistTracks = gatherPlaylistTracks(playlistAttr);
     					
+    					logger.debug("playlist '" + playlistObj.getName() + "' has " + 
+    							playlistTracks.getLength() + " tracks");
     					playlistObj.setTracks(playlistTracks);
     					
     					/*
@@ -846,7 +848,7 @@ public final class XMLHandler
     					 */
     					Integer playlistTrackID = 
     							new Integer(nextIntValue(playlistTrackAttrsIter, keyValue));
-    					playlistTracks.add(playlistTrackID);    					
+    					playlistTracks.add(playlistTrackID);
     				}
             		else
             		{

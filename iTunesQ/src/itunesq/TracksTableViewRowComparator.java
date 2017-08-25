@@ -7,10 +7,10 @@ import org.apache.pivot.wtk.SortDirection;
 import org.apache.pivot.wtk.TableView;
 
 /**
- * Class that compares two table view rows during a sort operation (when the 
- * user clicks on a column header in a table of tracks). Stolen without 
- * remorse from Pivot code, cleaned up to meet my standards, and modified to 
- * handle the "Number" column.
+ * Class that compares two table view rows during a sort operation. This gets 
+ * control when the user clicks on a column header in a table of tracks. 
+ * Stolen without remorse from Pivot code, cleaned up to meet my standards, 
+ * and modified to handle the "Number" column.
  * 
  * @author Jon
  *
@@ -38,7 +38,7 @@ public class TracksTableViewRowComparator implements Comparator<Object>
     }
     
     /**
-     * Compare two rows in the table view.
+     * Compares two rows in the table view.
      * 
      * @param o1 first row being compared
      * @param o2 second row being compared

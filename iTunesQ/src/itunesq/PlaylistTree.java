@@ -207,7 +207,7 @@ public final class PlaylistTree
 		}
 		node.setUserData(playlistObj.getPersistentID());
 		TreeBranch parentBranch = new TreeBranch(parent.getName());
-		parentBranch.setUserData(playlistObj.getPersistentID());
+		parentBranch.setUserData(parent.getPersistentID());
 		
 		/*
 		 * If the parent branch does not exist in the search branch, then add it.

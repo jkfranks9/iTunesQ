@@ -48,6 +48,20 @@
             <TablePane.Column width="1*"/>
         </columns>
             
+        <!-- Informational elements row. -->        
+        <TablePane.Row height="1*">
+           	<Border bxml:id="infoBorder">
+	        	<FillPane bxml:id="infoFillPane" orientation="horizontal" styles="{padding:10}">
+	            	<Label bxml:id="numPlaylistsLabel"
+	      	        	styles="{font:{bold:true}, horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	            	<Label bxml:id="numTracksLabel"
+	      	        	styles="{font:{bold:true}, horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	            	<Label bxml:id="totalTimeLabel"
+	      	        	styles="{font:{bold:true}, horizontalAlignment:'left', verticalAlignment:'center'}"/>
+	       		</FillPane>
+	       	</Border>
+	    </TablePane.Row>
+            
         <!-- Playlist elements row. -->
         <TablePane.Row height="10*">
             <Border bxml:id="playlistsBorder">

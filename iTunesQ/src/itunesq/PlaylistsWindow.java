@@ -17,6 +17,8 @@ import org.apache.pivot.wtk.ButtonPressListener;
 import org.apache.pivot.wtk.Component;
 import org.apache.pivot.wtk.ComponentMouseButtonListener;
 import org.apache.pivot.wtk.Display;
+import org.apache.pivot.wtk.FillPane;
+import org.apache.pivot.wtk.Label;
 import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.TableView;
@@ -51,6 +53,11 @@ public class PlaylistsWindow
 	/*
 	 * BXML variables.
 	 */
+	@BXML private Border infoBorder = null;
+	@BXML private FillPane infoFillPane = null;
+	@BXML private Label numPlaylistsLabel = null;
+	@BXML private Label numTracksLabel = null;
+	@BXML private Label totalTimeLabel = null;
 	@BXML private Border playlistsBorder = null;
 	@BXML private TreeView playlistsTreeView = null;
 	@BXML private TableView playlistTracksTableView = null;
@@ -174,6 +181,8 @@ public class PlaylistsWindow
             	/*
             	 * Walk the list of track IDs for the selected playlist.
             	 */
+            	int totalTime = 0;
+            	
             	if (trackIDs != null)
             	{
             		int trackNum = 0;
@@ -196,6 +205,11 @@ public class PlaylistsWindow
             			 */
             			HashMap<String, String> trackAttrs = track.toDisplayMap(++trackNum);
             			displayTracks.add(trackAttrs);
+            			
+            			/*
+            			 * Accumulate the total time of all tracks.
+            			 */
+            			totalTime += track.getDuration();
             		}
             	}
                 
@@ -216,6 +230,13 @@ public class PlaylistsWindow
                         tableDataOfTableView.setComparator(new TracksTableViewRowComparator(tableView));
                     }
                 });
+                
+                /*
+                 * Update the number of tracks and total time labels.
+                 */
+                numTracksLabel.setText(StringConstants.TRACK_NUMBER + displayTracks.getLength());
+                totalTimeLabel.setText(StringConstants.PLAYLIST_TOTAL_TIME + 
+                		Utilities.convertMillisecondTime(totalTime));
             }
         });
         
@@ -292,6 +313,11 @@ public class PlaylistsWindow
     		createColumnSet(TrackDisplayColumns.ColumnSet.PLAYLIST_VIEW, playlistTracksTableView);
         
         /*
+         * Set the number of playlists label.
+         */
+    	numPlaylistsLabel.setText(StringConstants.PLAYLIST_NUMBER + XMLHandler.getNumberOfPlaylists());
+        
+        /*
          * Gather the playlist tree.
          */
         playlistsTreeView.setTreeData(PlaylistTree.createPlaylistTree());
@@ -334,6 +360,21 @@ public class PlaylistsWindow
         MenuBars menuBar = (MenuBars)playlistsWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
+        infoBorder = 
+        		(Border)windowSerializer.getNamespace().get("infoBorder");
+		components.add(infoBorder);
+        infoFillPane = 
+        		(FillPane)windowSerializer.getNamespace().get("infoFillPane");
+		components.add(infoFillPane);
+        numPlaylistsLabel = 
+        		(Label)windowSerializer.getNamespace().get("numPlaylistsLabel");
+		components.add(numPlaylistsLabel);
+        numTracksLabel = 
+        		(Label)windowSerializer.getNamespace().get("numTracksLabel");
+		components.add(numTracksLabel);
+        totalTimeLabel = 
+        		(Label)windowSerializer.getNamespace().get("totalTimeLabel");
+		components.add(totalTimeLabel);
         playlistsBorder = 
         		(Border)windowSerializer.getNamespace().get("playlistsBorder");
 		components.add(playlistsBorder);

@@ -32,8 +32,8 @@ public class TrackDisplayColumns
     //---------------- Class variables -------------------------------------
 	
 	/**
-	 * Definition of all possible column names. The <code>enum</code> value is 
-	 * the name of the associated column.
+	 * Definition of all possible track column names. The <code>enum</code> 
+	 * value is the name of the associated column.
 	 */
 	public enum ColumnNames
 	{
@@ -173,7 +173,8 @@ public class TrackDisplayColumns
 	}
 	
 	/**
-	 * The types of column sets.
+	 * The types of column sets, for example the set of tracks displayed for 
+	 * a given playlist.
 	 */
 	public enum ColumnSet
 	{

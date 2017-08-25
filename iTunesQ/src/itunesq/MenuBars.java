@@ -45,6 +45,8 @@ public class MenuBars extends Frame implements Bindable
     //---------------- Public variables ------------------------------------
 	
 	/**
+	 * Attributes of a display window.
+	 * <p>
 	 * When we display a list of tracks that result from some type of query, 
 	 * the File ... Save menu is enabled. This is handled by the 
 	 * <code>FileSaveDialog</code> class. That class in turn needs to gather 
@@ -282,7 +284,7 @@ public class MenuBars extends Frame implements Bindable
 	}
 	
 	/**
-	 * Initialize the BXML variables and data for the menu bar that appears on 
+	 * Initializes the BXML variables and data for the menu bar that appears on 
 	 * all primary windows.
 	 * 
 	 * @param windowSerializer BXML serializer used to read the window BXML 

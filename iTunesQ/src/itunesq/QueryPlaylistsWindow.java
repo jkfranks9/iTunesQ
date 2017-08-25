@@ -342,6 +342,11 @@ public class QueryPlaylistsWindow
     	 */
     	uiLogger.info("opening query playlists window");
     	queryPlaylistsWindow.open(display);
+    	
+    	/*
+    	 * Request focus for the table pane, so that the user can type in the first row.
+    	 */
+    	compareTablePane.requestFocus();
     }
 
     //---------------- Private methods -------------------------------------

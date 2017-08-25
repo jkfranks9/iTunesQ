@@ -41,7 +41,8 @@ public final class Utilities
 	 */
 	private static final String DATE_FORMAT = "EEE, MMM dd yyyy, HH:mm:ss";
 	private static final String FORMATTED_DATE = "yyyy-MM-dd'T'HH:mm:ssX";
-	private static final String HHMM_FORMAT = "%02d:%02d";
+	private static final String MMSS_FORMAT = "%02d:%02d";
+	private static final String HHMMSS_FORMAT = "%02d:%02d:%02d";
 	private static final String UNKNOWN = StringConstants.UTILITY_UNKNOWN_DATE;
 	
     //---------------- Public methods --------------------------------------
@@ -82,7 +83,8 @@ public final class Utilities
 	}
 	
 	/**
-	 * Formats milliseconds into an HH:MM string.
+	 * Formats milliseconds into an [HH:]MM:SS string. Hours are optional 
+	 * in the returned string. 
 	 * 
 	 * @param milliseconds milliseconds to be converted
 	 * @return formatted string
@@ -102,12 +104,33 @@ public final class Utilities
 		long minutes = TimeUnit.SECONDS.toMinutes(seconds);
 		
 		/*
-		 * Finally, subtract the minutes (converted to seconds) from the the total seconds
+		 * And finally get the number of hours from the minutes.
+		 */
+		long hours = TimeUnit.MINUTES.toHours(minutes);
+		
+		/*
+		 * Subtract the hours (converted to minutes) from the the total minutes
+		 * to get the remaining minutes.
+		 */
+		long remainMinutes = minutes - TimeUnit.HOURS.toMinutes(hours);
+		
+		/*
+		 * Subtract the minutes (converted to seconds) from the the total seconds
 		 * to get the remaining seconds.
 		 */
 		long remainSeconds = seconds - TimeUnit.MINUTES.toSeconds(minutes);
 		
-		result = String.format(HHMM_FORMAT, minutes, remainSeconds);
+		/*
+		 * Format the result based on whether or not we have any hours.
+		 */
+		if (hours > 0)
+		{
+			result = String.format(HHMMSS_FORMAT, hours, remainMinutes, remainSeconds);
+		}
+		else
+		{
+			result = String.format(MMSS_FORMAT, remainMinutes, remainSeconds);
+		}
 		
 		return result;
 	}
@@ -292,6 +315,8 @@ public final class Utilities
 	 * in the label values. Likewise, if the XML file is changed while running,
 	 * <code>updateFromXMLFile</code> also calls this method. All this so I 
 	 * don't have to repeat this code in two places.
+	 * 
+	 * @param xmlFileName iTunes XML file name
 	 */
 	public static void updateMainWindowLabels (String xmlFileName)
 	{

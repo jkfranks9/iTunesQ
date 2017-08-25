@@ -52,7 +52,7 @@ public class Filter
 	private String filterText;
 	
 	/**
-	 * logic of a filter. For example match all rules, or any rules.
+	 * Logic of a filter. For example match all rules, or any rules.
 	 */
 	public enum Logic
 	{
@@ -112,7 +112,7 @@ public class Filter
 	}
 	
 	/**
-	 * subject of a filter. For example artist name or year of release.
+	 * Subject of a filter. For example artist name or year of release.
 	 */
 	public enum Subject
 	{
@@ -193,7 +193,7 @@ public class Filter
 	}
 
 	/**
-	 * operator of a filter
+	 * Operator of a filter.
 	 */
 	public enum Operator
 	{

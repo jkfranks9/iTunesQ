@@ -9,6 +9,7 @@ import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
+import org.apache.pivot.collections.Sequence;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.wtk.Border;
 import org.apache.pivot.wtk.BoxPane;
@@ -225,6 +226,12 @@ public class TracksWindow
                     List<HashMap<String, String>> displayPlaylists = new ArrayList<HashMap<String, String>>();
                     
                     /*
+                     * Create a list of rows that we want to highlight by being selected. We add 
+                     * non-bypassed playlists to this so they are more visible.
+                     */
+                    Sequence<Object> selectedPlaylists = new ArrayList<Object>();
+                    
+                    /*
                      * Get the selected row and log the track name.
                      */
                     @SuppressWarnings("unchecked")
@@ -262,6 +269,7 @@ public class TracksWindow
                     		else
                     		{
                     			playlistStr.put("bypass", "");
+                        		selectedPlaylists.add(playlistStr);
                     		}
 
                     		displayPlaylists.add(playlistStr);
@@ -274,6 +282,11 @@ public class TracksWindow
                 	 * already displayed from a previously selected row.
                 	 */
                 	trackPlaylistsTableView.setTableData(displayPlaylists);
+                	
+                	/*
+                	 * Highlight the non-bypassed playlists by making them selected.
+                	 */
+                	trackPlaylistsTableView.setSelectedRows(selectedPlaylists);
                 }
             });
         }

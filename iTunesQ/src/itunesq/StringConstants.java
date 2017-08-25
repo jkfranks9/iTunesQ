@@ -31,6 +31,7 @@ public class StringConstants
 	public static final String QUERY_TRACKS    = "Query Tracks";
 	public static final String QUERY_PLAYLISTS = "Query Playlists";
 	public static final String SAVE            = "Save";
+	public static final String TRACK_NUMBER    = "Number of Tracks: ";
 	
 	/*
 	 * Alert constants.
@@ -155,6 +156,12 @@ public class StringConstants
 			"Working XML File";
 	public static final String MAIN_XML_FILE_STATS = 
 			"XML File Statistics";
+	
+	/*
+	 * PlaylistsWindow constants.
+	 */
+	public static final String PLAYLIST_NUMBER     = "Number of Playlists: ";
+	public static final String PLAYLIST_TOTAL_TIME = "Total Time: ";
 	
 	/*
 	 * PreferencesWindow constants ...
@@ -387,7 +394,6 @@ public class StringConstants
 	/*
 	 * TracksWindow constants.
 	 */
-	public static final String TRACK_NUMBER                  = "Number of Tracks: ";
 	public static final String TRACK_PLAYLISTS_BYPASS_COLUMN = "Bypassed";
 	public static final String TRACK_PLAYLISTS_NAME_COLUMN   = "Playlist Names";
 	public static final String TRACK_QUERY_PLAYLISTS         = "Query playlists";
