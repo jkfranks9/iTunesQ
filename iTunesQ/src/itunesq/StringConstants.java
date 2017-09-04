@@ -58,6 +58,32 @@ public class StringConstants
 			"Unable to read and process XML file: ";
 
 	/*
+	 * FindDuplicatesDialog constants.
+	 */
+	public static final String FIND_DUPLICATES_ALBUM = 
+			"Same Album";
+	public static final String FIND_DUPLICATES_ARTIST = 
+			"Same Artist";
+	public static final String FIND_DUPLICATES_DURATION = 
+			"Same Duration";
+	public static final String FIND_DUPLICATES_EXACT = 
+			"Exact Match";
+	public static final String FIND_DUPLICATES_KIND = 
+			"Same Kind";
+	public static final String FIND_DUPLICATES_RATING = 
+			"Same Rating";
+	public static final String FIND_DUPLICATES_SHOW = 
+			"Show Duplicate Tracks";
+	public static final String FIND_DUPLICATES_SPEC = 
+			"Specify track search criteria";
+	public static final String FIND_DUPLICATES_SPEC_TIP = 
+			"Specify '" + FIND_DUPLICATES_EXACT + "' to match songs exactly."
+			+ "\nTo find fuzzy duplicates, uncheck '" + FIND_DUPLICATES_EXACT 
+			+ "' and specify only the track attributes you want to match.";
+	public static final String FIND_DUPLICATES_YEAR = 
+			"Same Year";
+
+	/*
 	 * FileSaveDialog constants.
 	 */
 	public static final String FILESAVE_ENTER_FILE_NAME = 
@@ -209,6 +235,8 @@ public class StringConstants
 			"Track Display Columns";
 	public static final String PREFS_COLUMN_FULL =
 			"Full Tracks View:";
+	public static final String PREFS_COLUMN_DUPLICATES =
+			"Duplicate Tracks View:";
 	public static final String PREFS_COLUMN_FILTERED =
 			"Filtered List View:";
 	public static final String PREFS_COLUMN_PLAYLIST =
@@ -361,6 +389,7 @@ public class StringConstants
 	public static final String SKIN_NAME_DUSKY         = "Dusky Gray";
 	public static final String SKIN_NAME_PUMPKIN       = "Pumpkin Patch";
 	public static final String SKIN_NAME_SEASIDE       = "Seaside Daze";
+	public static final String SKIN_WINDOW_FINDDUPS    = "Find Duplicates";
 	public static final String SKIN_WINDOW_FILESAVE    = "File Save";
 	public static final String SKIN_WINDOW_MAIN        = "iTunes Query Tool";
 	public static final String SKIN_WINDOW_PLAYLISTS   = "Playlists";
@@ -396,6 +425,7 @@ public class StringConstants
 	 */
 	public static final String TRACK_PLAYLISTS_BYPASS_COLUMN = "Bypassed";
 	public static final String TRACK_PLAYLISTS_NAME_COLUMN   = "Playlist Names";
+	public static final String TRACK_QUERY_DUPLICATES        = "Duplicate tracks";
 	public static final String TRACK_QUERY_PLAYLISTS         = "Query playlists";
 	public static final String TRACK_QUERY_TRACKS            = "Query tracks";
 	

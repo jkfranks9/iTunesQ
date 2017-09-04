@@ -65,6 +65,7 @@ public class PreferencesWindow
 	private boolean bypassPrefsUpdated;
 	private boolean ignoredPrefsUpdated;
 	private boolean fullTrackColumnsUpdated;
+	private boolean duplicatesTrackColumnsUpdated;
 	private boolean filteredTrackColumnsUpdated;
 	private boolean playlistTrackColumnsUpdated;
 	private boolean skinPrefsUpdated;
@@ -113,6 +114,17 @@ public class PreferencesWindow
 	@BXML private Checkbox fullYearCheckbox = null;
 	@BXML private Checkbox fullAddedCheckbox = null;
 	@BXML private Checkbox fullRatingCheckbox = null;
+	@BXML private BoxPane duplicatesColumnPrefsBoxPane = null;
+	@BXML private Label duplicatesColumnPrefsLabel = null;
+	@BXML private Checkbox duplicatesNumberCheckbox = null;
+	@BXML private Checkbox duplicatesNameCheckbox = null;
+	@BXML private Checkbox duplicatesArtistCheckbox = null;
+	@BXML private Checkbox duplicatesAlbumCheckbox = null;
+	@BXML private Checkbox duplicatesKindCheckbox = null;
+	@BXML private Checkbox duplicatesDurationCheckbox = null;
+	@BXML private Checkbox duplicatesYearCheckbox = null;
+	@BXML private Checkbox duplicatesAddedCheckbox = null;
+	@BXML private Checkbox duplicatesRatingCheckbox = null;
 	@BXML private BoxPane filteredColumnPrefsBoxPane = null;
 	@BXML private Label filteredColumnPrefsLabel = null;
 	@BXML private Checkbox filteredNumberCheckbox = null;
@@ -340,6 +352,7 @@ public class PreferencesWindow
 				 * Get the defaults for the various column sets and set the checkboxes from them.
 				 */
 		        createFullTrackColumnPrefsCheckboxes(TrackDisplayColumns.getFullColumnDefaults());
+		        createDuplicatesTrackColumnPrefsCheckboxes(TrackDisplayColumns.getDuplicatesColumnDefaults());
 		        createFilteredTrackColumnPrefsCheckboxes(TrackDisplayColumns.getFilteredColumnDefaults());
 		        createPlaylistTrackColumnPrefsCheckboxes(TrackDisplayColumns.getPlaylistColumnDefaults());
 		        
@@ -347,6 +360,7 @@ public class PreferencesWindow
 		         * Indicate the track column preferences have been updated.
 		         */
 		        fullTrackColumnsUpdated = true;
+		        duplicatesTrackColumnsUpdated = true;
 		        filteredTrackColumnsUpdated = true;
 		        playlistTrackColumnsUpdated = true;
             	
@@ -723,6 +737,18 @@ public class PreferencesWindow
             		TrackDisplayColumns.ColumnSet.FULL_VIEW.buildColumnSet(trackColumnPrefs);
             	}
             	
+            	if (duplicatesTrackColumnsUpdated == true)
+            	{
+					logger.info("updating duplicates track column preferences");
+					
+            		prefsUpdated = true;
+            		
+            		List<List<String>> trackColumnPrefs = collectDuplicatesTrackColumnPrefs();
+            		userPrefs.replaceTrackColumnsDuplicatesView(trackColumnPrefs);
+
+            		TrackDisplayColumns.ColumnSet.DUPLICATES_VIEW.buildColumnSet(trackColumnPrefs);
+            	}
+            	
             	if (filteredTrackColumnsUpdated == true)
             	{
 					logger.info("updating filtered track column preferences");
@@ -921,6 +947,7 @@ public class PreferencesWindow
          * Set the widths of the column preferences labels.
          */
         fullColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
+        duplicatesColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         filteredColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         playlistColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         
@@ -969,6 +996,16 @@ public class PreferencesWindow
         fullYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
         fullAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
         fullRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
+        duplicatesColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_DUPLICATES);
+        duplicatesNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
+        duplicatesNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
+        duplicatesArtistCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ARTIST);
+        duplicatesAlbumCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ALBUM);
+        duplicatesKindCheckbox.setButtonData(StringConstants.TRACK_COLUMN_KIND);
+        duplicatesDurationCheckbox.setButtonData(StringConstants.TRACK_COLUMN_DURATION);
+        duplicatesYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
+        duplicatesAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
+        duplicatesRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
         filteredColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_FILTERED);
         filteredNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
         filteredNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
@@ -1102,6 +1139,7 @@ public class PreferencesWindow
          * Fill in the track column checkboxes if preferences exist.
          */
         createFullTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFullView());
+        createDuplicatesTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsDuplicatesView());
         createFilteredTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFilteredView());
         createPlaylistTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsPlaylistView());
         
@@ -1203,6 +1241,7 @@ public class PreferencesWindow
     	bypassPrefsUpdated = false;
     	ignoredPrefsUpdated = false;
     	fullTrackColumnsUpdated = false;
+    	duplicatesTrackColumnsUpdated = false;
     	filteredTrackColumnsUpdated = false;
     	playlistTrackColumnsUpdated = false;
     	skinPrefsUpdated = false;
@@ -1780,6 +1819,90 @@ public class PreferencesWindow
     	
     	return columnPrefs;
     }
+    
+    /*
+     * Collect the duplicates track columns preferences. This involves brute force code to check all of
+     * the checkboxes to see whether they are selected or not. For all that are selected, add the
+     * appropriate column to the column set.
+     */
+    private List<List<String>> collectDuplicatesTrackColumnPrefs ()
+    {
+    	List<List<String>> columnPrefs = new ArrayList<List<String>>();
+    	
+    	if (duplicatesNumberCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesNameCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesArtistCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesAlbumCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesKindCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesDurationCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesYearCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesAddedCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	if (duplicatesRatingCheckbox.isSelected())
+    	{
+    		List<String> columnData = 
+    				TrackDisplayColumns.
+    					buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue());
+    		columnPrefs.add(columnData);
+    	}
+    	
+    	return columnPrefs;
+    }
 
     /*
      * Collect the filtered track columns preferences. This involves brute force code to check all of
@@ -2003,6 +2126,61 @@ public class PreferencesWindow
     		}
     	}
     }
+    
+    /*
+     * Before opening the preferences window, select all checkboxes for which preferences exist, 
+     * for the duplicates column set. This involves more brute force code to check each preference,
+     * so we know which checkboxes to select.
+     */
+    private void createDuplicatesTrackColumnPrefsCheckboxes (List<List<String>> columnPrefs)
+    {
+    	Iterator<List<String>> columnPrefsIter = columnPrefs.iterator();
+    	while (columnPrefsIter.hasNext())
+    	{
+    		List<String> columnData = columnPrefsIter.next();
+    		String columnName = columnData.get(0);
+    		
+    		switch (TrackDisplayColumns.ColumnNames.getEnum(columnName))
+    		{
+    		case NUMBER:
+    			duplicatesNumberCheckbox.setSelected(true);
+    			break;
+
+    		case NAME:
+    			duplicatesNameCheckbox.setSelected(true);
+    			break;
+
+    		case ARTIST:
+    			duplicatesArtistCheckbox.setSelected(true);
+    			break;
+    			
+    		case ALBUM:
+    			duplicatesAlbumCheckbox.setSelected(true);
+    			break;
+    			
+    		case KIND:
+    			duplicatesKindCheckbox.setSelected(true);
+    			break;
+    			
+    		case DURATION:
+    			duplicatesDurationCheckbox.setSelected(true);
+    			break;
+    			
+    		case YEAR:
+    			duplicatesYearCheckbox.setSelected(true);
+    			break;
+    			
+    		case ADDED:
+    			duplicatesAddedCheckbox.setSelected(true);
+    			break;
+    			
+    		case RATING:
+    			duplicatesRatingCheckbox.setSelected(true);
+    			break;
+    		default:
+    		}
+    	}
+    }
 
     /*
      * Before opening the preferences window, select all checkboxes for which preferences exist, 
@@ -2128,6 +2306,16 @@ public class PreferencesWindow
     	fullYearCheckbox.setSelected(false);
     	fullAddedCheckbox.setSelected(false);
     	fullRatingCheckbox.setSelected(false);
+
+    	duplicatesNumberCheckbox.setSelected(false);
+    	duplicatesNameCheckbox.setSelected(false);
+    	duplicatesArtistCheckbox.setSelected(false);
+    	duplicatesAlbumCheckbox.setSelected(false);
+    	duplicatesKindCheckbox.setSelected(false);
+    	duplicatesDurationCheckbox.setSelected(false);
+    	duplicatesYearCheckbox.setSelected(false);
+    	duplicatesAddedCheckbox.setSelected(false);
+    	duplicatesRatingCheckbox.setSelected(false);
     	
     	filteredNumberCheckbox.setSelected(false);
     	filteredNameCheckbox.setSelected(false);
@@ -2274,6 +2462,123 @@ public class PreferencesWindow
             public void buttonPressed(Button button) 
             {
             	fullTrackColumnsUpdated = true;;
+            }
+        });
+    	
+    	duplicatesNumberCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesNumberCheckbox");
+		components.add(duplicatesNumberCheckbox);
+        
+		duplicatesNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+    	
+    	duplicatesNameCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesNameCheckbox");
+		components.add(duplicatesNameCheckbox);
+        
+		duplicatesNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+        
+    	duplicatesArtistCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesArtistCheckbox");
+		components.add(duplicatesArtistCheckbox);
+        
+		duplicatesArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+        
+        duplicatesAlbumCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesAlbumCheckbox");
+		components.add(duplicatesAlbumCheckbox);
+        
+		duplicatesAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+        
+        duplicatesKindCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesKindCheckbox");
+		components.add(duplicatesKindCheckbox);
+        
+		duplicatesKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+        
+        duplicatesDurationCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesDurationCheckbox");
+		components.add(duplicatesDurationCheckbox);
+        
+		duplicatesDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+        
+        duplicatesYearCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesYearCheckbox");
+		components.add(duplicatesYearCheckbox);
+        
+		duplicatesYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+        
+        duplicatesAddedCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesAddedCheckbox");
+		components.add(duplicatesAddedCheckbox);
+        
+		duplicatesAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
+            }
+        });
+        
+        duplicatesRatingCheckbox = 
+        		(Checkbox)prefsWindowSerializer.getNamespace().get("duplicatesRatingCheckbox");
+		components.add(duplicatesRatingCheckbox);
+        
+		duplicatesRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	duplicatesTrackColumnsUpdated = true;;
             }
         });
         
@@ -2776,6 +3081,12 @@ public class PreferencesWindow
         fullColumnPrefsLabel = 
         		(Label)prefsWindowSerializer.getNamespace().get("fullColumnPrefsLabel");
 		components.add(fullColumnPrefsLabel);
+        duplicatesColumnPrefsBoxPane = 
+        		(BoxPane)prefsWindowSerializer.getNamespace().get("duplicatesColumnPrefsBoxPane");
+		components.add(duplicatesColumnPrefsBoxPane);
+        duplicatesColumnPrefsLabel = 
+        		(Label)prefsWindowSerializer.getNamespace().get("duplicatesColumnPrefsLabel");
+		components.add(duplicatesColumnPrefsLabel);
         filteredColumnPrefsBoxPane = 
         		(BoxPane)prefsWindowSerializer.getNamespace().get("filteredColumnPrefsBoxPane");
 		components.add(filteredColumnPrefsBoxPane);

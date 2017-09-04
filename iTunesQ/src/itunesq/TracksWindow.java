@@ -63,6 +63,11 @@ public class TracksWindow
 		TRACKS(StringConstants.TRACK_QUERY_TRACKS),
 		
 		/**
+		 * the tracks list is a list of duplicates
+		 */
+		DUPLICATES(StringConstants.TRACK_QUERY_DUPLICATES),
+		
+		/**
 		 * the tracks list is the result of a playlist query
 		 */
 		PLAYLISTS(StringConstants.TRACK_QUERY_PLAYLISTS);
@@ -93,6 +98,9 @@ public class TracksWindow
 	private Window tracksWindow = null;
 	private Dialog trackInfoDialog = null;
 	private Skins skins = null;
+	private QueryType queryType = null;
+	private String queryStr = null;
+	private List<String> columnNames = null;
 	private Logger logger = null;
 	
 	/*
@@ -110,6 +118,7 @@ public class TracksWindow
 	@BXML private TableViewHeader trackPlaylistsTableViewHeader = null;
 	@BXML private Border actionBorder = null;
 	@BXML private BoxPane actionBoxPane = null;
+	@BXML private PushButton findDuplicatesButton = null;
 	@BXML private PushButton tracksDoneButton = null;
 
 	@BXML private Border detailsPrimaryBorder = null;
@@ -141,25 +150,39 @@ public class TracksWindow
     	 * Initialize variables.
     	 */
     	skins = Skins.getInstance();
+    	queryType = QueryType.NONE;
     	
     	logger.trace("TracksWindow constructor: " + this.hashCode());
     }
 	
     //---------------- Public methods --------------------------------------
+    
+    /**
+     * Saves window attributes used for various types of queries.
+     * 
+	 * @param queryType type of query that generated the tracks to be 
+	 * displayed
+	 * @param queryStr string representation of the query
+	 * @param columnNames column names associated with the query
+     */
+    public void saveWindowAttributes (QueryType queryType, String queryStr, List<String> columnNames)
+    {
+    	this.queryType = queryType;
+    	this.queryStr = queryStr;
+    	this.columnNames = columnNames;
+    }
 
 	/**
 	 * Displays the tracks in a new window.
 	 * 
 	 * @param display display object for managing windows
 	 * @param tracks list of tracks to be displayed
-	 * @param queryType type of query (if any) that generated the tracks to be 
-	 * displayed
-	 * @param queryStr string representation of the query, or null
+	 * @param owningWindow window on which to open the new window, or null
 	 * @throws IOException If an error occurs trying to read the BXML file.
 	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 */
-    public void displayTracks (Display display, List<Track> tracks, QueryType queryType, String queryStr) 
+    public void displayTracks (Display display, List<Track> tracks, Window owningWindow) 
     		throws IOException, SerializationException
     {
     	logger.trace("displayTracks: " + this.hashCode());
@@ -180,6 +203,37 @@ public class TracksWindow
 			tracksWindow.setAttribute(MenuBars.WindowAttributes.HANDLER, this);
 			tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_TYPE, queryType);
 			tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_STRING, queryStr);
+			tracksWindow.setAttribute(MenuBars.WindowAttributes.COLUMN_NAMES, columnNames);
+		}
+        
+        /*
+         * Listener to handle the find duplicates button press. This is only enabled when all
+         * tracks are displayed, not for filtered results.
+         */
+		if (queryType == QueryType.NONE)
+		{
+			findDuplicatesButton.getButtonPressListeners().add(new ButtonPressListener() 
+	        {
+	            @Override
+	            public void buttonPressed(Button button) 
+	            {
+	            	logger.info("find duplicates button pressed");
+					
+	            	Display display = button.getDisplay();
+	        		FindDuplicatesDialog findDuplicatesDialogHandler = 
+	        				new FindDuplicatesDialog(tracksWindow);
+	        		
+	        		try
+					{
+	        			findDuplicatesDialogHandler.displayFindDuplicatesDialog(display);
+					} 
+	        		catch (IOException | SerializationException e)
+					{
+	            		logger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
+	            }
+	        });
 		}
         
         /*
@@ -342,6 +396,10 @@ public class TracksWindow
         /*
          * Add widget texts.
          */
+		if (queryType == QueryType.NONE)
+		{
+			findDuplicatesButton.setButtonData(StringConstants.FIND_DUPLICATES_SHOW);
+		}
         tracksDoneButton.setButtonData(StringConstants.DONE);
 		
 		/*
@@ -377,14 +435,19 @@ public class TracksWindow
         	HashMap<String, String> trackAttrs = track.toDisplayMap(++trackNum);
         	displayTracks.add(trackAttrs);
         }
-
-        if (queryType != QueryType.NONE)
+        
+        switch (queryType)
         {
-        	TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.FILTERED_VIEW, tracksTableView);
-        }
-        else
-        {
+        case NONE:
         	TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.FULL_VIEW, tracksTableView);
+        	break;
+        	
+        case DUPLICATES:
+        	TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.DUPLICATES_VIEW, tracksTableView);
+        	break;
+        	
+        default:
+        	TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.FILTERED_VIEW, tracksTableView);
         }
         
         /*
@@ -431,7 +494,14 @@ public class TracksWindow
          * Open the tracks window.
          */
     	logger.info("opening tracks window");
-        tracksWindow.open(display);
+    	if (owningWindow == null)
+    	{
+    		tracksWindow.open(display);
+    	}
+    	else
+    	{
+    		tracksWindow.open(owningWindow);
+    	}
     }
     
     /**
@@ -680,6 +750,14 @@ public class TracksWindow
         actionBoxPane = 
         		(BoxPane)windowSerializer.getNamespace().get("actionBoxPane");
 		components.add(actionBoxPane);
+		
+		if (queryType == QueryType.NONE)
+		{
+			findDuplicatesButton = 
+	        		(PushButton)windowSerializer.getNamespace().get("findDuplicatesButton");
+			components.add(findDuplicatesButton);
+		}
+		
         tracksDoneButton = 
         		(PushButton)windowSerializer.getNamespace().get("tracksDoneButton");
 		components.add(tracksDoneButton);

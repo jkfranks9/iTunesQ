@@ -310,7 +310,12 @@ public class Skins
 		/**
 		 * file save window
 		 */
-		FILESAVE(StringConstants.SKIN_WINDOW_FILESAVE);
+		FILESAVE(StringConstants.SKIN_WINDOW_FILESAVE),
+		
+		/**
+		 * file save window
+		 */
+		FINDDUPLICATES(StringConstants.SKIN_WINDOW_FINDDUPS);
 		
 		private String displayValue;
 		

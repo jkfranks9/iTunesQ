@@ -73,6 +73,7 @@ public final class Preferences implements Serializable
 	private List<BypassPreference> bypassPrefs;
 	private List<String> ignoredPrefs;
 	private List<List<String>> trackColumnsFullView;
+	private List<List<String>> trackColumnsDuplicatesView;
 	private List<List<String>> trackColumnsFilteredView;
 	private List<List<String>> trackColumnsPlaylistView;
 	private String skinName;
@@ -199,6 +200,26 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
+	 * Gets the list of duplicate tracks column preferences.
+	 * 
+	 * @return list of duplicate tracks column preferences
+	 */
+	public List<List<String>> getTrackColumnsDuplicatesView()
+	{
+		return trackColumnsDuplicatesView;
+	}
+
+	/**
+	 * Sets the list of duplicate tracks column preferences.
+	 * 
+	 * @param trackColumnsFullView list of duplicate tracks column preferences
+	 */
+	public void setTrackColumnsDuplicatesView(List<List<String>> trackColumnsDuplicatesView)
+	{
+		this.trackColumnsDuplicatesView = trackColumnsDuplicatesView;
+	}
+	
+	/**
 	 * Gets the list of filtered tracks column preferences.
 	 * 
 	 * @return list of filtered tracks column preferences
@@ -211,7 +232,8 @@ public final class Preferences implements Serializable
 	/**
 	 * Sets the list of filtered tracks column preferences.
 	 * 
-	 * @param trackColumnsFilteredView list of filtered tracks column preferences
+	 * @param trackColumnsFilteredView list of filtered tracks column 
+	 * preferences
 	 */
 	public void setTrackColumnsFilteredView(List<List<String>> trackColumnsFilteredView)
 	{
@@ -231,7 +253,8 @@ public final class Preferences implements Serializable
 	/**
 	 * Sets the list of playlist tracks column preferences.
 	 * 
-	 * @param trackColumnsPlaylistView list of playlist tracks column preferences
+	 * @param trackColumnsPlaylistView list of playlist tracks column 
+	 * preferences
 	 */
 	public void setTrackColumnsPlaylistView(List<List<String>> trackColumnsPlaylistView)
 	{
@@ -405,6 +428,23 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
+	 * Replaces the list of duplicate tracks column preferences.
+	 * 
+	 * @param trackColumnsPrefs list of duplicate tracks column preferences
+	 */
+	public void replaceTrackColumnsDuplicatesView (List<List<String>> trackColumnsPrefs)
+	{
+		logger.trace("replaceTrackColumnsDuplicatesView: " + this.hashCode());
+		
+		this.trackColumnsDuplicatesView.clear();
+		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
+		while (trackColumnsPrefsIter.hasNext())
+		{
+			this.trackColumnsDuplicatesView.add(trackColumnsPrefsIter.next());
+		}
+	}
+	
+	/**
 	 * Replaces the list of filtered tracks column preferences.
 	 * 
 	 * @param trackColumnsPrefs list of filtered tracks column preferences
@@ -556,6 +596,7 @@ public final class Preferences implements Serializable
 			replaceIgnoredPrefs(prefs.ignoredPrefs);
 		}
 		this.trackColumnsFullView = prefs.trackColumnsFullView;
+		this.trackColumnsDuplicatesView = prefs.trackColumnsDuplicatesView;
 		this.trackColumnsFilteredView = prefs.trackColumnsFilteredView;
 		this.trackColumnsPlaylistView = prefs.trackColumnsPlaylistView;
 		this.skinName = prefs.skinName;

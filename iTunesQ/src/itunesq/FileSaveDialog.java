@@ -51,8 +51,9 @@ import itunesq.TracksWindow.QueryType;
 
 /**
  * Class that handles the file save dialog. This dialog is available from the
- * File {@literal ->} Save menu on a page showing the results of a track or playlist
- * query. This dialog allows the user to save or print the query results.
+ * File {@literal ->} Save menu on a page showing the results of a track or 
+ * playlist query. This dialog allows the user to save or print the query 
+ * results.
  * 
  * @author Jon
  *
@@ -73,7 +74,7 @@ public class FileSaveDialog
     private boolean printResults = false;
     
 	private Logging logging = null;
-	private Logger logger;
+	private Logger logger = null;
     
     /*
      * Window attributes.
@@ -81,7 +82,8 @@ public class FileSaveDialog
     private TracksWindow tracksWindowHandler = null;
     private TracksWindow.QueryType queryType = null;
     private String queryStr = null;
-
+    private List<String> columnNames = null;
+    
 	/*
 	 * BXML variables.
 	 */
@@ -104,6 +106,7 @@ public class FileSaveDialog
 	 * 
 	 * @param owner owning window. This dialog is modal over the window.
 	 */
+	@SuppressWarnings("unchecked")
 	public FileSaveDialog (MenuBars owner)
 	{
     	
@@ -131,6 +134,7 @@ public class FileSaveDialog
     	tracksWindowHandler = (TracksWindow) owningWindow.getAttribute(MenuBars.WindowAttributes.HANDLER);
     	queryType = (QueryType)owningWindow.getAttribute(MenuBars.WindowAttributes.QUERY_TYPE);
     	queryStr = (String)owningWindow.getAttribute(MenuBars.WindowAttributes.QUERY_STRING);
+    	columnNames = (List<String>)owningWindow.getAttribute(MenuBars.WindowAttributes.COLUMN_NAMES);
 		
 		logger.trace("FileSaveDialog constructor: " + this.hashCode());
 	}
@@ -197,6 +201,7 @@ public class FileSaveDialog
         switch (queryType)
         {
         case TRACKS:
+        case DUPLICATES:
         	fileSaveDetailsLimitCheckbox.setButtonData(StringConstants.FILESAVE_TRACKS_LIMIT);
         	fileSaveDetailsLimitCheckbox.setTooltipText(StringConstants.FILESAVE_TRACKS_LIMIT_TIP);
         	break;
@@ -335,14 +340,31 @@ public class FileSaveDialog
 			trackStr.append(String.format("%4d", ++trackNum) + ") ");
 			
 			/*
-			 * Name, artist and album.
+			 * Track attributes, according to the list of column names.
 			 */
-			trackStr.append(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue() + "=");
-			trackStr.append(trackData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue()) + ", ");
-			trackStr.append(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue() + "=");
-			trackStr.append(trackData.get(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue()) + ", ");
-			trackStr.append(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue() + "=");
-			trackStr.append(trackData.get(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue()) + "\n      ");
+			int columnNamesLen = columnNames.getLength();
+			for (int i = 0; i < columnNamesLen; i++)
+			{
+				String columnName = columnNames.get(i);
+
+				/*
+				 * Append the column name and associated track data.
+				 */
+				trackStr.append(columnName + "=");
+				trackStr.append(trackData.get(columnName));
+				
+				/*
+				 * Append a separator between fields, or a line separator for the last field.
+				 */
+				if (i < columnNamesLen - 1)
+				{
+					trackStr.append(", ");
+				}
+				else
+				{
+					trackStr.append("\n      ");
+				}
+			}
 			
 			/*
 			 * Playlists, on a separate line.
@@ -510,6 +532,7 @@ public class FileSaveDialog
          * the playlist object and ask it.
          */
         case TRACKS:
+        case DUPLICATES:
 			String playlistID = XMLHandler.getPlaylistsMap().get(playlistName);
         	Playlist playlist = XMLHandler.getPlaylists().get(playlistID);
         	result = playlist.getBypassed();

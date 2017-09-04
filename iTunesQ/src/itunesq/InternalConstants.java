@@ -28,7 +28,7 @@ public class InternalConstants
 	/*
 	 * Width of the column preferences labels.
 	 */
-	public static final int PREFS_COLUMN_LABELS_WIDTH = 135;
+	public static final int PREFS_COLUMN_LABELS_WIDTH = 160;
 	
 	/*
 	 * Width of the log level labels on the preferences window.

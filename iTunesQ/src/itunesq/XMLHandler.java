@@ -40,7 +40,7 @@ public final class XMLHandler
 	/*
 	 * The list of tracks; just a simple list.
 	 */
-	private static List<Track> Tracks = null;
+	private static ArrayList<Track> Tracks = null;
 	
 	/*
 	 * The tracks map is a map of the track ID to its index value in the tracks list. This 
@@ -49,6 +49,13 @@ public final class XMLHandler
 	 * identified only by ID).
 	 */
 	private static Map<Integer, Integer> TracksMap = null;
+	
+	/*
+	 * The duplicates map is a map of the track name to a list of track IDs. This allows us 
+	 * to find duplicates quickly on demand, at the cost of longer time to process the XML
+	 * file. 
+	 */
+	private static Map<String, List<Integer>> DuplicatesMap = null;
 	
 	/*
 	 * The list of playlists. This is a map of the playlist ID to its corresponding Playlist
@@ -120,6 +127,16 @@ public final class XMLHandler
 	public static Map<Integer, Integer> getTracksMap ()
 	{
 		return TracksMap;
+	}
+	
+	/**
+	 * Gets the mapping of duplicate track names to track IDs.
+	 *  
+	 * @return mapping of duplicate track names to track IDs
+	 */
+	public static Map<String, List<Integer>> getDuplicatesMap ()
+	{
+		return DuplicatesMap;
 	}
 
 	/**
@@ -417,6 +434,11 @@ public final class XMLHandler
 		TracksMap = new HashMap<Integer, Integer>();
 		
 		/*
+		 * Initialize the duplicates map as well.
+		 */
+		DuplicatesMap = new HashMap<String, List<Integer>>();
+		
+		/*
 		 * Initialize the list of artist names, and set a case-insensitive comparator.
 		 */
 		ArtistNames = new ArrayList<String>();
@@ -570,12 +592,37 @@ public final class XMLHandler
     	    					"<" + ELEM_DICT + "> element child is not <" + ELEM_KEY + ">");
     	    		}
     			}
+        		
+        		/*
+        		 * Add the track to the duplicates map if necessary. We have to do this before
+        		 * adding it to the main tracks list, to avoid false duplicates.
+        		 */
+    			int index = ArrayList.binarySearch(Tracks, trackObj, Tracks.getComparator());
+    			if (index >= 0)
+    			{
+    				List<Integer> trackIDs;
+    				String trackName = trackObj.getName();
+    				int thisID = trackObj.getID();
+    				
+    				if ((trackIDs = DuplicatesMap.get(trackName)) == null)
+    				{
+    					trackIDs = new ArrayList<Integer>();
+    					int foundID = Tracks.get(index).getID();
+    					trackIDs.add(foundID);
+    					logger.debug("initialized duplicates map entry for track '" 
+    							+ trackName + "', track ID " + foundID);
+    				}
+    				trackIDs.add(thisID);
+    				logger.debug("added track ID " + thisID + " to track '" + trackName + "'");
+    				
+    				DuplicatesMap.put(trackName, trackIDs);
+    			}
     			
     			/*
     			 * Add the track object to the list.
     			 */
     			Tracks.add(trackObj);
-    	    	logger.debug("found track ID " + ID + ", name " + trackObj.getName());
+    	    	logger.debug("found track ID " + ID + ", name '" + trackObj.getName() + "'");
     		}
     		else
     		{

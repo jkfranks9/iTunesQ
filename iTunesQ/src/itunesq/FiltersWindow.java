@@ -165,9 +165,10 @@ public class FiltersWindow
 							{
 								String queryStr = filterCollection.getFiltersAsString();
 								TracksWindow tracksWindowHandler = new TracksWindow();
-								tracksWindowHandler.displayTracks(display, filteredTracks, 
-										TracksWindow.QueryType.TRACKS, 
-										TracksWindow.QueryType.TRACKS.getDisplayValue() + ": " + queryStr);
+								tracksWindowHandler.saveWindowAttributes(TracksWindow.QueryType.TRACKS, 
+										TracksWindow.QueryType.TRACKS.getDisplayValue() + ": " + queryStr,
+										TrackDisplayColumns.ColumnSet.FILTERED_VIEW.getNamesList());
+								tracksWindowHandler.displayTracks(display, filteredTracks, null);
 							}
 							catch (IOException | SerializationException e)
 							{

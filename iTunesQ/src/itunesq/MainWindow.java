@@ -207,8 +207,7 @@ public class MainWindow implements Application
             	try
 				{
             		TracksWindow tracksWindowHandler = new TracksWindow();
-            		tracksWindowHandler.displayTracks(display, XMLHandler.getTracks(), 
-            				TracksWindow.QueryType.NONE, null);
+            		tracksWindowHandler.displayTracks(display, XMLHandler.getTracks(), null);
 				} 
             	catch (IOException | SerializationException e)
 				{

@@ -76,7 +76,12 @@ public class MenuBars extends Frame implements Bindable
 		/**
 		 * query string representation attribute
 		 */
-		QUERY_STRING
+		QUERY_STRING,
+		
+		/**
+		 * column names attribute
+		 */
+		COLUMN_NAMES
 	}
 
     //---------------- Private variables -----------------------------------

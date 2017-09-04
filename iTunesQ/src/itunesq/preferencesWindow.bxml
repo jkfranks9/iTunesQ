@@ -136,6 +136,24 @@
            								</TablePane.Row>
             			
            								<TablePane.Row height="1*">
+                   							<BoxPane bxml:id="duplicatesColumnPrefsBoxPane" 
+                   								orientation="horizontal"
+                       							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+           										<Label bxml:id="duplicatesColumnPrefsLabel" 
+           											styles="{font:{bold:true}, padding:5}"/>
+           										<Checkbox bxml:id="duplicatesNumberCheckbox"/>
+           										<Checkbox bxml:id="duplicatesNameCheckbox"/>
+           										<Checkbox bxml:id="duplicatesArtistCheckbox"/>
+           										<Checkbox bxml:id="duplicatesAlbumCheckbox"/>
+           										<Checkbox bxml:id="duplicatesKindCheckbox"/>
+           										<Checkbox bxml:id="duplicatesDurationCheckbox"/>
+           										<Checkbox bxml:id="duplicatesYearCheckbox"/>
+           										<Checkbox bxml:id="duplicatesAddedCheckbox"/>
+           										<Checkbox bxml:id="duplicatesRatingCheckbox"/>
+           									</BoxPane>
+           								</TablePane.Row>
+            			
+           								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="filteredColumnPrefsBoxPane" 
                    								orientation="horizontal"
                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">

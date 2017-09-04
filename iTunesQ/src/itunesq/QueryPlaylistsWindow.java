@@ -877,9 +877,10 @@ public class QueryPlaylistsWindow
 		 * Now display the list of tracks.
 		 */
 		TracksWindow tracksWindowHandler = new TracksWindow();
-		tracksWindowHandler.displayTracks(display, displayableTracks, 
-				TracksWindow.QueryType.PLAYLISTS, 
-				TracksWindow.QueryType.PLAYLISTS.getDisplayValue() + " " + compareStr + ": " + queryStr);
+		tracksWindowHandler.saveWindowAttributes(TracksWindow.QueryType.PLAYLISTS, 
+				TracksWindow.QueryType.PLAYLISTS.getDisplayValue() + " " + compareStr + ": " + queryStr,
+				TrackDisplayColumns.ColumnSet.FILTERED_VIEW.getNamesList());
+		tracksWindowHandler.displayTracks(display, displayableTracks, null);
     }
     
     /*

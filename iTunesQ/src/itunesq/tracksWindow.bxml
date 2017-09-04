@@ -84,6 +84,7 @@
             <Border bxml:id="actionBorder">
                 <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
                     styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+               	    <PushButton bxml:id="findDuplicatesButton"/>
                	    <PushButton bxml:id="tracksDoneButton"/>
                 </BoxPane>
             </Border>

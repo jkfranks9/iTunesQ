@@ -16,6 +16,7 @@ import org.apache.pivot.wtk.TableView;
  * The following column set definitions exist:
  * <ul>
  * <li>Full - full list of tracks</li>
+ * <li>Duplicates - list of duplicate tracks</li>
  * <li>Filtered - tracks that are displayed for a given query</li>
  * <li>Playlist - tracks that are displayed for a given playlist</li>
  * </ul>
@@ -185,6 +186,11 @@ public class TrackDisplayColumns
 		FULL_VIEW(),
 		
 		/**
+		 * full list of tracks
+		 */
+		DUPLICATES_VIEW(),
+		
+		/**
 		 * tracks resulting from a query
 		 */
 		FILTERED_VIEW(),
@@ -298,6 +304,7 @@ public class TrackDisplayColumns
 		 * Build the different types of column sets.
 		 */
 		buildFullColumnData(prefs);
+		buildDuplicatesColumnData(prefs);
 		buildFilteredColumnData(prefs);
 		buildPlaylistColumnData(prefs);
 		
@@ -326,6 +333,26 @@ public class TrackDisplayColumns
 		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
 		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
 		columnList.add(buildColumnData(ColumnNames.ADDED.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+		
+		return columnList;
+	}
+	
+	/**
+	 * Gets the list of duplicates column set defaults.
+	 * 
+	 * @return list of duplicates column set defaults
+	 */
+	public static List<List<String>> getDuplicatesColumnDefaults ()
+	{
+		List<List<String>> columnList = new ArrayList<List<String>>();
+		
+		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.KIND.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
 		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
 		
 		return columnList;
@@ -437,6 +464,33 @@ public class TrackDisplayColumns
 		else
 		{
 			ColumnSet.FULL_VIEW.buildColumnSet(prefsFullColumnSet);
+		}
+	}
+	
+	/*
+	 * Build the duplicates column set.
+	 */
+	private static void buildDuplicatesColumnData (Preferences prefs)
+	{
+		List<List<String>> columnList = getDuplicatesColumnDefaults();
+		
+		/*
+		 * Note that we only need to modify column set preferences if the preferences for that set
+		 * don't exist.
+		 * 
+		 * If the preferences do exist, then we just need to build the column set from the 
+		 * existing preferences.
+		 */		
+		List<List<String>> prefsDuplicatesColumnSet = prefs.getTrackColumnsDuplicatesView();
+		if (prefsDuplicatesColumnSet == null || prefsDuplicatesColumnSet.getLength() == 0)
+		{
+			ColumnSet.DUPLICATES_VIEW.buildColumnSet(columnList);
+			prefs.setTrackColumnsDuplicatesView(columnList);
+			prefsAltered = true;
+		}
+		else
+		{
+			ColumnSet.DUPLICATES_VIEW.buildColumnSet(prefsDuplicatesColumnSet);
 		}
 	}
 
