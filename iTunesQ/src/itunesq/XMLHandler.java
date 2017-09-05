@@ -23,7 +23,7 @@ import ch.qos.logback.classic.Logger;
 /**
  * Class that reads and processes the iTunes XML file.
  * <p>
- * This is a final class consisting entirely of <code>static</code> methods.
+ * This is a final class consisting entirely of static methods.
  * <p>
  * The main public method is <code>processXML</code>, that uses JDOM to walk 
  * through the XML file. I'd like to note that the iTunes XML is rather 

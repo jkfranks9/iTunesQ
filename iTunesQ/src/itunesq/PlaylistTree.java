@@ -14,7 +14,7 @@ import ch.qos.logback.classic.Logger;
 /**
  * Class that represents a playlist tree.
  * <p>
- * This is a final class consisting entirely of <code>static</code> methods.
+ * This is a final class consisting entirely of static methods.
  * <p>
  * There is one primary method, <code>createPlaylistTree</code>, that gathers 
  * the playlists into a form suitable for the <code>treeData</code> field of 

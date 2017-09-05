@@ -29,7 +29,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that represents the Pivot application for the iTunes Query Tool.
+ * Class that represents the Apache Pivot application for the iTunes Query 
+ * Tool.
  * <p>
  * This application operates on the XML file containing iTunes library tracks
  * and playlists. The XML file is exported by the iTunes application. As such,
@@ -39,10 +40,12 @@ import ch.qos.logback.classic.Logger;
  * What this application provides is the following:
  * <ul>
  * <li>show all tracks in the library</li>
+ * <li>show duplicate tracks using exact or fuzzy match criteria</li>
  * <li>show all playlists in the library as a tree</li>
  * <li>query tracks using a collection of filters</li>
  * <li>compare two or more playlists</li>
- * <li>save or print the results of a track or playlist query</li>
+ * <li>save or print the results of a track or playlist query, or a list of
+ * duplicate tracks</li>
  * </ul>
  * <p>
  * This is the main class for the application. The <code>startup</code> method
@@ -173,7 +176,7 @@ public class MainWindow implements Application
      * @param display display object for managing windows
      * @param properties properties passed to the application
 	 * @throws IOException If an error occurs trying to read the BXML file;
-	 * or an error occurs trying to read or write the user preferences; 
+	 * or an error occurs trying to read or write the user preferences.
 	 * @throws SerializationException If an error occurs trying to 
 	 * deserialize the BXML file.
 	 * @throws ClassNotFoundException If the class of a serialized object 

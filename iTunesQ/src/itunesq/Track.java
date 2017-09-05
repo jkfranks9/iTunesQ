@@ -66,7 +66,7 @@ public class Track
 	/**
 	 * Class constructor specifying the track ID.
 	 * 
-	 * @param ID Track ID.
+	 * @param ID track ID
 	 */
 	public Track (int ID)
 	{
@@ -381,8 +381,8 @@ public class Track
 	}
 
 	/**
-	 * Gets the corrected track rating. This is the rating divided by 
-	 * <code>RATING_DIVISOR</code>.
+	 * Gets the corrected track rating. This is the rating on a scale of
+	 * 0 to 5.
 	 * 
 	 * @return corrected track rating
 	 */

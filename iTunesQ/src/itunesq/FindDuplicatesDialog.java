@@ -53,7 +53,7 @@ public class FindDuplicatesDialog
     
     private enum MatchCriteria
     {
-    	EXACT, ARTIST, ALBUM, KIND, DURATION, YEAR, RATING
+    	EXACT, ARTIST, NOT_ARTIST, ALBUM, KIND, DURATION, YEAR, RATING
     }
     private static final int numMatchCriteria = MatchCriteria.values().length;
     
@@ -72,6 +72,7 @@ public class FindDuplicatesDialog
 	@BXML private Checkbox duplicatesSpecExactCheckbox = null;
 	@BXML private BoxPane duplicatesSpecFuzzyBoxPane = null;
 	@BXML private Checkbox duplicatesSpecArtistCheckbox = null;
+	@BXML private Checkbox duplicatesSpecNotArtistCheckbox = null;
 	@BXML private Checkbox duplicatesSpecAlbumCheckbox = null;
 	@BXML private Checkbox duplicatesSpecKindCheckbox = null;
 	@BXML private Checkbox duplicatesSpecDurationCheckbox = null;
@@ -161,6 +162,8 @@ public class FindDuplicatesDialog
 				{
 					matchSpec.set(MatchCriteria.ARTIST.ordinal(), 
 							duplicatesSpecArtistCheckbox.isSelected());
+					matchSpec.set(MatchCriteria.NOT_ARTIST.ordinal(), 
+							duplicatesSpecNotArtistCheckbox.isSelected());
 					matchSpec.set(MatchCriteria.ALBUM.ordinal(), 
 							duplicatesSpecAlbumCheckbox.isSelected());
 					matchSpec.set(MatchCriteria.KIND.ordinal(), 
@@ -259,11 +262,12 @@ public class FindDuplicatesDialog
 		duplicatesSpecExactCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
-            public void buttonPressed(Button button) 
+            public void buttonPressed(Button button)
             {
             	if (button.isSelected())
             	{
             		duplicatesSpecArtistCheckbox.setEnabled(false);
+            		duplicatesSpecNotArtistCheckbox.setEnabled(false);
             		duplicatesSpecAlbumCheckbox.setEnabled(false);
             		duplicatesSpecKindCheckbox.setEnabled(false);
             		duplicatesSpecDurationCheckbox.setEnabled(false);
@@ -273,6 +277,7 @@ public class FindDuplicatesDialog
             	else
             	{
             		duplicatesSpecArtistCheckbox.setEnabled(true);
+            		duplicatesSpecNotArtistCheckbox.setEnabled(true);
             		duplicatesSpecAlbumCheckbox.setEnabled(true);
             		duplicatesSpecKindCheckbox.setEnabled(true);
             		duplicatesSpecDurationCheckbox.setEnabled(true);
@@ -283,9 +288,50 @@ public class FindDuplicatesDialog
         });
 		
 		/*
+		 * Listener to enable or disable the not artist checkbox based on the artist checkbox.
+		 */
+		duplicatesSpecArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+		{
+            @Override
+            public void buttonPressed(Button button)
+            {
+            	if (button.isSelected())
+            	{
+            		duplicatesSpecNotArtistCheckbox.setEnabled(false);
+            		duplicatesSpecNotArtistCheckbox.setSelected(false);
+            	}
+            	else
+            	{
+            		duplicatesSpecNotArtistCheckbox.setEnabled(true);
+            	}
+            }
+		});
+		
+		/*
+		 * Listener to enable or disable the artist checkbox based on the not artist checkbox.
+		 */
+		duplicatesSpecNotArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+		{
+            @Override
+            public void buttonPressed(Button button)
+            {
+            	if (button.isSelected())
+            	{
+            		duplicatesSpecArtistCheckbox.setEnabled(false);
+            		duplicatesSpecArtistCheckbox.setSelected(false);
+            	}
+            	else
+            	{
+            		duplicatesSpecArtistCheckbox.setEnabled(true);
+            	}
+            }
+		});
+		
+		/*
 		 * Initialize for an artist match.
 		 */
 		duplicatesSpecArtistCheckbox.setSelected(true);
+		duplicatesSpecNotArtistCheckbox.setEnabled(false);
         
         /*
          * Add widget texts.
@@ -294,6 +340,7 @@ public class FindDuplicatesDialog
 		duplicatesSpecLabel.setTooltipText(StringConstants.FIND_DUPLICATES_SPEC_TIP);
 		duplicatesSpecExactCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXACT);
 		duplicatesSpecArtistCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_ARTIST);
+		duplicatesSpecNotArtistCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_NOT_ARTIST);
 		duplicatesSpecAlbumCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_ALBUM);
 		duplicatesSpecKindCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_KIND);
 		duplicatesSpecDurationCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_DURATION);
@@ -443,6 +490,10 @@ public class FindDuplicatesDialog
 			{
 				result = isEqual(track1.getArtist(), track2.getArtist());
 			}
+			else if (matchSpec.get(MatchCriteria.NOT_ARTIST.ordinal()) == true)
+			{
+				result = !isEqual(track1.getArtist(), track2.getArtist());
+			}
 			
 			if (matchSpec.get(MatchCriteria.ALBUM.ordinal()) == true)
 			{
@@ -484,7 +535,8 @@ public class FindDuplicatesDialog
 				}
 			}
 		}
-		
+
+		trackLogger.debug("result " + result);
 		return result;
 	}
 	
@@ -523,7 +575,6 @@ public class FindDuplicatesDialog
 			trackLogger.debug("one attribute null");
 		}
 		
-		trackLogger.debug("result " + result);
 		return result;
 	}
 	
@@ -546,6 +597,10 @@ public class FindDuplicatesDialog
 			if (matchSpec.get(MatchCriteria.ARTIST.ordinal()) == true)
 			{
 				result.append(StringConstants.FIND_DUPLICATES_ARTIST);
+			}
+			else if (matchSpec.get(MatchCriteria.NOT_ARTIST.ordinal()) == true)
+			{
+				result.append(StringConstants.FIND_DUPLICATES_NOT_ARTIST);
 			}
 			
 			if (matchSpec.get(MatchCriteria.ALBUM.ordinal()) == true)
@@ -633,6 +688,9 @@ public class FindDuplicatesDialog
 		duplicatesSpecArtistCheckbox = 
         		(Checkbox)dialogSerializer.getNamespace().get("duplicatesSpecArtistCheckbox");
 		components.add(duplicatesSpecArtistCheckbox);
+		duplicatesSpecNotArtistCheckbox = 
+        		(Checkbox)dialogSerializer.getNamespace().get("duplicatesSpecNotArtistCheckbox");
+		components.add(duplicatesSpecNotArtistCheckbox);
 		duplicatesSpecAlbumCheckbox = 
         		(Checkbox)dialogSerializer.getNamespace().get("duplicatesSpecAlbumCheckbox");
 		components.add(duplicatesSpecAlbumCheckbox);

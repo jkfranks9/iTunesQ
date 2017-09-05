@@ -38,6 +38,8 @@ public class StringConstants
 	 */
 	public static final String ALERT_FILTER_ERROR = 
 			"Filter error: ";
+	public static final String ALERT_FILTER_TOO_FEW_ROWS = 
+			"You need at least one filter row.";
 	public static final String ALERT_LOG_HISTORY_VALUE = 
 			"You must specify a positive numeric value for the log history.";
 	public static final String ALERT_NO_FILE_SELECTED = 
@@ -54,6 +56,10 @@ public class StringConstants
 			"Playlist name '";
 	public static final String ALERT_PLAYLIST_INVALID_NAME_2 = 
 			"' is not valid.";
+	public static final String ALERT_PLAYLIST_PREFS_TOO_FEW_ROWS = 
+			"You need at least one playlist preference row.";
+	public static final String ALERT_PLAYLIST_TOO_FEW_ROWS = 
+			"You need at least two rows for playlist comparison.";
 	public static final String ALERT_XML_FILE_ERROR = 
 			"Unable to read and process XML file: ";
 
@@ -70,6 +76,8 @@ public class StringConstants
 			"Exact Match";
 	public static final String FIND_DUPLICATES_KIND = 
 			"Same Kind";
+	public static final String FIND_DUPLICATES_NOT_ARTIST = 
+			"Different Artist";
 	public static final String FIND_DUPLICATES_RATING = 
 			"Same Rating";
 	public static final String FIND_DUPLICATES_SHOW = 

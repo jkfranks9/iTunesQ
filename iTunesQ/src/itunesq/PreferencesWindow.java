@@ -1427,11 +1427,24 @@ public class PreferencesWindow
                     logger.info("minus button pressed for playlist pref index " + playlistPrefsRowIndex);
                     
                     /*
-                     * Remove the table row.
+                     * Get the number of rows and make sure we don't go below one row.
                      */
-                    bypassPrefsTablePane.getRows().remove(playlistPrefsRowIndex, 1);
-                	
-                	preferencesSheet.repaint();
+            		int numRows = tablePane.getRows().getLength();
+            		if (numRows <= 1)
+            		{
+        				Alert.alert(MessageType.ERROR,
+            					StringConstants.ALERT_PLAYLIST_PREFS_TOO_FEW_ROWS, component.getWindow());
+            		}
+            		else
+            		{
+                    
+            			/*
+            			 * Remove the table row.
+            			 */
+            			bypassPrefsTablePane.getRows().remove(playlistPrefsRowIndex, 1);
+
+            			preferencesSheet.repaint();
+            		}
             	}
  
                 return false;
@@ -1612,11 +1625,24 @@ public class PreferencesWindow
                     logger.info("minus button pressed for playlist pref index " + playlistPrefsRowIndex);
                     
                     /*
-                     * Remove the table row.
+                     * Get the number of rows and make sure we don't go below one row.
                      */
-                    ignoredPrefsTablePane.getRows().remove(playlistPrefsRowIndex, 1);
-                	
-                	preferencesSheet.repaint();
+            		int numRows = tablePane.getRows().getLength();
+            		if (numRows <= 1)
+            		{
+        				Alert.alert(MessageType.ERROR,
+            					StringConstants.ALERT_PLAYLIST_PREFS_TOO_FEW_ROWS, component.getWindow());
+            		}
+            		else
+            		{
+                    
+            			/*
+            			 * Remove the table row.
+            			 */
+            			ignoredPrefsTablePane.getRows().remove(playlistPrefsRowIndex, 1);
+
+            			preferencesSheet.repaint();
+            		}
             	}
  
                 return false;

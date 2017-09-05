@@ -199,13 +199,13 @@ public class QueryPlaylistsWindow
             	}
             	
             	/*
-            	 * Display tracks included in all specified playlists.
+            	 * Display tracks included in some specified playlists.
             	 */
             	if (good2Go == true)
             	{
                 	try
                 	{
-						displayComparedPlaylistTracks(display, CompareType.ALL);
+						displayComparedPlaylistTracks(display, CompareType.SOME);
 					}
                 	catch (IOException | SerializationException e)
                 	{
@@ -238,13 +238,13 @@ public class QueryPlaylistsWindow
             	}
             	
             	/*
-            	 * Display tracks included in all specified playlists.
+            	 * Display tracks included in one of the specified playlists.
             	 */
             	if (good2Go == true)
             	{
                 	try
                 	{
-						displayComparedPlaylistTracks(display, CompareType.ALL);
+						displayComparedPlaylistTracks(display, CompareType.ONE);
 					}
                 	catch (IOException | SerializationException e)
                 	{
@@ -517,24 +517,36 @@ public class QueryPlaylistsWindow
                     uiLogger.info("minus button pressed for playlist index " + playlistRowIndex);
                     
                     /*
-                     * Remove the table row.
+                     * Get the number of rows and make sure we don't go below two rows.
                      */
-                    compareTablePane.getRows().remove(playlistRowIndex, 1);
-            		
-            		/*
-            		 * Enable or disable the 'some' button based on the current number of table rows.
-            		 */
             		int numRows = tablePane.getRows().getLength();
-            		if (numRows >= 3)
+            		if (numRows <= 2)
             		{
-            			showSomeButton.setEnabled(true);
+        				Alert.alert(MessageType.ERROR,
+            					StringConstants.ALERT_PLAYLIST_TOO_FEW_ROWS, component.getWindow());
             		}
             		else
             		{
-            			showSomeButton.setEnabled(false);
+                    
+            			/*
+            			 * Remove the table row.
+            			 */
+            			compareTablePane.getRows().remove(playlistRowIndex, 1);
+
+            			/*
+            			 * Enable or disable the 'some' button based on the current number of table rows.
+            			 */
+            			if (numRows >= 3)
+            			{
+            				showSomeButton.setEnabled(true);
+            			}
+            			else
+            			{
+            				showSomeButton.setEnabled(false);
+            			}
+
+            			queryPlaylistsWindow.repaint();
             		}
-                	
-                    queryPlaylistsWindow.repaint();
             	}
  
                 return false;

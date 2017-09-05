@@ -35,8 +35,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that handles the display tracks window. This window shows all tracks
- * or a set of tracks resulting from a query.
+ * Class that handles the display tracks window. This window shows all tracks,
+ * a set of tracks resulting from a query, or duplicate tracks.
  * 
  * @author Jon
  *
@@ -85,7 +85,7 @@ public class TracksWindow
 		/**
 		 * Gets the display value.
 		 * 
-		 * @return <code>enum</code> display value
+		 * @return enum display value
 		 */
 		public String getDisplayValue ()
 		{

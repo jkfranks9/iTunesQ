@@ -80,7 +80,7 @@ public class Filter
 		/**
 		 * Gets the display value.
 		 * 
-		 * @return <code>enum</code> display value
+		 * @return enum display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -88,10 +88,11 @@ public class Filter
 		}
 		
 		/**
-		 * Reverse lookup the <code>enum</code> from the display value.
+		 * Performs a reverse lookup of the <code>enum</code> from the display
+		 * value.
 		 * 
 		 * @param value display value to look up
-		 * @return <code>enum</code> value
+		 * @return enum value
 		 */
 		public static Logic getEnum(String value)
 		{
@@ -161,7 +162,7 @@ public class Filter
 		/**
 		 * Gets the display value.
 		 * 
-		 * @return <code>enum</code> display value
+		 * @return enum display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -169,10 +170,11 @@ public class Filter
 		}
 		
 		/**
-		 * Reverse lookup the <code>enum</code> from the display value.
+		 * Performs a reverse lookup of the <code>enum</code> from the display
+		 * value.
 		 * 
 		 * @param value display value to look up
-		 * @return <code>enum</code> value
+		 * @return enum value
 		 */
 		public static Subject getEnum(String value)
 		{
@@ -236,7 +238,7 @@ public class Filter
 		/**
 		 * Gets the display value.
 		 * 
-		 * @return <code>enum</code> display value
+		 * @return enum display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -244,10 +246,11 @@ public class Filter
 		}
 		
 		/**
-		 * Reverse lookup the <code>enum</code> from the display value.
+		 * Performs a reverse lookup of the <code>enum</code> from the display
+		 * value.
 		 * 
 		 * @param value display value to look up
-		 * @return <code>enum</code> value
+		 * @return enum value
 		 */
 		public static Operator getEnum(String value)
 		{
@@ -359,7 +362,7 @@ public class Filter
 	/**
 	 * Gets the list of logic <code>enum</code> values.
 	 * 
-	 * @return logic <code>enum</code> value list
+	 * @return logic enum value list
 	 */
 	public static List<String> getLogicLabels ()
 	{
@@ -376,7 +379,7 @@ public class Filter
 	/**
 	 * Gets the list of subject <code>enum</code> values.
 	 * 
-	 * @return subject <code>enum</code> value list
+	 * @return subject enum value list
 	 */
 	public static List<String> getSubjectLabels ()
 	{
@@ -393,7 +396,7 @@ public class Filter
 	/**
 	 * Gets the list of operator <code>enum</code> values.
 	 * 
-	 * @return operator <code>enum</code> value list
+	 * @return operator enum value list
 	 */
 	public static List<String> getOperatorLabels ()
 	{

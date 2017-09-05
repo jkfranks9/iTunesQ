@@ -8,6 +8,7 @@ import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
+import org.apache.pivot.collections.Sequence;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.wtk.Alert;
 import org.apache.pivot.wtk.Border;
@@ -476,9 +477,86 @@ public class FiltersWindow
             		TablePane tablePane = (TablePane) parent;
                     int filterRowIndex = tablePane.getRowAt(minusButtonYCoordinate);
                     uiLogger.info("minus button pressed for filter index " + filterRowIndex);
-                	filterTablePane.getRows().remove(filterRowIndex, 1);
-                	
-                	filtersWindow.repaint();
+                    
+                    /*
+                     * Get the number of rows and make sure we don't go below one row.
+                     */
+            		int numRows = tablePane.getRows().getLength();
+            		if (numRows <= 1)
+            		{
+        				Alert.alert(MessageType.ERROR,
+            					StringConstants.ALERT_FILTER_TOO_FEW_ROWS, component.getWindow());
+            		}
+            		else
+            		{
+                    
+            			/*
+            			 * Remove the table row.
+            			 */
+            			Sequence<TablePane.Row> removedRows = 
+            					filterTablePane.getRows().remove(filterRowIndex, 1);
+
+            			/*
+            			 * Get the remaining rows.
+            			 */
+            			Sequence<TablePane.Row> remainingRows = filterTablePane.getRows();
+
+            			/*
+            			 * Get the new number of rows.
+            			 */
+            			numRows = remainingRows.getLength();
+
+            			/*
+            			 * If we didn't remove the last row in the table, we need to check if the
+            			 * one we removed contained a logic spinner.
+            			 */
+            			if (numRows > filterRowIndex)
+            			{
+
+            				/*
+            				 * Get the removed row from the sequence (of 1) that we removed.
+            				 */
+            				TablePane.Row removedRow = removedRows.get(0);
+
+            				/*
+            				 * Get the first component on the row, which is a spinner or a filler.
+            				 */
+            				Component spinnerOrFiller = removedRow.get(0);
+
+            				/*
+            				 * Continue if we removed a row with a spinner.
+            				 */
+            				if (spinnerOrFiller instanceof Spinner)
+            				{
+            					Spinner removedSpinner = (Spinner)spinnerOrFiller;
+
+            					/*
+            					 * Get the row after the one we removed, which is at the same row
+            					 * index, then get its spinner or filler.
+            					 */
+            					TablePane.Row successiveRow = remainingRows.get(filterRowIndex);
+            					spinnerOrFiller = successiveRow.get(0);
+
+            					/*
+            					 * If the successive row contains a filler, then update it with the
+            					 * logic spinner from the row we removed.
+            					 */
+            					if (spinnerOrFiller instanceof TablePane.Filler)
+            					{
+            						successiveRow.update(0, removedSpinner);
+
+            						/*
+            						 * Pivot doesn't support update (contradicting their doc), so
+            						 * we have to remove then insert the updated row.
+            						 */
+            						remainingRows.remove(successiveRow);
+            						remainingRows.insert(successiveRow, filterRowIndex);
+            					}
+            				}
+            			}
+
+            			filtersWindow.repaint();
+            		}
             	}
  
                 return false;

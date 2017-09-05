@@ -11,7 +11,7 @@ import ch.qos.logback.classic.Logger;
 /**
  * Class that performs various operations on a collection of playlists.
  * <p>
- * This is a final class consisting entirely of <code>static</code> methods.
+ * This is a final class consisting entirely of static methods.
  * 
  * @author Jon
  *

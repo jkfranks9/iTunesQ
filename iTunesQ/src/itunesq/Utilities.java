@@ -14,7 +14,7 @@ import org.jdom2.JDOMException;
 /**
  * Class that contains various useful utility methods.
  * <p>
- * This is a final class consisting entirely of <code>static</code> methods.
+ * This is a final class consisting entirely of static methods.
  * 
  * @author Jon
  *

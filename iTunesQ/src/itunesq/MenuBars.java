@@ -48,7 +48,7 @@ public class MenuBars extends Frame implements Bindable
 	 * Attributes of a display window.
 	 * <p>
 	 * When we display a list of tracks that result from some type of query, 
-	 * the File ... Save menu is enabled. This is handled by the 
+	 * the File {@literal ->} Save menu is enabled. This is handled by the 
 	 * <code>FileSaveDialog</code> class. That class in turn needs to gather 
 	 * the list of resulting tracks, and so needs the associated window 
 	 * handler, which should always be of type <code>TracksWindow</code>. It 
@@ -59,7 +59,7 @@ public class MenuBars extends Frame implements Bindable
 	 * attributes on the window represented by this class. 
 	 * <p>
 	 * The attributes are set by the <code>TracksWindow</code> class, 
-	 * and then obtained by the <code>FileSaveDialog class</code>.
+	 * and then obtained by the <code>FileSaveDialog</code> class.
 	 */
 	public static enum WindowAttributes
 	{

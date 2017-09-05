@@ -52,8 +52,8 @@ import itunesq.TracksWindow.QueryType;
 /**
  * Class that handles the file save dialog. This dialog is available from the
  * File {@literal ->} Save menu on a page showing the results of a track or 
- * playlist query. This dialog allows the user to save or print the query 
- * results.
+ * playlist query, or a list of duplicate tracks. This dialog allows the user
+ * to save or print the query results.
  * 
  * @author Jon
  *
@@ -220,9 +220,15 @@ public class FileSaveDialog
         fileSaveTablePane.setPreferredWidth(InternalConstants.FILE_SAVE_DIALOG_WIDTH);
         
         /*
-         * Set the size of the text input for the file name.
+         * Set the size of the text input for the file name, and populate it with the user's
+         * home directory.
+         * 
+         * NOTE: It would be nice to use a file chooser dialog to make it easier to select a 
+         * file, but Pivot's does not let you create a new file, and Java's file chooser requires
+         * java.awt.Component in order to open the dialog, which Pivot does not use.
          */
         fileSaveDetailsTextInput.setTextSize(InternalConstants.FILE_SAVE_FILENAME_TEXT_SIZE);
+        fileSaveDetailsTextInput.setText(System.getProperty("user.home"));
         
         /*
          * Add widget texts.

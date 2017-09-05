@@ -39,6 +39,7 @@
                    				orientation="horizontal"
                        			styles="{spacing:5, padding:3, verticalAlignment:'center'}">
                					<Checkbox bxml:id="duplicatesSpecArtistCheckbox"/>
+               					<Checkbox bxml:id="duplicatesSpecNotArtistCheckbox"/>
                					<Checkbox bxml:id="duplicatesSpecAlbumCheckbox"/>
                					<Checkbox bxml:id="duplicatesSpecKindCheckbox"/>
                					<Checkbox bxml:id="duplicatesSpecDurationCheckbox"/>

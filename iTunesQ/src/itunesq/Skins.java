@@ -313,7 +313,7 @@ public class Skins
 		FILESAVE(StringConstants.SKIN_WINDOW_FILESAVE),
 		
 		/**
-		 * file save window
+		 * find duplicates window
 		 */
 		FINDDUPLICATES(StringConstants.SKIN_WINDOW_FINDDUPS);
 		
@@ -330,7 +330,7 @@ public class Skins
 		/**
 		 * Gets the display value.
 		 * 
-		 * @return <code>enum</code> display value
+		 * @return enum display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -338,10 +338,11 @@ public class Skins
 		}
 		
 		/**
-		 * Reverse lookup the <code>enum</code> from the display value.
+		 * Performs a reverse lookup of the <code>enum</code> from the display
+		 * value.
 		 * 
 		 * @param value display value to look up
-		 * @return <code>enum</code> value
+		 * @return enum value
 		 */
 		public static Window getEnum(String value)
 		{

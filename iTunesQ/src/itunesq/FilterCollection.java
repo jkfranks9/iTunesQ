@@ -98,7 +98,7 @@ public class FilterCollection
 	/**
 	 * Gets the result list of displayable tracks.
 	 * 
-	 * @return list of filtered tracks in <code>setTableData</code> format
+	 * @return list of filtered tracks as a list
 	 */
 	public List<Track> getFilteredTracks ()
 	{

@@ -140,7 +140,7 @@ public final class Preferences implements Serializable
     //---------------- Getters and setters ---------------------------------
 	
 	/**
-	 * Gets the XML File name preference.
+	 * Gets the XML file name preference.
 	 * 
 	 * @return XML file name
 	 */
@@ -150,7 +150,7 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
-	 * Sets the XML File name preference.
+	 * Sets the XML file name preference.
 	 * 
 	 * @param xmlFile XML file name
 	 */
@@ -212,7 +212,7 @@ public final class Preferences implements Serializable
 	/**
 	 * Sets the list of duplicate tracks column preferences.
 	 * 
-	 * @param trackColumnsFullView list of duplicate tracks column preferences
+	 * @param trackColumnsDuplicatesView list of duplicate tracks column preferences
 	 */
 	public void setTrackColumnsDuplicatesView(List<List<String>> trackColumnsDuplicatesView)
 	{

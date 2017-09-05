@@ -110,7 +110,7 @@ public class Logging
 		/**
 		 * Gets the display value.
 		 * 
-		 * @return <code>enum</code> display value
+		 * @return enum display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -138,10 +138,11 @@ public class Logging
 		}
 		
 		/**
-		 * Reverse lookup the <code>enum</code> from the display value.
+		 * Performs a reverse lookup of the <code>enum</code> from the display
+		 * value.
 		 * 
 		 * @param value display value to look up
-		 * @return <code>enum</code> value
+		 * @return enum value
 		 */
 		public static Dimension getEnum(String value)
 		{

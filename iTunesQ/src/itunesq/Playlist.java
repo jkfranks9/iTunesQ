@@ -9,12 +9,12 @@ import org.apache.pivot.collections.List;
  * Note that there are three types of playlists:
  * <ol>
  * <li>Top level folder that contains other folders or playlists. This is 
- * indicated by <code>plIsFolder</code> equal to <code>true</code> but no 
- * <code>plParentPersistentID</code> value.</li>
+ * indicated by the playlist folder indicator equal to <code>true</code> but 
+ * no parent persistent ID value.</li>
  * <li>Intermediate folder that contains other folders or playlists. This is 
- * indicated by <code>plIsFolder</code> equal to <code>true</code> along with
- * a <code>plParentPersistentID</code> value.</li>
- * <li>Non-folder playlist. This is indicated by <code>plIsFolder</code> 
+ * indicated by the playlist folder indicator equal to <code>true</code> along
+ * with a parent persistent ID value.</li>
+ * <li>Non-folder playlist. This is indicated by the playlist folder indicator 
  * equal to <code>false</code>.
  * </ol>
  * 

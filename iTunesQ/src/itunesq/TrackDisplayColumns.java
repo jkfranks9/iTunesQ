@@ -21,7 +21,7 @@ import org.apache.pivot.wtk.TableView;
  * <li>Playlist - tracks that are displayed for a given playlist</li>
  * </ul>
  * <p>
- * There are default values of each of these column sets, but they can be 
+ * There are default values for each of these column sets, but they can be 
  * changed with user preferences.
  * 
  * @author Jon
@@ -142,7 +142,7 @@ public class TrackDisplayColumns
 		/**
 		 * Gets the display value.
 		 * 
-		 * @return <code>enum</code> display value
+		 * @return enum display value
 		 */
 		public String getDisplayValue ()
 		{
@@ -150,10 +150,11 @@ public class TrackDisplayColumns
 		}
 		
 		/**
-		 * Reverse lookup the <code>enum</code> from the display value.
+		 * Performs a reverse lookup of the <code>enum</code> from the display
+		 * value.
 		 * 
 		 * @param value display value to look up
-		 * @return <code>enum</code> value
+		 * @return enum value
 		 */
 		public static ColumnNames getEnum(String value)
 		{
@@ -186,7 +187,7 @@ public class TrackDisplayColumns
 		FULL_VIEW(),
 		
 		/**
-		 * full list of tracks
+		 * list of duplicate tracks
 		 */
 		DUPLICATES_VIEW(),
 		
@@ -236,7 +237,7 @@ public class TrackDisplayColumns
 		/**
 		 * Gets the names list.
 		 * 
-		 * @return <code>enum</code> names list
+		 * @return enum names list
 		 */
 		public List<String> getNamesList ()
 		{
@@ -246,7 +247,7 @@ public class TrackDisplayColumns
 		/**
 		 * Gets the widths list.
 		 * 
-		 * @return <code>enum</code> widths list
+		 * @return enum widths list
 		 */
 		public List<String> getWidthsList ()
 		{
