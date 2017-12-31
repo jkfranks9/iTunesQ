@@ -722,7 +722,9 @@ public class PreferencesWindow
             		prefsUpdated = true;
             		
             		List<String> ignoredPrefs = collectIgnoredPrefs();
+            		List<String> currentIgnoredPrefs = new ArrayList<String>(userPrefs.getIgnoredPrefs());
             		userPrefs.replaceIgnoredPrefs(ignoredPrefs);
+            		PlaylistCollection.modifyIgnoredPlaylists(currentIgnoredPrefs, ignoredPrefs);
             	}
             	
             	if (fullTrackColumnsUpdated == true)

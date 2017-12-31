@@ -33,7 +33,9 @@ public class Playlist
 	static
 	{
 		List<String> result = new ArrayList<String>();
+		result.add("Audiobooks");
 		result.add("Books");
+		result.add("Downloaded");
 		result.add("iTunes U");
 		result.add("Library");
 		result.add("Movies");
@@ -53,6 +55,7 @@ public class Playlist
 	private String plPersistentID;
 	private String plParentPersistentID;
 	private boolean plIsFolder;
+	private int plFolderContentCount;
 	private List<Integer> plTracks;
 	
 	private boolean plIgnored;
@@ -151,6 +154,19 @@ public class Playlist
 	}
 	
 	/**
+	 * Gets the playlist folder content count.
+	 * 
+	 * For a folder playlist, this is the number of playlists in the folder.
+	 * This is unused for a non-folder playlist.
+	 * 
+	 * @return number of playlists in this folder
+	 */
+	public Integer getFolderContentCount ()
+	{
+		return plFolderContentCount;
+	}
+	
+	/**
 	 * Gets the playlist tracks.
 	 * 
 	 * @return playlist tracks
@@ -211,6 +227,14 @@ public class Playlist
 	}
 
     //---------------- Public methods --------------------------------------
+	
+	/**
+	 * Increments the folder content count.
+	 */
+	public void incrementFolderContentCount ()
+	{
+		this.plFolderContentCount++;
+	}
 
 	/**
 	 * Compares a given persistent ID to this persistent ID.

@@ -2,6 +2,7 @@ package itunesq;
 
 import java.util.Iterator;
 
+import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,125 @@ public final class PlaylistCollection
 	public static void initializeLogging ()
 	{
 		logging.registerLogger(Logging.Dimension.PLAYLIST, logger);
+	}
+	
+	/**
+	 * Modifies the ignored status for all playlists according to the 
+	 * preferences. This is called if the ignored preferences are changed.
+	 * 
+	 * @param prevIgnoredPlaylists list of ignored playlists before being 
+	 * changed
+	 * @param newIgnoredPlaylists list of ignored playlists after being
+	 * changed
+	 */
+	public static void modifyIgnoredPlaylists (List<String> prevIgnoredPlaylists,
+			List<String> newIgnoredPlaylists)
+	{
+    	logger.trace("modifyIgnoredPlaylists");
+		
+		/*
+		 * Make a difference list of added and removed ignored playlists. All we need are the playlist
+		 * names, because we're called after the preferences have been updated, so can use the 
+		 * preferences to determine whether or not the playlist in question is being ignored.
+		 */
+		List<String> ignoredDiffs = new ArrayList<String>();
+		
+		/*
+		 * First, loop through the previous list. If a playlist is also contained in the new list,
+		 * remove it from there. Otherwise, create an entry in the difference list for the removed
+		 * playlist.
+		 */
+		Iterator<String> prevIgnoredPlaylistsIter = prevIgnoredPlaylists.iterator();
+		while (prevIgnoredPlaylistsIter.hasNext())
+		{
+			String prevIgnoredPlaylist = prevIgnoredPlaylistsIter.next();
+			if (newIgnoredPlaylists.indexOf(prevIgnoredPlaylist) != -1)
+			{
+				newIgnoredPlaylists.remove(prevIgnoredPlaylist);
+			}
+			else
+			{
+				ignoredDiffs.add(prevIgnoredPlaylist);
+			}
+		}
+		
+		/*
+		 * Any playlists still in the new list represent added playlists, so create entries in the
+		 * difference list to represent them.
+		 */
+		Iterator<String> newIgnoredPlaylistsIter = newIgnoredPlaylists.iterator();
+		while (newIgnoredPlaylistsIter.hasNext())
+		{
+			String newIgnoredPlaylist = newIgnoredPlaylistsIter.next();
+			ignoredDiffs.add(newIgnoredPlaylist);
+		}
+        
+        /*
+         * Get the preferences object instance.
+         */
+        Preferences prefs = Preferences.getInstance();
+		
+		/*
+		 * Walk through all playlists.
+		 */
+		Map<String, Playlist> playlists = XMLHandler.getPlaylists();
+        Iterator<String> playlistsIter = playlists.iterator();
+        while (playlistsIter.hasNext())
+        {
+        	String playlistKey = playlistsIter.next();
+        	Playlist playlistObj = playlists.get(playlistKey);
+        	String playlistName = playlistObj.getName();
+        	
+        	/*
+        	 * We only want to process playlists in the difference list.
+        	 */
+
+        	if (ignoredDiffs.indexOf(playlistName) == -1)
+        	{
+        		continue;
+        	}
+        	
+        	/*
+        	 * Set or reset the ignored flag.
+        	 */
+        	boolean playlistIgnored = isPlaylistIgnored(playlistName);
+    		playlistObj.setIgnored(playlistIgnored);
+    		
+    		/*
+    		 * Add or remove the playlist from the list of playlist names, so typing assistance will
+    		 * function properly.
+    		 * 
+    		 * Also, increment or decrement the number of ignored playlists accordingly.
+    		 */
+    		boolean playlistCountModified = false;
+    		
+    		if (playlistIgnored == true)
+    		{
+    			XMLHandler.removePlaylistName(playlistName);
+    			if (playlistObj.getIsFolder() == true)
+    			{
+    				XMLHandler.incrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
+    				playlistCountModified = true;
+    			}
+    		}
+    		else
+    		{
+    			XMLHandler.addPlaylistName(playlistName);
+    			if (playlistObj.getIsFolder() == true)
+    			{
+        			XMLHandler.decrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
+    				playlistCountModified = true;
+    			}
+    		}
+    		
+    		/*
+    		 * Update the main window playlist count if it has been modified.
+    		 */
+    		if (playlistCountModified == true)
+    		{
+    			Utilities.updateMainWindowLabels(prefs.getXMLFileName());
+    		}
+        }
 	}
 	
 	/**
@@ -71,6 +191,37 @@ public final class PlaylistCollection
     	}
     	
 		return result;
+	}
+	
+	/**
+	 * Sets the playlist folder content count for all folder playlists. 
+	 * 
+	 * This indicates the number of playlists contained in a folder. We need
+	 * this so that the number of playlists can be properly adjusted if folder
+	 * playlists are dynamically added to or removed from the ignored list.
+	 */
+	public static void setPlaylistFolderCounts ()
+	{
+    	logger.trace("setPlaylistFolderCounts");
+		
+		/*
+		 * Walk through all playlists.
+		 */
+		Map<String, Playlist> playlists = XMLHandler.getPlaylists();
+        Iterator<String> playlistsIter = playlists.iterator();
+        while (playlistsIter.hasNext())
+        {
+        	String playlistKey = playlistsIter.next();
+        	Playlist playlistObj = playlists.get(playlistKey);
+
+    		String parentID;
+    		Playlist parentPlaylistObj;
+    		if ((parentID = playlistObj.getParentPersistentID()) != null)
+    		{
+    			parentPlaylistObj = playlists.get(parentID);
+    			parentPlaylistObj.incrementFolderContentCount();
+    		}
+        }
 	}
 	
 	/**

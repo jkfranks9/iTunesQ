@@ -182,79 +182,95 @@ public final class PlaylistTree
 		 */
 		Playlist parent = playlists.get(playlistObj.getParentPersistentID());
 		
-		/*
-		 * If the parent itself also has a parent, recurse. Upon return, the intermediate
-		 * parent has been added to its parent. Update the search branch to be that of 
-		 * the intermediate parent so we can add this playlist to the intermediate parent.
-		 */
-		if (parent.getParentPersistentID() != null)
-		{
-			logger.debug("recursing for playlist '" + playlistObj.getName() + "'");
-        	searchBranch = addOrUpdateParent(searchBranch, parent);
-		}
+		TreeBranch parentBranch = null;
 		
 		/*
-		 * Create a node or branch to represent this playlist and a branch to represent the parent.
+		 * Only continue if the parent is not ignored.
 		 */
-		TreeNode node;
-		if (playlistObj.getIsFolder() == false)
+		if (parent.getIgnored() == false)
 		{
-			node = new TreeNode(playlistObj.getName());
-		}
-		else
-		{
-			node = new TreeBranch(playlistObj.getName());
-		}
-		node.setUserData(playlistObj.getPersistentID());
-		TreeBranch parentBranch = new TreeBranch(parent.getName());
-		parentBranch.setUserData(parent.getPersistentID());
 		
-		/*
-		 * If the parent branch does not exist in the search branch, then add it.
-		 */
-		int parentIndex = indexOfBranchParent(searchBranch, parentBranch);
-		if (parentIndex == -1)
-		{
-			logger.debug("adding playlist '" + playlistObj.getName() + "'");
-    		parentBranch.add(node);
-			logger.debug("adding parent playlist '" + parent.getName() + "'");
-    		searchBranch.add(parentBranch);
-		}
-		
-		/*
-		 * The parent exists in the search branch.
-		 */
-		else
-		{
-			
 			/*
-			 * Get the parent branch.
+			 * If the parent itself also has a parent, recurse. Upon return, the intermediate
+			 * parent has been added to its parent. Update the search branch to be that of 
+			 * the intermediate parent so we can add this playlist to the intermediate parent.
 			 */
-			parentBranch = (TreeBranch) searchBranch.get(parentIndex);
-			
-			/*
-			 * If the playlist node we're working on is a folder, then we only want to add it 
-			 * to the parent if it doesn't already exist.
-			 */
-			if (node instanceof TreeBranch)
+			if (parent.getParentPersistentID() != null)
 			{
-				int nodeIndex = indexOfBranchParent(parentBranch, (TreeBranch) node);
-				if (nodeIndex == -1)
-				{
-        			logger.debug("adding playlist '" + playlistObj.getName() + "'");
-					parentBranch.add(node);
-					parentBranch.setComparator(new TreeNodeComparator());
-				}
+				logger.debug("recursing for playlist '" + playlistObj.getName() + "'");
+				searchBranch = addOrUpdateParent(searchBranch, parent);
 			}
 			
 			/*
-			 * Just add a vanilla playlist.
+			 * A null search branch means we found a parent that is ignored, meaning we're done.
 			 */
-			else
+			if (searchBranch != null)
 			{
-    			logger.debug("adding playlist '" + playlistObj.getName() + "'");
-				parentBranch.add(node);
-				parentBranch.setComparator(new TreeNodeComparator());
+
+				/*
+				 * Create a node or branch to represent this playlist and a branch to represent the parent.
+				 */
+				TreeNode node;
+				if (playlistObj.getIsFolder() == false)
+				{
+					node = new TreeNode(playlistObj.getName());
+				}
+				else
+				{
+					node = new TreeBranch(playlistObj.getName());
+				}
+				node.setUserData(playlistObj.getPersistentID());
+				parentBranch = new TreeBranch(parent.getName());
+				parentBranch.setUserData(parent.getPersistentID());
+
+				/*
+				 * If the parent branch does not exist in the search branch, then add it.
+				 */
+				int parentIndex = indexOfBranchParent(searchBranch, parentBranch);
+				if (parentIndex == -1)
+				{
+					logger.debug("adding playlist '" + playlistObj.getName() + "'");
+					parentBranch.add(node);
+					logger.debug("adding parent playlist '" + parent.getName() + "'");
+					searchBranch.add(parentBranch);
+				}
+
+				/*
+				 * The parent exists in the search branch.
+				 */
+				else
+				{
+
+					/*
+					 * Get the parent branch.
+					 */
+					parentBranch = (TreeBranch) searchBranch.get(parentIndex);
+
+					/*
+					 * If the playlist node we're working on is a folder, then we only want to add it 
+					 * to the parent if it doesn't already exist.
+					 */
+					if (node instanceof TreeBranch)
+					{
+						int nodeIndex = indexOfBranchParent(parentBranch, (TreeBranch) node);
+						if (nodeIndex == -1)
+						{
+							logger.debug("adding playlist '" + playlistObj.getName() + "'");
+							parentBranch.add(node);
+							parentBranch.setComparator(new TreeNodeComparator());
+						}
+					}
+
+					/*
+					 * Just add a vanilla playlist.
+					 */
+					else
+					{
+						logger.debug("adding playlist '" + playlistObj.getName() + "'");
+						parentBranch.add(node);
+						parentBranch.setComparator(new TreeNodeComparator());
+					}
+				}
 			}
 		}
 		

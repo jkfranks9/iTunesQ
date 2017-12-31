@@ -82,6 +82,11 @@ public final class XMLHandler
 	 */
 	private static ArrayList<String> ArtistNames = null;
 	
+	/*
+	 * Number of ignored playlists.
+	 */
+	private static Integer PlaylistIgnoredCount = 0;
+	
     //---------------- Private variables -----------------------------------
 
 	private static String className = XMLHandler.class.getSimpleName();
@@ -89,7 +94,6 @@ public final class XMLHandler
 	private static Logging logging = Logging.getInstance();
 	
 	private static Date XMLDate = null;
-	private static int playlistIgnoredCount = 0;
 	
 	/*
 	 * Static string definitions for the XML file.
@@ -179,6 +183,16 @@ public final class XMLHandler
 		return ArtistNames;
 	}
 	
+	/**
+	 * Gets the playlist ignored count.
+	 * 
+	 * @return playlist ignored count
+	 */
+	public static Integer getPlaylistIgnoredCount ()
+	{
+		return PlaylistIgnoredCount;
+	}
+	
     //---------------- Public methods --------------------------------------
 	
 	/**
@@ -207,7 +221,7 @@ public final class XMLHandler
 	 */
 	public static int getNumberOfPlaylists ()
 	{
-		return (Playlists != null) ? Playlists.getCount() - playlistIgnoredCount : 0;
+		return (Playlists != null) ? Playlists.getCount() - PlaylistIgnoredCount : 0;
 	}
 	
 	/**
@@ -228,6 +242,57 @@ public final class XMLHandler
 	public static String getXMLFileTimestamp ()
 	{
 		return (XMLDate != null) ? Utilities.formatDate(XMLDate) : "";
+	}
+	
+	/**
+	 * Adds a playlist name to the list of such names.
+	 * 
+	 * @param playlistName name of the playlist
+	 */
+	public static void addPlaylistName (String playlistName)
+	{
+		if (PlaylistNames.indexOf(playlistName) == -1)
+		{
+			PlaylistNames.add(playlistName);
+		}
+	}
+	
+	/**
+	 * Removes a playlist name to the list of such names.
+	 * 
+	 * @param playlistName name of the playlist
+	 */
+	public static void removePlaylistName (String playlistName)
+	{
+		PlaylistNames.remove(playlistName);
+	}
+	
+	/**
+	 * Increments the number of ignored playlists by a specified amount.
+	 * 
+	 * This is used when a folder playlist is dynamically removed from the
+	 * ignored list.
+	 * 
+	 * @param increment number of playlists contained in the folder removed
+	 * from the ignored list
+	 */
+	public static void incrementPlaylistIgnoredCount (Integer increment)
+	{
+		PlaylistIgnoredCount += increment;
+	}
+	
+	/**
+	 * Decrements the number of ignored playlists by a specified amount.
+	 * 
+	 * This is used when a folder playlist is dynamically added to the
+	 * ignored list.
+	 * 
+	 * @param decrement number of playlists contained in the folder added
+	 * to the ignored list
+	 */
+	public static void decrementPlaylistIgnoredCount (Integer decrement)
+	{
+		PlaylistIgnoredCount -= decrement;
 	}
 	
 	/**
@@ -386,6 +451,12 @@ public final class XMLHandler
 
         logger.info("gathering playlists");
         generatePlaylists(playlistsHolder);
+
+        /*
+         * Set the content count for all folder playlists, so that we can adjust the total number
+         * of playlists if a folder playlist is dynamically added to or removed from the ignored list.
+         */
+        PlaylistCollection.setPlaylistFolderCounts();
 
         /*
          * We don't want to update track playlist counts for bypassed playlists, identified 
@@ -677,7 +748,7 @@ public final class XMLHandler
 		/*
 		 * Reset the playlist ignored count, so it doesn't keep growing if we reread the XML file.
 		 */
-		playlistIgnoredCount = 0;
+		PlaylistIgnoredCount = 0;
 		
 		/*
 		 * Get a list of the XML playlists to work with.
@@ -751,7 +822,7 @@ public final class XMLHandler
     					if (PlaylistCollection.isPlaylistIgnored(plName))
     					{
     						playlistObj.setIgnored(true);
-    						playlistIgnoredCount++;
+    						incrementPlaylistIgnoredCount(1);
     					}
     					break;
 
@@ -812,7 +883,7 @@ public final class XMLHandler
         	 */
         	if (playlistObj.getIgnored() == false)
         	{
-        		PlaylistNames.add(playlistObj.getName());
+        		addPlaylistName(playlistObj.getName());
         	}
         }
 	}

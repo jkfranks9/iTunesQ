@@ -244,6 +244,8 @@ public class FilterCollection
 	 */
 	public String getFiltersAsString ()
 	{
+		logger.trace("getFiltersAsString: " + this.hashCode());
+		
 		StringBuilder result = new StringBuilder();
 		
 		/*
@@ -741,26 +743,27 @@ public class FilterCollection
 			break;
 			
 		case NAME:
-			String name = track.getKind();
+			String name = track.getName();
 			if (name == null)
 			{
 				break;
 			}
 			
 			/*
-			 * For a String value, we only support the IS and CONTAINS operators.
+			 * For a String value, we only support the IS and CONTAINS operators. Since this is the
+			 * track name, do a case-insensitive comparison.
 			 */
 			switch (filter.getFilterOperator())
 			{
 			case IS:
-				if (name.equals(filterText))
+				if (name.equalsIgnoreCase(filterText))
 				{
 					result = true;
 				}
 				break;
 				
 			case CONTAINS:
-				if (name.contains(filterText))
+				if (name.toLowerCase().contains(filterText.toLowerCase()))
 				{
 					result = true;
 				}
