@@ -253,6 +253,11 @@ public class StringConstants
 			"Select the columns you want to be displayed when "
         	+ "showing all tracks, filtered tracks, and the tracks shown for a "
         	+ "selected playlist.";
+	public static final String PREFS_SHOW_REMOTE_TRACKS = 
+			"Show remote tracks:";
+	public static final String PREFS_SHOW_REMOTE_TRACKS_TIP = 
+			"iTunes can include tracks that are only available in the cloud, "
+			+ "not in your local database. Check here to include such tracks.";
 	public static final String PREFS_TAB2_BUTTON = 
 			"Track Display";
 	public static final String PREFS_TAB2_RESET_TIP = 
@@ -424,6 +429,7 @@ public class StringConstants
 	public static final String TRACK_COLUMN_PLAYCOUNT  = "Play Count";
 	public static final String TRACK_COLUMN_RATING     = "Rating";
 	public static final String TRACK_COLUMN_RELEASED   = "Released";
+	public static final String TRACK_COLUMN_REMOTE     = "Remote";
 	public static final String TRACK_COLUMN_SAMPLERATE = "Sample Rate";
 	public static final String TRACK_COLUMN_SIZE       = "Size";
 	public static final String TRACK_COLUMN_YEAR       = "Year";

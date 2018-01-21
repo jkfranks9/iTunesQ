@@ -95,6 +95,8 @@ public final class XMLHandler
 	
 	private static Date XMLDate = null;
 	
+	private static Integer remoteTracksCount = 0;
+	
 	/*
 	 * Static string definitions for the XML file.
 	 */
@@ -204,13 +206,27 @@ public final class XMLHandler
 	}
 
 	/**
-	 * Gets the number of tracks found in the input XML file.
+	 * Gets the number of tracks found in the input XML file. This is reduced
+	 * by the number of remote tracks if <code>Show Remote Tracks</code> is
+	 * not checked in the user preferences.
 	 * 
 	 * @return number of tracks
 	 */
 	public static int getNumberOfTracks ()
 	{
-		return (Tracks != null) ? Tracks.getLength() : 0;
+		Preferences prefs = Preferences.getInstance();
+		int numTracks = 0;
+		
+		if (Tracks != null)
+		{
+			numTracks = Tracks.getLength();
+			if (prefs.getShowRemoteTracks() == false)
+			{
+				numTracks -= remoteTracksCount;
+			}
+		}
+		
+		return numTracks;
 	}
 
 	/**
@@ -482,6 +498,11 @@ public final class XMLHandler
 		logger.trace("generateTracks");
 		
 		/*
+		 * Reset the remote tracks count.
+		 */
+		remoteTracksCount = 0;
+		
+		/*
 		 * Get a list of the XML tracks to work with.
 		 */
         List<Element> tracksXML = javaListToPivotList(tracksHolder);
@@ -491,9 +512,11 @@ public final class XMLHandler
 		 * make sure it's sorted by track name.
 		 */
 		Tracks = new ArrayList<Track>();
-		Tracks.setComparator(new Comparator<Track>() {
+		Tracks.setComparator(new Comparator<Track>()
+		{
             @Override
-            public int compare(Track t1, Track t2) {
+            public int compare(Track t1, Track t2)
+            {
                 return t1.compareTo(t2);
             }
         });
@@ -648,6 +671,14 @@ public final class XMLHandler
 						case "Rating":
 							trackObj.setRating(nextIntValue(trackChildIter, keyValue));
 							break;
+
+						case "Track Type":
+							if (nextStringValue(trackChildIter, keyValue).equals("Remote"))
+							{
+								trackObj.setRemote(true);
+								remoteTracksCount++;
+							}
+							break;
 							
 						/*
 						 * We need to skip over the sibling element for all attributes we
@@ -664,17 +695,17 @@ public final class XMLHandler
     	    		}
     			}
         		
-        		/*
-        		 * Add the track to the duplicates map if necessary. We have to do this before
-        		 * adding it to the main tracks list, to avoid false duplicates.
-        		 */
+    			/*
+    			 * Add the track to the duplicates map if necessary. We have to do this before
+    			 * adding it to the main tracks list, to avoid false duplicates.
+    			 */
     			int index = ArrayList.binarySearch(Tracks, trackObj, Tracks.getComparator());
     			if (index >= 0)
     			{
     				List<Integer> trackIDs;
     				String trackName = trackObj.getName();
     				int thisID = trackObj.getID();
-    				
+
     				if ((trackIDs = DuplicatesMap.get(trackName)) == null)
     				{
     					trackIDs = new ArrayList<Integer>();
@@ -685,15 +716,15 @@ public final class XMLHandler
     				}
     				trackIDs.add(thisID);
     				logger.debug("added track ID " + thisID + " to track '" + trackName + "'");
-    				
+
     				DuplicatesMap.put(trackName, trackIDs);
     			}
-    			
+
     			/*
     			 * Add the track object to the list.
     			 */
     			Tracks.add(trackObj);
-    	    	logger.debug("found track ID " + ID + ", name '" + trackObj.getName() + "'");
+    			logger.debug("found track ID " + ID + ", name '" + trackObj.getName() + "'");
     		}
     		else
     		{

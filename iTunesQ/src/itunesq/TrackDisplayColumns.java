@@ -127,7 +127,12 @@ public class TrackDisplayColumns
 		/**
 		 * rating from 0 to 5
 		 */
-		RATING(StringConstants.TRACK_COLUMN_RATING);
+		RATING(StringConstants.TRACK_COLUMN_RATING),
+		
+		/**
+		 * remote track indicator
+		 */
+		REMOTE(StringConstants.TRACK_COLUMN_REMOTE);
 		
 		private String displayValue;
 		
@@ -275,6 +280,7 @@ public class TrackDisplayColumns
 		result.put(ColumnNames.YEAR.getDisplayValue(),     "1*");
 		result.put(ColumnNames.ADDED.getDisplayValue(),    "2*");
 		result.put(ColumnNames.RATING.getDisplayValue(),   "1*");
+		result.put(ColumnNames.REMOTE.getDisplayValue(),   "1*");
 		
 		COLUMN_WIDTH_MAP = result;
 	}
@@ -404,6 +410,11 @@ public class TrackDisplayColumns
 	 */
 	public static void createColumnSet (ColumnSet type, TableView table)
 	{
+		if (type == null)
+		{
+			throw new IllegalArgumentException("type argument is null");
+		}
+		
 		if (table == null)
 		{
 			throw new IllegalArgumentException("table argument is null");

@@ -113,6 +113,11 @@ public class FiltersWindow
     {
     	uiLogger.trace("displayFilters: " + this.hashCode());
     	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
+    	
     	/*
     	 * Get the BXML information for the filters window, and generate the list of components
     	 * to be skinned.

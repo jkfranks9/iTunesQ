@@ -49,6 +49,16 @@ public final class PlaylistCollection
 			List<String> newIgnoredPlaylists)
 	{
     	logger.trace("modifyIgnoredPlaylists");
+    	
+    	if (prevIgnoredPlaylists == null)
+    	{
+    		throw new IllegalArgumentException("prevIgnoredPlaylists argument is null");
+    	}
+    	
+    	if (newIgnoredPlaylists == null)
+    	{
+    		throw new IllegalArgumentException("newIgnoredPlaylists argument is null");
+    	}
 		
 		/*
 		 * Make a difference list of added and removed ignored playlists. All we need are the playlist

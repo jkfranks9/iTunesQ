@@ -153,6 +153,11 @@ public class FileSaveDialog
 			throws IOException, SerializationException
 	{
     	logger.trace("displayFileSaveDialog: " + this.hashCode());
+    	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
 
 		/*
 		 * Get the BXML information for the dialog, and gather the list of components to be skinned.

@@ -187,6 +187,16 @@ public class TracksWindow
     {
     	logger.trace("displayTracks: " + this.hashCode());
     	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
+    	
+    	if (tracks == null)
+    	{
+    		throw new IllegalArgumentException("tracks argument is null");
+    	}
+    	
     	/*
     	 * Get the BXML information for the tracks window, and generate the list of components
     	 * to be skinned.
@@ -414,14 +424,27 @@ public class TracksWindow
 		skins.registerWindowElements(Skins.Window.TRACKS, windowElements);
         
         /*
-         * Set the number of tracks label.
+         * Set the number of tracks label. We have to treat the entire list of tracks as a special 
+         * case: getLength() on the entire list includes remote tracks, which we might not be showing.
+         * So in this case, get the real length using getNumberOfTracks(). 
          */
-    	numTracksLabel.setText(StringConstants.TRACK_NUMBER + tracks.getLength());
+		int numTracks = tracks.getLength();
+		if (numTracks == XMLHandler.getTracks().getLength())
+		{
+			numTracks = XMLHandler.getNumberOfTracks();
+		}
+    	numTracksLabel.setText(StringConstants.TRACK_NUMBER + numTracks);
         
         /*
          * Create a list suitable for the setTableData() method.
          */
         List<HashMap<String, String>> displayTracks = new ArrayList<HashMap<String, String>>();
+        
+        /*
+         * Get the user preferences.
+         */
+        Preferences prefs = Preferences.getInstance();
+        boolean showRemoteTracks = prefs.getShowRemoteTracks();
         
         /*
          * Now walk the set, and add all tracks to the list.
@@ -432,6 +455,15 @@ public class TracksWindow
         while (tracksIter.hasNext())
         {
         	Track track = tracksIter.next();
+        	
+        	/*
+        	 * Skip remote tracks if the user doesn't want to see them.
+        	 */
+        	if (track.getRemote() == true && showRemoteTracks == false)
+        	{
+        		continue;
+        	}
+        	
         	HashMap<String, String> trackAttrs = track.toDisplayMap(++trackNum);
         	displayTracks.add(trackAttrs);
         }
@@ -524,6 +556,21 @@ public class TracksWindow
     		throws IOException, SerializationException
     {
     	logger.trace("handleTrackDetailsPopup: " + this.hashCode());
+    	
+    	if (trackRowData == null)
+    	{
+    		throw new IllegalArgumentException("trackRowData argument is null");
+    	}
+    	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
+    	
+    	if (owningWindow == null)
+    	{
+    		throw new IllegalArgumentException("owningWindow argument is null");
+    	}
         
         /*
          * Get the track name and log it.

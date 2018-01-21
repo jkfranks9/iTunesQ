@@ -64,6 +64,7 @@ public final class Preferences implements Serializable
 	 * - list of bypass playlist preferences
 	 * - list of ignored playlist preferences
 	 * - various track column sets
+	 * - show remote tracks flag
 	 * - skin name
 	 * - maximum log file history
 	 * - global log level flag
@@ -76,6 +77,7 @@ public final class Preferences implements Serializable
 	private List<List<String>> trackColumnsDuplicatesView;
 	private List<List<String>> trackColumnsFilteredView;
 	private List<List<String>> trackColumnsPlaylistView;
+	private boolean showRemoteTracks;
 	private String skinName;
 	private int maxLogHistory;
 	private boolean globalLogLevel;
@@ -130,6 +132,8 @@ public final class Preferences implements Serializable
     	 */
 		bypassPrefs = new ArrayList<BypassPreference>();
 		ignoredPrefs = new ArrayList<String>(Playlist.DEFAULT_IGNORED_PLAYLISTS);
+		
+		showRemoteTracks = false;
 		
 		maxLogHistory = InternalConstants.DEFAULT_MAX_HISTORY;
 		
@@ -262,6 +266,26 @@ public final class Preferences implements Serializable
 	}
 	
 	/**
+	 * Gets the show remote tracks indicator.
+	 * 
+	 * @return show remote tracks indicator
+	 */
+	public boolean getShowRemoteTracks ()
+	{
+		return showRemoteTracks;
+	}
+	
+	/**
+	 * Sets the show remote tracks indicator.
+	 * 
+	 * @param showRemoteTracks show remote tracks indicator
+	 */
+	public void setShowRemoteTracks (boolean showRemoteTracks)
+	{
+		this.showRemoteTracks = showRemoteTracks;
+	}
+	
+	/**
 	 * Gets the skin name.
 	 * 
 	 * @return skin name
@@ -384,6 +408,11 @@ public final class Preferences implements Serializable
 	public void replaceBypassPrefs (List<BypassPreference> bypassPrefs)
 	{
 		logger.trace("replaceBypassPrefs: " + this.hashCode());
+    	
+    	if (bypassPrefs == null)
+    	{
+    		throw new IllegalArgumentException("bypassPrefs argument is null");
+    	}
 		
 		this.bypassPrefs.clear();
 		Iterator<BypassPreference> bypassPrefsIter = bypassPrefs.iterator();
@@ -401,6 +430,11 @@ public final class Preferences implements Serializable
 	public void replaceIgnoredPrefs (List<String> ignoredPrefs)
 	{
 		logger.trace("replaceIgnoredPrefs: " + this.hashCode());
+    	
+    	if (ignoredPrefs == null)
+    	{
+    		throw new IllegalArgumentException("ignoredPrefs argument is null");
+    	}
 		
 		this.ignoredPrefs.clear();
 		Iterator<String> ignoredPrefsIter = ignoredPrefs.iterator();
@@ -418,6 +452,11 @@ public final class Preferences implements Serializable
 	public void replaceTrackColumnsFullView (List<List<String>> trackColumnsPrefs)
 	{
 		logger.trace("replaceTrackColumnsFullView: " + this.hashCode());
+    	
+    	if (trackColumnsPrefs == null)
+    	{
+    		throw new IllegalArgumentException("trackColumnsPrefs argument is null");
+    	}
 		
 		this.trackColumnsFullView.clear();
 		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
@@ -435,6 +474,11 @@ public final class Preferences implements Serializable
 	public void replaceTrackColumnsDuplicatesView (List<List<String>> trackColumnsPrefs)
 	{
 		logger.trace("replaceTrackColumnsDuplicatesView: " + this.hashCode());
+    	
+    	if (trackColumnsPrefs == null)
+    	{
+    		throw new IllegalArgumentException("trackColumnsPrefs argument is null");
+    	}
 		
 		this.trackColumnsDuplicatesView.clear();
 		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
@@ -452,6 +496,11 @@ public final class Preferences implements Serializable
 	public void replaceTrackColumnsFilteredView (List<List<String>> trackColumnsPrefs)
 	{
 		logger.trace("replaceTrackColumnsFilteredView: " + this.hashCode());
+    	
+    	if (trackColumnsPrefs == null)
+    	{
+    		throw new IllegalArgumentException("trackColumnsPrefs argument is null");
+    	}
 		
 		this.trackColumnsFilteredView.clear();
 		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
@@ -469,6 +518,11 @@ public final class Preferences implements Serializable
 	public void replaceTrackColumnsPlaylistView (List<List<String>> trackColumnsPrefs)
 	{
 		logger.trace("replaceTrackColumnsPlaylistView: " + this.hashCode());
+    	
+    	if (trackColumnsPrefs == null)
+    	{
+    		throw new IllegalArgumentException("trackColumnsPrefs argument is null");
+    	}
 		
 		this.trackColumnsPlaylistView.clear();
 		Iterator<List<String>> trackColumnsPrefsIter = trackColumnsPrefs.iterator();
@@ -585,6 +639,11 @@ public final class Preferences implements Serializable
 	public void updatePreferences (Preferences prefs)
 	{
 		logger.info("updating preferences");
+    	
+    	if (prefs == null)
+    	{
+    		throw new IllegalArgumentException("prefs argument is null");
+    	}
 		
 		this.xmlFileName = prefs.xmlFileName;
 		if (prefs.bypassPrefs != null)
@@ -599,6 +658,7 @@ public final class Preferences implements Serializable
 		this.trackColumnsDuplicatesView = prefs.trackColumnsDuplicatesView;
 		this.trackColumnsFilteredView = prefs.trackColumnsFilteredView;
 		this.trackColumnsPlaylistView = prefs.trackColumnsPlaylistView;
+		this.showRemoteTracks = prefs.showRemoteTracks;
 		this.skinName = prefs.skinName;
 		this.maxLogHistory = prefs.maxLogHistory;
 		this.globalLogLevel = prefs.globalLogLevel;

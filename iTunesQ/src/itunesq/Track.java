@@ -55,6 +55,7 @@ public class Track
 	private Date trkReleased;
 	private int trkRating;
 	private List<TrackPlaylistInfo> trkPlaylists;
+	private boolean trkRemote;
 	
     //---------------- Private variables -----------------------------------
 	
@@ -72,6 +73,7 @@ public class Track
 	{
 		trkID = ID;
 		trkPlaylists = new ArrayList<TrackPlaylistInfo>();
+		trkRemote = false;
 	}
 	
     //---------------- Getters and setters ---------------------------------
@@ -401,6 +403,26 @@ public class Track
 		this.trkRating = rating;
 	}
 	
+	/**
+	 * Gets the remote track indicator.
+	 * 
+	 * @return remote track indicator
+	 */
+	public boolean getRemote ()
+	{
+		return trkRemote;
+	}
+	
+	/**
+	 * Sets the remote track indicator.
+	 * 
+	 * @param remote remote track indicator
+	 */
+	public void setRemote (boolean remote)
+	{
+		this.trkRemote = remote;
+	}
+	
     //---------------- Public methods --------------------------------------
 
 	/**
@@ -510,6 +532,8 @@ public class Track
 		
 		result.put(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue(), 
 				Integer.toString(trkRating / RATING_DIVISOR));
+		result.put(TrackDisplayColumns.ColumnNames.REMOTE.getDisplayValue(), 
+				(trkRemote == true) ? "Y" : "N");
 
 		/*
 		 * Create the string of playlist names and the corresponding bypassed indicators.

@@ -302,6 +302,15 @@ public class MenuBars extends Frame implements Bindable
 	public void initializeMenuBxmlVariables (BXMLSerializer windowSerializer, 
 			List<Component> components, boolean showFileSave)
 	{
+    	if (windowSerializer == null)
+    	{
+    		throw new IllegalArgumentException("windowSerializer argument is null");
+    	}
+    	
+    	if (components == null)
+    	{
+    		throw new IllegalArgumentException("components argument is null");
+    	}
 		
 		/*
 		 * Initialize the menu bar BXML variables.

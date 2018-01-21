@@ -527,6 +527,16 @@ public class Skins
 	 */
 	public void registerWindowElements (Window window, Map<Element, List<Component>> elements)
 	{
+    	if (window == null)
+    	{
+    		throw new IllegalArgumentException("window argument is null");
+    	}
+    	
+    	if (elements == null)
+    	{
+    		throw new IllegalArgumentException("elements argument is null");
+    	}
+    	
 		windowRegistry.put(window, elements);
 	}
 	
@@ -542,6 +552,16 @@ public class Skins
 	 */
 	public void registerDynamicWindowElements (Window window, Map<Element, List<Component>> elements)
 	{
+    	if (window == null)
+    	{
+    		throw new IllegalArgumentException("window argument is null");
+    	}
+    	
+    	if (elements == null)
+    	{
+    		throw new IllegalArgumentException("elements argument is null");
+    	}
+    	
 		Map<Element, List<Component>> windowElements = windowRegistry.remove(window);
 		for (Element element : Element.values())
 		{
@@ -567,6 +587,11 @@ public class Skins
 	 */
 	public void pushSkinnedWindow (Window window)
 	{
+    	if (window == null)
+    	{
+    		throw new IllegalArgumentException("window argument is null");
+    	}
+    	
 		windowStack.push(window);
 	}
 	
@@ -602,6 +627,10 @@ public class Skins
 	 */
 	public void skinMe (Window window)
 	{
+    	if (window == null)
+    	{
+    		throw new IllegalArgumentException("window argument is null");
+    	}
 		
 		/*
 		 * Get the elements map for the input window.
@@ -652,6 +681,11 @@ public class Skins
 	 */
 	public Map<Element, List<Component>> mapComponentsToSkinElements (List<Component> components)
 	{
+    	if (components == null)
+    	{
+    		throw new IllegalArgumentException("components argument is null");
+    	}
+    	
 		Map<Element, List<Component>> windowElements = new HashMap<Element, List<Component>>();
 		
 		/*

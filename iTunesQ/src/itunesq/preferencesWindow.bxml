@@ -97,7 +97,7 @@
            				</columns>
             
            				<!-- Track column preferences row. -->
-           				<TablePane.Row height="4*">
+           				<TablePane.Row height="11*">
            					<BoxPane orientation="vertical">
            						<Label bxml:id="columnPrefsBorderLabel"
            						styles="{font:{bold:true}, padding:5}"/>
@@ -107,6 +107,7 @@
                    						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
            								<columns>
                								<TablePane.Column width="3*"/>
+               								<TablePane.Column width="1*"/>
                								<TablePane.Column width="1*"/>
                								<TablePane.Column width="1*"/>
                								<TablePane.Column width="1*"/>
@@ -132,6 +133,7 @@
            										<Checkbox bxml:id="fullYearCheckbox"/>
            										<Checkbox bxml:id="fullAddedCheckbox"/>
            										<Checkbox bxml:id="fullRatingCheckbox"/>
+           										<Checkbox bxml:id="fullRemoteCheckbox"/>
            									</BoxPane>
            								</TablePane.Row>
             			
@@ -150,6 +152,7 @@
            										<Checkbox bxml:id="duplicatesYearCheckbox"/>
            										<Checkbox bxml:id="duplicatesAddedCheckbox"/>
            										<Checkbox bxml:id="duplicatesRatingCheckbox"/>
+           										<Checkbox bxml:id="duplicatesRemoteCheckbox"/>
            									</BoxPane>
            								</TablePane.Row>
             			
@@ -168,6 +171,7 @@
            										<Checkbox bxml:id="filteredYearCheckbox"/>
            										<Checkbox bxml:id="filteredAddedCheckbox"/>
            										<Checkbox bxml:id="filteredRatingCheckbox"/>
+           										<Checkbox bxml:id="filteredRemoteCheckbox"/>
            									</BoxPane>
            								</TablePane.Row>
             			
@@ -186,6 +190,7 @@
            										<Checkbox bxml:id="playlistYearCheckbox"/>
            										<Checkbox bxml:id="playlistAddedCheckbox"/>
            										<Checkbox bxml:id="playlistRatingCheckbox"/>
+           										<Checkbox bxml:id="playlistRemoteCheckbox"/>
            									</BoxPane>
            								</TablePane.Row>
                    					</TablePane>
@@ -193,8 +198,20 @@
                				</BoxPane>
            				</TablePane.Row>
             
+			            <!-- Show remote tracks row. -->
+           				<TablePane.Row height="2*">
+               				<Border bxml:id="remoteTracksBorder">
+                				<BoxPane bxml:id="remoteTracksBoxPane" orientation="horizontal"
+                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+           							<Label bxml:id="remoteTracksLabel" 
+           								styles="{font:{bold:true}, padding:5}"/>
+           	        				<Checkbox bxml:id="remoteTracksCheckbox"/>
+                				</BoxPane>
+                			</Border>
+           				</TablePane.Row>
+            
 			            <!-- Reset to defaults row. -->
-           				<TablePane.Row height="1*">
+           				<TablePane.Row height="2*">
                				<Border bxml:id="tab2ResetBorder">
                 				<BoxPane bxml:id="tab2ResetBoxPane" orientation="horizontal"
                     				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">

@@ -361,6 +361,15 @@ public class Logging
 	 */
 	public static void saveDirectoryUpdated (String oldDirectory, String newDirectory)
 	{
+    	if (oldDirectory == null)
+    	{
+    		throw new IllegalArgumentException("oldDirectory argument is null");
+    	}
+    	
+    	if (newDirectory == null)
+    	{
+    		throw new IllegalArgumentException("newDirectory argument is null");
+    	}
 		
 		/*
 		 * Loop through all files in the old directory.

@@ -117,6 +117,11 @@ public class PlaylistsWindow
     {
     	uiLogger.trace("displayPlaylists: " + this.hashCode());
     	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
+    	
     	/*
     	 * Get the BXML information for the playlists window, and generate the list of components
     	 * to be skinned.
@@ -185,6 +190,13 @@ public class PlaylistsWindow
             	
             	if (trackIDs != null)
             	{
+                    
+                    /*
+                     * Get the user preferences.
+                     */
+                    Preferences prefs = Preferences.getInstance();
+                    boolean showRemoteTracks = prefs.getShowRemoteTracks();
+                    
             		int trackNum = 0;
             		
             		Iterator<Integer> trackIDsIter = trackIDs.iterator();
@@ -197,6 +209,15 @@ public class PlaylistsWindow
             			 */
             			Integer trackIndex = XMLHandler.getTracksMap().get(trackID);
             			Track track = XMLHandler.getTracks().get(trackIndex);
+                    	
+                    	/*
+                    	 * Skip remote tracks if the user doesn't want to see them.
+                    	 */
+                    	if (track.getRemote() == true && showRemoteTracks == false)
+                    	{
+                    		continue;
+                    	}
+                    	
             			playlistLogger.debug("track ID " + trackID + ", index " + trackIndex +
             					", name " + track.getName() + " found");
 

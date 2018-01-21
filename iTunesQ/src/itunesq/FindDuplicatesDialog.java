@@ -134,6 +134,11 @@ public class FindDuplicatesDialog
 			throws IOException, SerializationException
 	{
     	uiLogger.trace("displayFindDuplicatesDialog: " + this.hashCode());
+    	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
 
 		/*
 		 * Get the BXML information for the dialog, and gather the list of components to be skinned.
@@ -207,6 +212,12 @@ public class FindDuplicatesDialog
 					List<Integer> dupIDs = duplicatesMap.get(dupName);
 					
 					/*
+					 * Get the user preferences.
+					 */
+					Preferences prefs = Preferences.getInstance();
+					boolean showRemoteTracks = prefs.getShowRemoteTracks();
+					
+					/*
 					 * Create a list of track objects that correspond to the IDs.
 					 */
 					List<Track> dupTracksForName = new ArrayList<Track>();
@@ -216,6 +227,15 @@ public class FindDuplicatesDialog
 						Integer dupID = dupIDsIter.next();
             			Integer trackIndex = XMLHandler.getTracksMap().get(dupID);
             			Track track = XMLHandler.getTracks().get(trackIndex);
+                    	
+                    	/*
+                    	 * Skip remote tracks if the user doesn't want to see them.
+                    	 */
+                    	if (track.getRemote() == true && showRemoteTracks == false)
+                    	{
+                    		continue;
+                    	}
+            			
 						dupTracksForName.add(track);
 					}
 					

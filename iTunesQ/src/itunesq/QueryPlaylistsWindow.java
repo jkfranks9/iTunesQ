@@ -131,6 +131,11 @@ public class QueryPlaylistsWindow
     {
     	uiLogger.trace("displayQueryPlaylists: " + this.hashCode());
     	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
+    	
     	/*
     	 * Get the BXML information for the query playlists window, and generate the list of components
     	 * to be skinned.
