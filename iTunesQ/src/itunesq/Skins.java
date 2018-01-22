@@ -283,6 +283,11 @@ public class Skins
 		PLAYLISTS(StringConstants.SKIN_WINDOW_PLAYLISTS),
 		
 		/**
+		 * artists window
+		 */
+		ARTISTS(StringConstants.SKIN_WINDOW_ARTISTS),
+		
+		/**
 		 * filters (query tracks) window
 		 */
 		FILTERS(StringConstants.QUERY_TRACKS),
@@ -583,7 +588,7 @@ public class Skins
 	 * current set of stacked windows, so they can all be re-skinned if the
 	 * user changes the skin name from the top window of a stack.
 	 * 
-	 * @param window Window to be pushed.
+	 * @param window window to be pushed
 	 */
 	public void pushSkinnedWindow (Window window)
 	{

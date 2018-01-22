@@ -35,6 +35,20 @@ import ch.qos.logback.classic.Logger;
 public final class XMLHandler 
 {
 
+    //---------------- Public variables ------------------------------------
+	
+	/**
+	 * Index into the number of tracks for an artist, in the data returned 
+	 * from the <code>getArtists</code> method.
+	 */
+	public static final int ARTIST_DATA_NUMTRACKS_INDEX = 0;
+	
+	/**
+	 * Index into the total time for an artist, in the data returned 
+	 * from the <code>getArtists</code> method.
+	 */
+	public static final int ARTIST_DATA_TOTALTIME_INDEX = 1;
+
     //---------------- Class variables -------------------------------------
 	
 	/*
@@ -81,6 +95,15 @@ public final class XMLHandler
 	 * an artist name on a track filter.
 	 */
 	private static ArrayList<String> ArtistNames = null;
+	
+	/*
+	 * Map of artist name to associated data, such as number of tracks and total time.
+	 * 
+	 * NOTE: The keys for this map are the artist names converted to lower case. This is because
+	 * the same artist might be spelled with different case on different tracks. This also means 
+	 * that the name shown in the artists display will be the first such name encountered.
+	 */
+	private static Map<String, List<Integer>> Artists = null;
 	
 	/*
 	 * Number of ignored playlists.
@@ -186,6 +209,16 @@ public final class XMLHandler
 	}
 	
 	/**
+	 * Gets the mapping of artist names to associated artist data.
+	 * 
+	 * @return mapping of artist names to artist data
+	 */
+	public static Map<String, List<Integer>> getArtists ()
+	{
+		return Artists;
+	}
+	
+	/**
 	 * Gets the playlist ignored count.
 	 * 
 	 * @return playlist ignored count
@@ -274,7 +307,7 @@ public final class XMLHandler
 	}
 	
 	/**
-	 * Removes a playlist name to the list of such names.
+	 * Removes a playlist name from the list of such names.
 	 * 
 	 * @param playlistName name of the playlist
 	 */
@@ -537,6 +570,12 @@ public final class XMLHandler
 		 */
 		ArtistNames = new ArrayList<String>();
 		ArtistNames.setComparator(String.CASE_INSENSITIVE_ORDER);
+		
+		/*
+		 * Initialize the artists map.
+		 */
+		Artists = new HashMap<String, List<Integer>>();
+		Artists.setComparator(String.CASE_INSENSITIVE_ORDER);
 
 		/*
 		 * Walk through the elements of the parent <dict> element.
@@ -733,15 +772,42 @@ public final class XMLHandler
     		}    		
 
     		/*
-    		 * Add the artist name to the list of such names, if it ain't already there.
+    		 * Handle tracks that have an artist,
     		 */
     		String artist = trackObj.getArtist();
     		if (artist != null)
     		{
+    			
+    			/*
+    			 * Add the artist name to the list of such names, if it ain't already there.
+    			 * Also, add the artist to the artist map and initialize the artist data.
+    			 */
+    			List<Integer> artistData = new ArrayList<Integer>();
+    			
     			int index = ArrayList.binarySearch(ArtistNames, artist, ArtistNames.getComparator());
     			if (index < 0)
     			{
     				ArtistNames.add(artist);
+    				
+    				artistData.insert(1, ARTIST_DATA_NUMTRACKS_INDEX);
+    				artistData.insert(trackObj.getDuration(), ARTIST_DATA_TOTALTIME_INDEX);
+    				Artists.put(artist.toLowerCase(), artistData);
+    			}
+    			
+    			/*
+    			 * The artist already exists in the list of artist names and the artist map.
+    			 * Update the artist data in the artist map.
+    			 */
+    			else
+    			{
+    				artistData = Artists.get(artist.toLowerCase());
+    				Integer artistNumTracks = 
+    						artistData.get(ARTIST_DATA_NUMTRACKS_INDEX) + 1;
+    				Integer artistTotalTime = 
+    						artistData.get(ARTIST_DATA_TOTALTIME_INDEX) + trackObj.getDuration();
+    				artistData.update(ARTIST_DATA_NUMTRACKS_INDEX, artistNumTracks);
+    				artistData.update(ARTIST_DATA_TOTALTIME_INDEX, artistTotalTime);
+    				Artists.put(artist.toLowerCase(), artistData);
     			}
     		}
     		

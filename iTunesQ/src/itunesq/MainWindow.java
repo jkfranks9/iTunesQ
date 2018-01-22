@@ -42,6 +42,7 @@ import ch.qos.logback.classic.Logger;
  * <li>show all tracks in the library</li>
  * <li>show duplicate tracks using exact or fuzzy match criteria</li>
  * <li>show all playlists in the library as a tree</li>
+ * <li>show all artists in the library, along with associated data</li>
  * <li>query tracks using a collection of filters</li>
  * <li>compare two or more playlists</li>
  * <li>save or print the results of a track or playlist query, or a list of
@@ -85,6 +86,7 @@ public class MainWindow implements Application
 	@BXML private BoxPane actionBoxPane = null;
     @BXML private PushButton viewTracksButton = null;
     @BXML private PushButton viewPlaylistsButton = null;
+    @BXML private PushButton viewArtistsButton = null;
     @BXML private PushButton queryTracksButton = null;
     @BXML private PushButton queryPlaylistsButton = null;
     
@@ -244,6 +246,29 @@ public class MainWindow implements Application
         });
 
         /*
+         * Listener to handle the view artists button press.
+         */
+        viewArtistsButton.getButtonPressListeners().add(new ButtonPressListener() 
+        {
+            @Override
+            public void buttonPressed(Button button) 
+            {
+            	logger.info("view artists button pressed");
+            	
+            	try
+				{
+            		ArtistsWindow artistsWindowHandler = new ArtistsWindow();
+            		artistsWindowHandler.displayArtists(display);
+				} 
+            	catch (IOException | SerializationException e)
+				{
+            		logger.error("caught " + e.getClass().getSimpleName());
+					e.printStackTrace();
+				}
+            }
+        });
+
+        /*
          * Listener to handle the query tracks button press.
          */
         queryTracksButton.getButtonPressListeners().add(new ButtonPressListener() 
@@ -317,6 +342,8 @@ public class MainWindow implements Application
         viewTracksButton.setTooltipText(StringConstants.MAIN_VIEW_TRACKS_TIP);
         viewPlaylistsButton.setButtonData(StringConstants.MAIN_VIEW_PLAYLISTS);
         viewPlaylistsButton.setTooltipText(StringConstants.MAIN_VIEW_PLAYLISTS_TIP);
+        viewArtistsButton.setButtonData(StringConstants.MAIN_VIEW_ARTISTS);
+        viewArtistsButton.setTooltipText(StringConstants.MAIN_VIEW_ARTISTS_TIP);
         queryTracksButton.setButtonData(StringConstants.QUERY_TRACKS);
         queryTracksButton.setTooltipText(StringConstants.MAIN_QUERY_TRACKS_TIP);
         queryPlaylistsButton.setButtonData(StringConstants.QUERY_PLAYLISTS);
@@ -562,6 +589,9 @@ public class MainWindow implements Application
         viewPlaylistsButton = 
         		(PushButton)windowSerializer.getNamespace().get("viewPlaylistsButton");
 		components.add(viewPlaylistsButton);
+        viewArtistsButton = 
+        		(PushButton)windowSerializer.getNamespace().get("viewArtistsButton");
+		components.add(viewArtistsButton);
         queryTracksButton = 
         		(PushButton)windowSerializer.getNamespace().get("queryTracksButton");
 		components.add(queryTracksButton);

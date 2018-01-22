@@ -62,6 +62,20 @@ public class StringConstants
 			"You need at least two rows for playlist comparison.";
 	public static final String ALERT_XML_FILE_ERROR = 
 			"Unable to read and process XML file: ";
+	
+	/*
+	 * ArtistsWindow constants.
+	 */
+	public static final String ARTISTS_NUM_ARTISTS = 
+			"Number of Artists: ";
+	public static final String ARTISTS_NUM_TRACKS_HEADER = 
+			"Number of Tracks";
+	public static final String ARTISTS_NUM_TRACKS_NAME = 
+			"NumTracks";
+	public static final String ARTISTS_TOTAL_TIME_HEADER = 
+			"Total Time";
+	public static final String ARTISTS_TOTAL_TIME_NAME = 
+			"TotalTime";
 
 	/*
 	 * FindDuplicatesDialog constants.
@@ -178,6 +192,10 @@ public class StringConstants
 			"Perform operations such as comparing playlist contents.";
 	public static final String MAIN_QUERY_TRACKS_TIP = 
 			"Use filters to select a group of tracks to display.";
+	public static final String MAIN_VIEW_ARTISTS    = 
+			"View Artists";
+	public static final String MAIN_VIEW_ARTISTS_TIP = 
+			"Show all artists.";
 	public static final String MAIN_VIEW_PLAYLISTS = 
 			"View Playlists";
 	public static final String MAIN_VIEW_PLAYLISTS_TIP = 
@@ -402,6 +420,7 @@ public class StringConstants
 	public static final String SKIN_NAME_DUSKY         = "Dusky Gray";
 	public static final String SKIN_NAME_PUMPKIN       = "Pumpkin Patch";
 	public static final String SKIN_NAME_SEASIDE       = "Seaside Daze";
+	public static final String SKIN_WINDOW_ARTISTS     = "Artists";
 	public static final String SKIN_WINDOW_FINDDUPS    = "Find Duplicates";
 	public static final String SKIN_WINDOW_FILESAVE    = "File Save";
 	public static final String SKIN_WINDOW_MAIN        = "iTunes Query Tool";

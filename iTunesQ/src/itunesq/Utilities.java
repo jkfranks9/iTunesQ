@@ -3,6 +3,7 @@ package itunesq;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
@@ -133,6 +134,46 @@ public final class Utilities
 		}
 		
 		return result;
+	}
+	
+	/**
+	 * Parses a time string into milliseconds. The time string is expected 
+	 * to be of the form [HH:]MM:SS.
+	 * 
+	 * @param timeString time string to be parsed
+	 * @return time in milliseconds
+	 * @throws ParseException If an error occurs trying to parse the time 
+	 * string.
+	 */
+	public static long parseTime (String timeString) 
+			throws ParseException
+	{
+		SimpleDateFormat format;
+		Date date;
+		
+		/*
+		 * Determine if the input is in HH:MM:SS or MM:SS format.
+		 */
+		if (timeString.indexOf(":") != timeString.lastIndexOf(":"))
+		{
+		    format = new SimpleDateFormat("HH:mm:ss");
+		}
+		else
+		{
+		    format = new SimpleDateFormat("mm:ss");
+		}
+
+		/*
+		 * Parse and convert the string into a calendar object.
+		 */
+	    date = format.parse(timeString);
+	    Calendar calendar = Calendar.getInstance();
+	    calendar.setTime(date);
+	    
+	    /*
+	     * Return the calendar time in milliseconds.
+	     */
+	    return calendar.getTimeInMillis();
 	}
 	
 	/**

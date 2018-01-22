@@ -92,6 +92,7 @@
 	                styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
 	           	    <PushButton bxml:id="viewTracksButton"/>
 	               	<PushButton bxml:id="viewPlaylistsButton"/>
+	               	<PushButton bxml:id="viewArtistsButton"/>
 	               	<PushButton bxml:id="queryTracksButton"/>
 	               	<PushButton bxml:id="queryPlaylistsButton"/>
 	       	    </BoxPane>

@@ -7,7 +7,7 @@ import org.apache.pivot.collections.Map;
 
 /**
  * Class that represents a track query filter. Filters are the mechanism that 
- * allow users to query the set of tracks. A filter contains the following
+ * allows users to query the set of tracks. A filter contains the following
  * parts:
  * <ol>
  * <li>Logic - matches any or all of a set of filters</li>

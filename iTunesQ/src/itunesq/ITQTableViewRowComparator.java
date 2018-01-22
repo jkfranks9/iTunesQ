@@ -1,33 +1,48 @@
 package itunesq;
 
+import java.text.ParseException;
 import java.util.Comparator;
+import java.util.Iterator;
 
 import org.apache.pivot.collections.Dictionary;
+import org.apache.pivot.collections.HashMap;
+import org.apache.pivot.collections.Map;
 import org.apache.pivot.wtk.SortDirection;
 import org.apache.pivot.wtk.TableView;
 
 /**
  * Class that compares two table view rows during a sort operation. This gets 
- * control when the user clicks on a column header in a table of tracks. 
- * Stolen without remorse from Pivot code, cleaned up to meet my standards, 
- * and modified to handle the "Number" column.
+ * control when the user clicks on a column header in a table of tracks or 
+ * artists. Stolen without remorse from Pivot code, cleaned up to meet my 
+ * standards, and modified to handle columns that contain numerical data.
  * 
  * @author Jon
  *
  */
-public class TracksTableViewRowComparator implements Comparator<Object>
+public class ITQTableViewRowComparator implements Comparator<Object>
 {
 	
     //---------------- Private variables -----------------------------------
 	
     private TableView tableView;
+    
+    /*
+     * Numerical data can either be a simple number ("11") or a time string ("02:34"). 
+     */
+    private enum NumericalType
+    {
+    	NUMBER, TIME
+    }
+    
+    private Map<String, NumericalType> numericalColumns = null;
 
     /**
-     * Class constructor specifying the table view object with which we'll be working.
+     * Class constructor specifying the table view object with which we'll 
+     * be working.
      * 
-     * @param tableView table view object containing the list of tracks being sorted
+     * @param tableView table view object containing the rows to be sorted
      */
-    public TracksTableViewRowComparator(TableView tableView)
+    public ITQTableViewRowComparator(TableView tableView)
     {
         if (tableView == null)
         {
@@ -35,6 +50,19 @@ public class TracksTableViewRowComparator implements Comparator<Object>
         }
 
         this.tableView = tableView;
+        
+        /*
+         * Initialize the list of column names that contain numerical data.
+         */
+        numericalColumns = new HashMap<String, NumericalType>();
+        numericalColumns.put(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue(), 
+        		NumericalType.NUMBER);
+        numericalColumns.put(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue(), 
+        		NumericalType.TIME);
+        numericalColumns.put(StringConstants.ARTISTS_NUM_TRACKS_NAME,
+        		NumericalType.NUMBER);
+        numericalColumns.put(StringConstants.ARTISTS_TOTAL_TIME_NAME,
+        		NumericalType.TIME);
     }
     
     /**
@@ -67,7 +95,7 @@ public class TracksTableViewRowComparator implements Comparator<Object>
             result = 0;
             
             /*
-             * Track row objects are of type HashMap, which implements the Dictionary interface.
+             * Row objects are of type HashMap, which implements the Dictionary interface.
              */
             Dictionary<String, ?> row1 = (Dictionary<String, ?>)o1;
             Dictionary<String, ?> row2 = (Dictionary<String, ?>)o2;
@@ -88,7 +116,7 @@ public class TracksTableViewRowComparator implements Comparator<Object>
 
                 /*
                  * The two objects being sorted should always be strings. For example, if the "Name"
-                 * column was clicked, the two values should be track names.
+                 * column was clicked, the two values should be item names.
                  */
                 Object value1 = row1.get(columnName);
                 Object value2 = row2.get(columnName);
@@ -112,19 +140,68 @@ public class TracksTableViewRowComparator implements Comparator<Object>
                 
                 /*
                  * Both values exist, and we know they are strings.
-                 * if both values exist, then we use the Comparable interface compareTo method.
                  */
                 else
                 {
                 	
                 	/*
-                	 * For the "Number" column, convert the values to actual integers and compare them.
+                	 * Check if the column is one containing numerical data.
                 	 */
-                	if (columnName.equals(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue()))
+                	boolean numerical = false;
+                	boolean time = false;
+                	
+                	Iterator<String> numericalColumnsIter = numericalColumns.iterator();
+                	while (numericalColumnsIter.hasNext())
+                	{
+                		String numericalColumnName = numericalColumnsIter.next();
+                		
+                		/*
+                		 * The column name matches. Check the type.
+                		 */
+                		if (numericalColumnName.equals(columnName))
+                		{
+                			NumericalType numericalType = numericalColumns.get(numericalColumnName);
+                			
+                			switch (numericalType)
+                			{
+                			case NUMBER:
+                    			numerical = true;
+                    			break;
+                    			
+                			case TIME:
+                				time = true;
+                				break;
+                				
+                			default:
+                			}
+                		}
+                	}
+                	
+                	/*
+                	 * For a numerical column, convert the values to actual integers and compare them.
+                	 */
+                	if (numerical == true)
                 	{
                 		int numValue1 = Integer.parseUnsignedInt((String) value1);
                 		int numValue2 = Integer.parseUnsignedInt((String) value2);
                 		result = numValue1 > numValue2 ? 1 : numValue1 < numValue2 ? -1 : 0;
+                	}
+                	
+                	/*
+                	 * For a time column, convert the values to milliseconds and compare them.
+                	 */
+                	else if (time == true)
+                	{
+                		try
+                		{
+							long timeValue1 = Utilities.parseTime((String) value1);
+							long timeValue2 = Utilities.parseTime((String) value2);
+	                		result = timeValue1 > timeValue2 ? 1 : timeValue1 < timeValue2 ? -1 : 0;
+						}
+                		catch (ParseException e)
+                		{
+							e.printStackTrace();
+						}
                 	}
                 	
                 	/*

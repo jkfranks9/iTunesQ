@@ -496,7 +496,7 @@ public class TracksWindow
             @SuppressWarnings("unchecked")
             public void sortChanged(TableView tableView) {
                 List<Object> tableDataOfTableView = (List<Object>)tableView.getTableData();
-                tableDataOfTableView.setComparator(new TracksTableViewRowComparator(tableView));
+                tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView));
             }
         });
 
