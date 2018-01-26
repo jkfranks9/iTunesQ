@@ -68,11 +68,6 @@
                     <!-- Table containing all the artists. -->
                     <TableView bxml:id="artistsTableView" selectMode="single"
                         styles="{includeTrailingVerticalGridLine:true}">
-       					<columns>
-       						<TableView.Column bxml:id="tableColumnArtist" width="3*"/>
-       						<TableView.Column bxml:id="tableColumnNumTracks" width="1*"/>
-       						<TableView.Column bxml:id="tableColumnTotalTime" width="1*"/>
-       					</columns>
                     </TableView>
 
                     <columnHeader>

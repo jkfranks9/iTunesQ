@@ -35,7 +35,6 @@ import org.apache.pivot.wtk.TableViewHeader;
 import org.apache.pivot.wtk.TextInput;
 import org.apache.pivot.wtk.TextInputContentListener;
 import org.apache.pivot.wtk.content.ButtonData;
-import org.jdom2.JDOMException;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Level;
@@ -815,19 +814,7 @@ public class PreferencesWindow
             		prefsUpdated = true;
             		
             		userPrefs.setShowRemoteTracks(remoteTracksCheckbox.isSelected());
-            		
-            		/*
-            		 * We need to reread the XML file. Unfortunately. But this should be rare.
-            		 */
-					try
-					{
-	            		Utilities.updateFromXMLFile(userPrefs.getXMLFileName());
-					}							
-					catch (JDOMException | IOException e)
-					{
-			    		logger.error("caught " + e.getClass().getSimpleName());
-						e.printStackTrace();
-					}
+            		Utilities.updateMainWindowLabels(userPrefs.getXMLFileName());
             	}
             	
             	if (skinPrefsUpdated == true)

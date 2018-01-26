@@ -320,7 +320,12 @@ public class Skins
 		/**
 		 * find duplicates window
 		 */
-		FINDDUPLICATES(StringConstants.SKIN_WINDOW_FINDDUPS);
+		FINDDUPLICATES(StringConstants.SKIN_WINDOW_FINDDUPS),
+		
+		/**
+		 * find duplicates window
+		 */
+		ALTNAMES(StringConstants.SKIN_WINDOW_ALTNAMES);
 		
 		private String displayValue;
 		

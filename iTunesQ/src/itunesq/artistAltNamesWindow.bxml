@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Dialog modal="true"
+	styles="{backgroundColor:5}"
+    xmlns:bxml="http://pivot.apache.org/bxml"
+    xmlns="org.apache.pivot.wtk">
+    
+    <!-- Primary window border. -->
+    <Border bxml:id="altNamesPrimaryBorder">
+        
+        <!-- Lay out the window elements in a single column table pane. -->
+    	<TablePane bxml:id="altNamesTablePane"
+    		styles="{verticalSpacing:0, padding:10}">
+        	<columns>
+            	<TablePane.Column width="1*"/>
+        	</columns>
+    	</TablePane>
+    </Border>
+</Dialog>

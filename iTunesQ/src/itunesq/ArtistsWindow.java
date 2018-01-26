@@ -10,15 +10,21 @@ import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
+import org.apache.pivot.wtk.Alert;
 import org.apache.pivot.wtk.Border;
 import org.apache.pivot.wtk.BoxPane;
 import org.apache.pivot.wtk.Button;
 import org.apache.pivot.wtk.ButtonPressListener;
 import org.apache.pivot.wtk.Component;
+import org.apache.pivot.wtk.ComponentMouseButtonListener;
+import org.apache.pivot.wtk.Dialog;
 import org.apache.pivot.wtk.Display;
 import org.apache.pivot.wtk.FillPane;
 import org.apache.pivot.wtk.Label;
+import org.apache.pivot.wtk.MessageType;
+import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
+import org.apache.pivot.wtk.TablePane;
 import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TableViewHeader;
 import org.apache.pivot.wtk.TableViewSortListener;
@@ -39,6 +45,7 @@ public class ArtistsWindow
     //---------------- Private variables -----------------------------------
 
 	private Window artistsWindow = null;
+	private Dialog altNamesDialog = null;
 	private Skins skins = null;
 	private Logger logger = null;
 	
@@ -50,13 +57,13 @@ public class ArtistsWindow
 	@BXML private Label numArtistsLabel = null;
 	@BXML private Border artistsBorder = null;
 	@BXML private TableView artistsTableView = null;
-	@BXML private TableView.Column tableColumnArtist = null;
-	@BXML private TableView.Column tableColumnNumTracks = null;
-	@BXML private TableView.Column tableColumnTotalTime = null;
 	@BXML private TableViewHeader artistsTableViewHeader = null;
 	@BXML private Border actionBorder = null;
 	@BXML private BoxPane actionBoxPane = null;
 	@BXML private PushButton doneButton = null;
+
+	@BXML private Border altNamesPrimaryBorder = null;
+	@BXML private TablePane altNamesTablePane = null;
     
     /**
      * Class constructor.
@@ -109,6 +116,12 @@ public class ArtistsWindow
     	}
     	
     	/*
+    	 * Get the show remote tracks preference.
+    	 */
+    	Preferences prefs = Preferences.getInstance();
+    	boolean showRemoteTracks = prefs.getShowRemoteTracks();
+    	
+    	/*
     	 * Get the BXML information for the artists window, and generate the list of components
     	 * to be skinned.
     	 */
@@ -137,20 +150,58 @@ public class ArtistsWindow
 			}
 		});
 
+    	/*
+    	 * Mouse click listener for the table view.
+    	 */
+        artistsTableView.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
+		{
+            @Override
+            public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
+            {
+            	
+            	/*
+            	 * For a right mouse click we pop up a dialog of alternate names.
+            	 */
+            	if (button == Mouse.Button.RIGHT)
+            	{
+                	TableView table = (TableView) component;
+                	Display display = component.getDisplay();
+            		
+            		/*
+            		 * Get the index for the clicked row, then set that row as selected.
+            		 */
+                	int index = table.getRowAt(y);
+                	table.setSelectedIndex(index);
+                	
+                	/*
+                	 * Get the data for the selected row.
+                	 */
+                	@SuppressWarnings("unchecked")
+					HashMap<String, String> selectedTrackRowData = 
+                			(HashMap<String, String>) table.getSelectedRow();
+					
+					/*
+					 * Create and open the alternate names popup dialog.
+					 */
+					try
+					{
+						handleAltNamesPopup(selectedTrackRowData, display, artistsWindow);
+					}
+					catch (IOException | SerializationException e)
+					{
+						logger.error("caught " + e.getClass().getSimpleName());
+						e.printStackTrace();
+					}
+            	}
+ 
+                return false;
+            }
+		});
+
 		/*
 		 * Add widget texts.
 		 */
 		doneButton.setButtonData(StringConstants.DONE);
-		
-		/*
-		 * Update column data.
-		 */
-		tableColumnArtist.setName(StringConstants.TRACK_COLUMN_ARTIST);
-		tableColumnArtist.setHeaderData(StringConstants.TRACK_COLUMN_ARTIST);
-		tableColumnNumTracks.setName(StringConstants.ARTISTS_NUM_TRACKS_NAME);
-		tableColumnNumTracks.setHeaderData(StringConstants.ARTISTS_NUM_TRACKS_HEADER);
-		tableColumnTotalTime.setName(StringConstants.ARTISTS_TOTAL_TIME_NAME);
-		tableColumnTotalTime.setHeaderData(StringConstants.ARTISTS_TOTAL_TIME_HEADER);
 
 		/*
 		 * Set the window title.
@@ -174,32 +225,37 @@ public class ArtistsWindow
 		List<HashMap<String, String>> displayArtists = new ArrayList<HashMap<String, String>>();
 
 		/*
-		 * Now walk the artist names, and add all artists to the list.
+		 * Now walk the artists, and add them all to the list.
 		 */
-		ArrayList<String> artistNames = XMLHandler.getArtistNames();
-
-		Iterator<String> artistNamesIter = artistNames.iterator();
-		while (artistNamesIter.hasNext())
+		Map<String, Artist> artists = XMLHandler.getArtists();
+		for (String artistKey : artists)
 		{
-			String artistName = artistNamesIter.next();
+			Artist artistObj = XMLHandler.getArtists().get(artistKey.toLowerCase());
 			
 			/*
-			 * Get the artist data.
+			 * Skip artists with no local tracks if remote tracks are not being shown.
 			 */
-			List<Integer> artistData = XMLHandler.getArtists().get(artistName.toLowerCase());
-			Integer numTracks = artistData.get(XMLHandler.ARTIST_DATA_NUMTRACKS_INDEX);
-			Integer totalTime = artistData.get(XMLHandler.ARTIST_DATA_TOTALTIME_INDEX);
-
-			/*
-			 * Create the artist row.
-			 */
-			HashMap<String, String> artistAttrs = new HashMap<String, String>();
-			artistAttrs.put(StringConstants.TRACK_COLUMN_ARTIST, artistName);
-			artistAttrs.put(StringConstants.ARTISTS_NUM_TRACKS_NAME, numTracks.toString());
-			artistAttrs.put(StringConstants.ARTISTS_TOTAL_TIME_NAME, 
-					Utilities.convertMillisecondTime(totalTime));
+			if (artistObj.getNumLocalTracks() == 0 && showRemoteTracks == false)
+			{
+				continue;
+			}
 			
+			HashMap<String, String> artistAttrs = artistObj.toDisplayMap();			
 			displayArtists.add(artistAttrs);
+		}
+
+		/*
+		 * Create the appropriate column set.
+		 */
+		if (showRemoteTracks == false)
+		{
+			ArtistDisplayColumns.createColumnSet(
+					ArtistDisplayColumns.ColumnSet.LOCAL_VIEW, artistsTableView);
+		}
+		else
+		{
+			ArtistDisplayColumns.createColumnSet(
+					ArtistDisplayColumns.ColumnSet.REMOTE_VIEW, artistsTableView);
 		}
 
 		/*
@@ -240,6 +296,147 @@ public class ArtistsWindow
 
     //---------------- Private methods -------------------------------------
     
+    public void handleAltNamesPopup (Map<String, String> artistRowData, Display display,
+    		Window owningWindow) 
+    		throws IOException, SerializationException
+    {
+    	logger.trace("handleAltNamesPopup: " + this.hashCode());
+    	
+    	if (artistRowData == null)
+    	{
+    		throw new IllegalArgumentException("artistRowData argument is null");
+    	}
+    	
+    	if (display == null)
+    	{
+    		throw new IllegalArgumentException("display argument is null");
+    	}
+    	
+    	if (owningWindow == null)
+    	{
+    		throw new IllegalArgumentException("owningWindow argument is null");
+    	}
+        
+        /*
+         * Get the artist name and log it.
+         */
+		String artistName = 
+				artistRowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
+		logger.info("right clicked on artist '" + artistName + "'");
+		
+		/*
+		 * Get the artist alternate names we want to display.
+		 */
+		Artist artistObj = XMLHandler.getArtists().get(artistName.toLowerCase());
+		List<String> altNames = artistObj.getAltNames();
+		
+		/*
+		 * Only display the dialog if there is more than one alternate name.
+		 */
+		if (altNames.getLength() > 1)
+		{
+
+			/*
+			 * Get the base BXML information for the alternate names dialog, and start the list of 
+			 * components to be skinned.
+			 */
+			List<Component> components = new ArrayList<Component>();
+			initializeAltNamesDialogBxmlVariables(components);
+
+			/*
+			 * Build table rows to represent the alternate names. This method also adds
+			 * components that need to be skinned.
+			 */
+			List<TablePane.Row> altNamesRows = buildAltNamesRows(altNames, components);
+
+			/*
+			 * Add the generated rows to the owning table pane.
+			 */
+			Iterator<TablePane.Row> detailsRowsIter = altNamesRows.iterator();
+			while (detailsRowsIter.hasNext())
+			{
+				TablePane.Row detailRow = detailsRowsIter.next();
+				altNamesTablePane.getRows().add(detailRow);
+			}
+
+			/*
+			 * Set the window title.
+			 */
+			altNamesDialog.setTitle(Skins.Window.ALTNAMES.getDisplayValue());
+
+			/*
+			 * Register the window elements.
+			 */
+			Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);		
+			skins.registerWindowElements(Skins.Window.ALTNAMES, windowElements);
+
+			/*
+			 * Skin the alternate names dialog.
+			 */
+			skins.skinMe(Skins.Window.ALTNAMES);
+
+			/*
+			 * Open the alternate names dialog. There is no close button, so the user has to 
+			 * close the dialog using the host controls.
+			 */
+			logger.info("opening alternate names dialog");
+			altNamesDialog.open(display, owningWindow);
+		}
+		else
+		{
+			Alert.alert(MessageType.INFO, 
+					StringConstants.ALERT_NO_ALTERNATE_NAMES, artistsWindow);
+		}
+    }
+    
+    /*
+     * Build the alternate names data for display.
+     */
+    private List<TablePane.Row> buildAltNamesRows (List<String> altNames, List<Component> components)
+    {
+    	logger.trace("buildAltNamesRows: " + this.hashCode());
+    	
+    	List<TablePane.Row> result = new ArrayList<TablePane.Row>();
+		
+		/*
+		 * Build a row for all alternate names.
+		 */
+		for (String altName : altNames)
+		{
+			
+			/*
+			 * Start building a table row to be returned.
+			 */
+			TablePane.Row infoRow = new TablePane.Row();
+			infoRow.setHeight("1*");
+			
+			/*
+			 * Build the label that contains the actual alternate name.
+			 */
+			Label altNameLabel = new Label(altName);
+			Map<String, Object> altNameLabelStyles = new HashMap<String, Object>();
+			altNameLabelStyles.put("padding", 0);
+			altNameLabel.setStyles(altNameLabelStyles);
+			
+			/*
+			 * Add the label to the table row.
+			 */
+			infoRow.add(altNameLabel);
+			
+			/*
+			 * Add the components we created so they can be skinned.
+			 */
+			components.add(altNameLabel);
+			
+			/*
+			 * Add the table row to the result.
+			 */
+			result.add(infoRow);
+		}
+    	
+    	return result;
+    }
+    
     /*
      * Initialize artists window BXML variables and collect the list of components to be skinned.
      */
@@ -273,18 +470,7 @@ public class ArtistsWindow
 		components.add(artistsBorder);
 		artistsTableView = 
         		(TableView)windowSerializer.getNamespace().get("artistsTableView");
-		components.add(artistsTableView);
-
-		/*
-		 * These don't need to be added to the components list because they're subcomponents.
-		 */
-		tableColumnArtist = 
-        		(TableView.Column)windowSerializer.getNamespace().get("tableColumnArtist");
-		tableColumnNumTracks = 
-        		(TableView.Column)windowSerializer.getNamespace().get("tableColumnNumTracks");
-		tableColumnTotalTime = 
-        		(TableView.Column)windowSerializer.getNamespace().get("tableColumnTotalTime");
-		
+		components.add(artistsTableView);		
 		artistsTableViewHeader = 
         		(TableViewHeader)windowSerializer.getNamespace().get("artistsTableViewHeader");
 		components.add(artistsTableViewHeader);
@@ -298,5 +484,25 @@ public class ArtistsWindow
         doneButton = 
         		(PushButton)windowSerializer.getNamespace().get("doneButton");
 		components.add(doneButton);
+    }
+    
+    /*
+     * Initialize alternate names dialog BXML variables and collect the static components to be skinned.
+     */
+    private void initializeAltNamesDialogBxmlVariables (List<Component> components) 
+    		throws IOException, SerializationException
+    {
+    	logger.trace("initializeAltNamesDialogBxmlVariables: " + this.hashCode());
+    	
+        BXMLSerializer dialogSerializer = new BXMLSerializer();
+		altNamesDialog = (Dialog)dialogSerializer.readObject(getClass().
+				getResource("artistAltNamesWindow.bxml"));
+
+		altNamesPrimaryBorder = 
+        		(Border)dialogSerializer.getNamespace().get("altNamesPrimaryBorder");
+		components.add(altNamesPrimaryBorder);
+		altNamesTablePane = 
+        		(TablePane)dialogSerializer.getNamespace().get("altNamesTablePane");
+		components.add(altNamesTablePane);
     }
 }

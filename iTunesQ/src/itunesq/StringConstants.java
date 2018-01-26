@@ -42,6 +42,8 @@ public class StringConstants
 			"You need at least one filter row.";
 	public static final String ALERT_LOG_HISTORY_VALUE = 
 			"You must specify a positive numeric value for the log history.";
+	public static final String ALERT_NO_ALTERNATE_NAMES = 
+			"There are no alternate names for the artist you selected.";
 	public static final String ALERT_NO_FILE_SELECTED = 
 			"You didn't select a file.";
 	public static final String ALERT_NO_PRINTER = 
@@ -64,18 +66,34 @@ public class StringConstants
 			"Unable to read and process XML file: ";
 	
 	/*
+	 * ArtistDisplayColumns constants.
+	 */
+	public static final String ARTIST_COLUMN_LOCAL_TRACKS_HEADER = 
+			"Total Local Tracks";
+	public static final String ARTIST_COLUMN_LOCAL_TRACKS_NAME = 
+			"TotalLocalTracks";
+	public static final String ARTIST_COLUMN_NUM_ALTNAMES_HEADER = 
+			"Number Alternate Names";
+	public static final String ARTIST_COLUMN_NUM_ALTNAMES_NAME = 
+			"NumAltNames";
+	public static final String ARTIST_COLUMN_REMOTE_TRACKS_HEADER = 
+			"Total Remote Tracks";
+	public static final String ARTIST_COLUMN_REMOTE_TRACKS_NAME = 
+			"TotalRemoteTracks";
+	public static final String ARTIST_COLUMN_LOCAL_TIME_HEADER = 
+			"Total Local Time";
+	public static final String ARTIST_COLUMN_LOCAL_TIME_NAME = 
+			"TotalLocalTime";
+	public static final String ARTIST_COLUMN_REMOTE_TIME_HEADER = 
+			"Total Remote Time";
+	public static final String ARTIST_COLUMN_REMOTE_TIME_NAME = 
+			"TotalRemoteTime";
+	
+	/*
 	 * ArtistsWindow constants.
 	 */
 	public static final String ARTISTS_NUM_ARTISTS = 
 			"Number of Artists: ";
-	public static final String ARTISTS_NUM_TRACKS_HEADER = 
-			"Number of Tracks";
-	public static final String ARTISTS_NUM_TRACKS_NAME = 
-			"NumTracks";
-	public static final String ARTISTS_TOTAL_TIME_HEADER = 
-			"Total Time";
-	public static final String ARTISTS_TOTAL_TIME_NAME = 
-			"TotalTime";
 
 	/*
 	 * FindDuplicatesDialog constants.
@@ -420,6 +438,7 @@ public class StringConstants
 	public static final String SKIN_NAME_DUSKY         = "Dusky Gray";
 	public static final String SKIN_NAME_PUMPKIN       = "Pumpkin Patch";
 	public static final String SKIN_NAME_SEASIDE       = "Seaside Daze";
+	public static final String SKIN_WINDOW_ALTNAMES    = "Alternate Names";
 	public static final String SKIN_WINDOW_ARTISTS     = "Artists";
 	public static final String SKIN_WINDOW_FINDDUPS    = "Find Duplicates";
 	public static final String SKIN_WINDOW_FILESAVE    = "File Save";

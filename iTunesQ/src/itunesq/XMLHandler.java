@@ -35,20 +35,6 @@ import ch.qos.logback.classic.Logger;
 public final class XMLHandler 
 {
 
-    //---------------- Public variables ------------------------------------
-	
-	/**
-	 * Index into the number of tracks for an artist, in the data returned 
-	 * from the <code>getArtists</code> method.
-	 */
-	public static final int ARTIST_DATA_NUMTRACKS_INDEX = 0;
-	
-	/**
-	 * Index into the total time for an artist, in the data returned 
-	 * from the <code>getArtists</code> method.
-	 */
-	public static final int ARTIST_DATA_TOTALTIME_INDEX = 1;
-
     //---------------- Class variables -------------------------------------
 	
 	/*
@@ -97,13 +83,15 @@ public final class XMLHandler
 	private static ArrayList<String> ArtistNames = null;
 	
 	/*
-	 * Map of artist name to associated data, such as number of tracks and total time.
+	 * Map of artist name to artist object.
 	 * 
 	 * NOTE: The keys for this map are the artist names converted to lower case. This is because
 	 * the same artist might be spelled with different case on different tracks. This also means 
 	 * that the name shown in the artists display will be the first such name encountered.
+	 * However, we do keep a list of alternate names that the user can see by right clicking
+	 * on an artist.
 	 */
-	private static Map<String, List<Integer>> Artists = null;
+	private static Map<String, Artist> Artists = null;
 	
 	/*
 	 * Number of ignored playlists.
@@ -115,10 +103,12 @@ public final class XMLHandler
 	private static String className = XMLHandler.class.getSimpleName();
 	private static Logger logger = (Logger) LoggerFactory.getLogger(className + "_XML");
 	private static Logging logging = Logging.getInstance();
+	private static Preferences userPrefs = Preferences.getInstance();
 	
 	private static Date XMLDate = null;
 	
 	private static Integer remoteTracksCount = 0;
+	private static Integer remoteArtistsCount = 0;
 	
 	/*
 	 * Static string definitions for the XML file.
@@ -209,11 +199,11 @@ public final class XMLHandler
 	}
 	
 	/**
-	 * Gets the mapping of artist names to associated artist data.
+	 * Gets the mapping of artist names to artist objects.
 	 * 
-	 * @return mapping of artist names to artist data
+	 * @return mapping of artist names to artist objects
 	 */
-	public static Map<String, List<Integer>> getArtists ()
+	public static Map<String, Artist> getArtists ()
 	{
 		return Artists;
 	}
@@ -247,13 +237,12 @@ public final class XMLHandler
 	 */
 	public static int getNumberOfTracks ()
 	{
-		Preferences prefs = Preferences.getInstance();
 		int numTracks = 0;
 		
 		if (Tracks != null)
 		{
 			numTracks = Tracks.getLength();
-			if (prefs.getShowRemoteTracks() == false)
+			if (userPrefs.getShowRemoteTracks() == false)
 			{
 				numTracks -= remoteTracksCount;
 			}
@@ -280,7 +269,18 @@ public final class XMLHandler
 	 */
 	public static int getNumberOfArtists ()
 	{
-		return (ArtistNames != null) ? ArtistNames.getLength() : 0;
+		int numArtists = 0;
+		
+		if (Artists != null)
+		{
+			numArtists = Artists.getCount();
+			if (userPrefs.getShowRemoteTracks() == false)
+			{
+				numArtists -= remoteArtistsCount;
+			}
+		}
+		
+		return numArtists;
 	}
 
 	/**
@@ -531,9 +531,10 @@ public final class XMLHandler
 		logger.trace("generateTracks");
 		
 		/*
-		 * Reset the remote tracks count.
+		 * Reset the remote tracks and remote artists count.
 		 */
 		remoteTracksCount = 0;
+		remoteArtistsCount = 0;
 		
 		/*
 		 * Get a list of the XML tracks to work with.
@@ -574,7 +575,7 @@ public final class XMLHandler
 		/*
 		 * Initialize the artists map.
 		 */
-		Artists = new HashMap<String, List<Integer>>();
+		Artists = new HashMap<String, Artist>();
 		Artists.setComparator(String.CASE_INSENSITIVE_ORDER);
 
 		/*
@@ -772,44 +773,61 @@ public final class XMLHandler
     		}    		
 
     		/*
-    		 * Handle tracks that have an artist,
+    		 * Handle tracks that have an artist.
     		 */
-    		String artist = trackObj.getArtist();
-    		if (artist != null)
-    		{
-    			
-    			/*
-    			 * Add the artist name to the list of such names, if it ain't already there.
-    			 * Also, add the artist to the artist map and initialize the artist data.
-    			 */
-    			List<Integer> artistData = new ArrayList<Integer>();
-    			
-    			int index = ArrayList.binarySearch(ArtistNames, artist, ArtistNames.getComparator());
-    			if (index < 0)
-    			{
-    				ArtistNames.add(artist);
-    				
-    				artistData.insert(1, ARTIST_DATA_NUMTRACKS_INDEX);
-    				artistData.insert(trackObj.getDuration(), ARTIST_DATA_TOTALTIME_INDEX);
-    				Artists.put(artist.toLowerCase(), artistData);
-    			}
-    			
-    			/*
-    			 * The artist already exists in the list of artist names and the artist map.
-    			 * Update the artist data in the artist map.
-    			 */
-    			else
-    			{
-    				artistData = Artists.get(artist.toLowerCase());
-    				Integer artistNumTracks = 
-    						artistData.get(ARTIST_DATA_NUMTRACKS_INDEX) + 1;
-    				Integer artistTotalTime = 
-    						artistData.get(ARTIST_DATA_TOTALTIME_INDEX) + trackObj.getDuration();
-    				artistData.update(ARTIST_DATA_NUMTRACKS_INDEX, artistNumTracks);
-    				artistData.update(ARTIST_DATA_TOTALTIME_INDEX, artistTotalTime);
-    				Artists.put(artist.toLowerCase(), artistData);
-    			}
-    		}
+			String artist = trackObj.getArtist();
+			if (artist != null)
+			{
+
+				/*
+				 * Add the artist name to the list of such names, if it ain't already there.
+				 * Also, create a new artist object, initialize it from the track, and add it to 
+				 * the artist map.
+				 */
+				int index = ArrayList.binarySearch(ArtistNames, artist, ArtistNames.getComparator());
+				if (index < 0)
+				{
+					ArtistNames.add(artist);
+					Artist artistObj = new Artist(artist.toLowerCase());
+					artistObj.addTrackToArtist(trackObj);
+					Artists.put(artist.toLowerCase(), artistObj);
+					
+					/*
+					 * This is tricky. We need to keep a count of artists that ONLY contain remote 
+					 * tracks, so we can adjust the artist count if remote tracks are not being
+					 * shown. So we bump the remote artists count here if this track is remote.
+					 * On the else leg we're hitting the same artist again, so if that track is 
+					 * local, we then decrement the remote artists count. And then remember that
+					 * fact using a flag in the artist object. A thing of beauty, yes?
+					 */
+					if (trackObj.getRemote() == true)
+					{
+						remoteArtistsCount++;
+						artistObj.setRemoteArtistControl(Artist.RemoteArtistControl.REMOTE);
+					}
+				}
+
+				/*
+				 * The artist already exists in the list of artist names and the artist map.
+				 * Update the artist object from the track and then replace it in the artist map.
+				 */
+				else
+				{
+					Artist artistObj = Artists.get(artist.toLowerCase());
+					artistObj.addTrackToArtist(trackObj);
+					Artists.put(artist.toLowerCase(), artistObj);
+					
+					/*
+					 * See comment above in the if leg.
+					 */
+					if (trackObj.getRemote() == false
+							&& artistObj.getRemoteArtistControl() == Artist.RemoteArtistControl.REMOTE)
+					{
+						remoteArtistsCount--;
+						artistObj.setRemoteArtistControl(Artist.RemoteArtistControl.REMOTE_AND_LOCAL);
+					}
+				}
+			}
     		
     		/*
     		 * Reset these hideous variables for the next pair of elements.

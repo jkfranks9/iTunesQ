@@ -393,9 +393,14 @@ public class MainWindow implements Application
         Utilities.saveNumArtistsLabel(numArtistsLabel);
 		
 		/*
-		 * Initialize the tracks display column defaults.
+		 * Initialize the track display column defaults.
 		 */
 		TrackDisplayColumns.initializeDefaults();
+		
+		/*
+		 * Initialize the artist display column sets.
+		 */
+		ArtistDisplayColumns.initializeColumnSets();
 		
 		/*
 		 * Get the XML file name, if it exists.
