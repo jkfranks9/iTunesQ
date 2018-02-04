@@ -1,7 +1,5 @@
 package itunesq;
 
-import java.util.Iterator;
-
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
@@ -59,6 +57,9 @@ public final class PlaylistCollection
     	{
     		throw new IllegalArgumentException("newIgnoredPlaylists argument is null");
     	}
+    	
+    	logger.debug("previous ignored playlists count: " + prevIgnoredPlaylists.getLength());
+    	logger.debug("new ignored playlists count: " + newIgnoredPlaylists.getLength());
 		
 		/*
 		 * Make a difference list of added and removed ignored playlists. All we need are the playlist
@@ -72,10 +73,8 @@ public final class PlaylistCollection
 		 * remove it from there. Otherwise, create an entry in the difference list for the removed
 		 * playlist.
 		 */
-		Iterator<String> prevIgnoredPlaylistsIter = prevIgnoredPlaylists.iterator();
-		while (prevIgnoredPlaylistsIter.hasNext())
+		for (String prevIgnoredPlaylist : prevIgnoredPlaylists)
 		{
-			String prevIgnoredPlaylist = prevIgnoredPlaylistsIter.next();
 			if (newIgnoredPlaylists.indexOf(prevIgnoredPlaylist) != -1)
 			{
 				newIgnoredPlaylists.remove(prevIgnoredPlaylist);
@@ -90,12 +89,12 @@ public final class PlaylistCollection
 		 * Any playlists still in the new list represent added playlists, so create entries in the
 		 * difference list to represent them.
 		 */
-		Iterator<String> newIgnoredPlaylistsIter = newIgnoredPlaylists.iterator();
-		while (newIgnoredPlaylistsIter.hasNext())
+		for (String newIgnoredPlaylist : newIgnoredPlaylists)
 		{
-			String newIgnoredPlaylist = newIgnoredPlaylistsIter.next();
 			ignoredDiffs.add(newIgnoredPlaylist);
 		}
+
+    	logger.debug("difference ignored playlists count: " + ignoredDiffs.getLength());
         
         /*
          * Get the preferences object instance.
@@ -106,10 +105,8 @@ public final class PlaylistCollection
 		 * Walk through all playlists.
 		 */
 		Map<String, Playlist> playlists = XMLHandler.getPlaylists();
-        Iterator<String> playlistsIter = playlists.iterator();
-        while (playlistsIter.hasNext())
+        for (String playlistKey : playlists)
         {
-        	String playlistKey = playlistsIter.next();
         	Playlist playlistObj = playlists.get(playlistKey);
         	String playlistName = playlistObj.getName();
         	
@@ -187,11 +184,8 @@ public final class PlaylistCollection
          * Walk the list of ignored playlist preferences.
          */
     	List<String> ignoredPrefs = prefs.getIgnoredPrefs();
-    	Iterator<String> ignoredPrefsIter = ignoredPrefs.iterator();
-    	while (ignoredPrefsIter.hasNext())
+    	for (String ignoredPref : ignoredPrefs)
     	{
-    		String ignoredPref = ignoredPrefsIter.next();
-    		
         	if (ignoredPref.equals(playlistName))
         	{
     			logger.debug("'" + playlistName + "' is ignored");
@@ -218,10 +212,8 @@ public final class PlaylistCollection
 		 * Walk through all playlists.
 		 */
 		Map<String, Playlist> playlists = XMLHandler.getPlaylists();
-        Iterator<String> playlistsIter = playlists.iterator();
-        while (playlistsIter.hasNext())
+        for (String playlistKey : playlists)
         {
-        	String playlistKey = playlistsIter.next();
         	Playlist playlistObj = playlists.get(playlistKey);
 
     		String parentID;
@@ -245,10 +237,8 @@ public final class PlaylistCollection
 		 * Walk through all playlists.
 		 */
 		Map<String, Playlist> playlists = XMLHandler.getPlaylists();
-        Iterator<String> playlistsIter = playlists.iterator();
-        while (playlistsIter.hasNext())
+        for (String playlistKey : playlists)
         {
-        	String playlistKey = playlistsIter.next();
         	Playlist playlistObj = playlists.get(playlistKey);
         	
         	/*
@@ -295,10 +285,8 @@ public final class PlaylistCollection
 		 * Walk through all playlists.
 		 */
 		Map<String, Playlist> playlists = XMLHandler.getPlaylists();
-        Iterator<String> playlistsIter = playlists.iterator();
-        while (playlistsIter.hasNext())
+        for (String playlistKey : playlists)
         {
-        	String playlistKey = playlistsIter.next();
         	Playlist playlistObj = playlists.get(playlistKey);
     		
     		/*
@@ -317,10 +305,8 @@ public final class PlaylistCollection
         		List<Integer> playlistTracks = playlistObj.getTracks();
         		if (playlistTracks != null)
         		{
-        			Iterator<Integer> playlistTracksIter = playlistTracks.iterator();
-        			while (playlistTracksIter.hasNext())
+        			for (Integer trackID : playlistTracks)
         			{
-        				Integer trackID = playlistTracksIter.next();
 
         				/*
         				 * Get the track for this track ID.
@@ -367,10 +353,8 @@ public final class PlaylistCollection
          * Walk the list of bypass playlist preferences.
          */
     	List<BypassPreference> bypassPrefs = prefs.getBypassPrefs();
-    	Iterator<BypassPreference> bypassPrefsIter = bypassPrefs.iterator();
-    	while (bypassPrefsIter.hasNext())
+    	for (BypassPreference bypassPref : bypassPrefs)
     	{
-    		BypassPreference bypassPref = bypassPrefsIter.next();
     		
     		/*
     		 * Get the result for the input playlist.

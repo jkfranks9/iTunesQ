@@ -1,8 +1,6 @@
 package itunesq;
 
 import java.io.IOException;
-import java.util.Iterator;
-
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
@@ -230,12 +228,11 @@ public class TrackDisplayColumns
 			names.clear();
 			widths.clear();
 			
-			Iterator<List<String>> columnDefIter = columnDef.iterator();
-			while (columnDefIter.hasNext())
+			for (List<String> columnData : columnDef)
 			{
-				List<String> columnData = columnDefIter.next();
-				this.names.add(columnData.get(0));
-				this.widths.add(columnData.get(1));
+				int index = 0;
+				this.names.add(columnData.get(index++));
+				this.widths.add(columnData.get(index++));
 			}
 		}
 		

@@ -1,8 +1,6 @@
 package itunesq;
 
 import java.util.Comparator;
-import java.util.Iterator;
-
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Sequence;
@@ -122,8 +120,8 @@ public class FilterCollection
 	 * list of tracks can be retrieved using the <code>getFilteredTracks</code>
 	 * method.
 	 * 
-	 * @return <code>true</code> if the filters were executed without errors, and 
-	 * <code>false</code> otherwise
+	 * @return <code>true</code> if the filters were executed without errors, 
+	 * and <code>false</code> otherwise
 	 */
 	public boolean executeFilterList () 
 	{
@@ -237,7 +235,7 @@ public class FilterCollection
 	}
 	
 	/**
-	 * Returns the set of filters as a string. This is used  when saving or 
+	 * Returns the set of filters as a string. This is used when saving or 
 	 * printing the results of a query.
 	 * 
 	 * @return string representation of the set of filters 
@@ -312,9 +310,11 @@ public class FilterCollection
          * Create a list of tracks to be displayed. Make sure it's sorted by track name.
          */
         filteredTracks = new ArrayList<Track>();
-        filteredTracks.setComparator(new Comparator<Track>() {
+        filteredTracks.setComparator(new Comparator<Track>()
+        {
             @Override
-            public int compare(Track t1, Track t2) {
+            public int compare(Track t1, Track t2)
+            {
                 return t1.compareTo(t2);
             }
         });
@@ -329,11 +329,8 @@ public class FilterCollection
 		 * Walk through all tracks.
 		 */
         List<Track> tracks = XMLHandler.getTracks();
-        Iterator<Track> tracksIter = tracks.iterator();
-        while (tracksIter.hasNext())
+        for (Track track : tracks)
         {
-        	Track track = tracksIter.next();
-        	
     		boolean logicSwitch;
     		int index;
     		
@@ -504,7 +501,9 @@ public class FilterCollection
 		/*
 		 * Handle all the different subject cases.
 		 */
-		switch (filter.getFilterSubject())
+		Filter.Subject subject = filter.getFilterSubject();
+		
+		switch (subject)
 		{
 		case ARTIST:
 			String artist = track.getArtist();
@@ -785,6 +784,7 @@ public class FilterCollection
 			break;
 			
 		default:
+			throw new InternalErrorException(true, "unknown filter subject '" + subject + "'");
 		}
 		
 		return result;

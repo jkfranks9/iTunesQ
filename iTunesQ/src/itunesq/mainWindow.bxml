@@ -54,7 +54,7 @@
     	        <FillPane bxml:id="infoFillPane" orientation="vertical">
    		        	<Label bxml:id="titleLabel"
           	  	        styles="{font:{bold:true, size:'300%'},
-           		    	horizontalAlignment:'center', verticalAlignment:'center'}"/>
+           		    		horizontalAlignment:'center', verticalAlignment:'center'}"/>
                 </FillPane>
 		    	<BoxPane orientation="vertical" styles="{spacing: 5, padding:10}">
 		    	
@@ -64,7 +64,7 @@
                 		styles="{spacing: 5, padding:10}">
     			        <Label bxml:id="fileLabel"
                 	  	    styles="{font:{size:'120%'}, padding:5,
-               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+               	  	    		horizontalAlignment:'left', verticalAlignment:'center'}"/>
                     </BoxPane>
 	                    
 		    		<!-- XML file statistics. -->
@@ -73,13 +73,13 @@
                 		styles="{spacing: 5, padding:10}">
     			        <Label bxml:id="numTracksLabel"
                 	  	    styles="{font:{size:'120%'}, padding:5,
-               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+               	  	    		horizontalAlignment:'left', verticalAlignment:'center'}"/>
     			        <Label bxml:id="numPlaylistsLabel"
                 	  	    styles="{font:{size:'120%'}, padding:5,
-               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+               	  	    		horizontalAlignment:'left', verticalAlignment:'center'}"/>
     			        <Label bxml:id="numArtistsLabel"
                 	  	    styles="{font:{size:'120%'}, padding:5,
-               	  	    	horizontalAlignment:'left', verticalAlignment:'center'}"/>
+               	  	    		horizontalAlignment:'left', verticalAlignment:'center'}"/>
                     </BoxPane>
 	            </BoxPane>
 	       	</Border>

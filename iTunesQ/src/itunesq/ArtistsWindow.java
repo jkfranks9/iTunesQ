@@ -1,7 +1,6 @@
 package itunesq;
 
 import java.io.IOException;
-import java.util.Iterator;
 
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
@@ -41,468 +40,479 @@ import ch.qos.logback.classic.Logger;
  */
 public class ArtistsWindow
 {
-	
-    //---------------- Private variables -----------------------------------
 
-	private Window artistsWindow = null;
-	private Dialog altNamesDialog = null;
-	private Skins skins = null;
-	private Logger logger = null;
-	
-	/*
-	 * BXML variables.
-	 */
-	@BXML private Border infoBorder = null;
-	@BXML private FillPane infoFillPane = null;
-	@BXML private Label numArtistsLabel = null;
-	@BXML private Border artistsBorder = null;
-	@BXML private TableView artistsTableView = null;
-	@BXML private TableViewHeader artistsTableViewHeader = null;
-	@BXML private Border actionBorder = null;
-	@BXML private BoxPane actionBoxPane = null;
-	@BXML private PushButton doneButton = null;
+    // ---------------- Private variables -----------------------------------
 
-	@BXML private Border altNamesPrimaryBorder = null;
-	@BXML private TablePane altNamesTablePane = null;
-    
+    private Window artistsWindow = null;
+    private Dialog altNamesDialog = null;
+    private Skins skins = null;
+    private Logger logger = null;
+
+    /*
+     * BXML variables.
+     */
+    @BXML private Border infoBorder = null;
+    @BXML private FillPane infoFillPane = null;
+    @BXML private Label numArtistsLabel = null;
+    @BXML private Border artistsBorder = null;
+    @BXML private TableView artistsTableView = null;
+    @BXML private TableViewHeader artistsTableViewHeader = null;
+    @BXML private Border actionBorder = null;
+    @BXML private BoxPane actionBoxPane = null;
+    @BXML private PushButton doneButton = null;
+
+    @BXML private Border altNamesPrimaryBorder = null;
+    @BXML private TablePane altNamesTablePane = null;
+
     /**
      * Class constructor.
      */
-    public ArtistsWindow ()
+    public ArtistsWindow()
     {
-    	
-    	/*
-    	 * Create a UI logger.
-    	 */
-    	String className = getClass().getSimpleName();
-    	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
-    	
-    	/*
-    	 * Get the logging object singleton.
-    	 */
-    	Logging logging = Logging.getInstance();
-    	
-    	/*
-    	 * Register our logger.
-    	 */
-    	logging.registerLogger(Logging.Dimension.UI, logger);
-    	
-    	/*
-    	 * Initialize variables.
-    	 */
-    	skins = Skins.getInstance();
-    	
-    	logger.trace("ArtistsWindow constructor: " + this.hashCode());
+
+        /*
+         * Create a UI logger.
+         */
+        String className = getClass().getSimpleName();
+        logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+
+        /*
+         * Get the logging object singleton.
+         */
+        Logging logging = Logging.getInstance();
+
+        /*
+         * Register our logger.
+         */
+        logging.registerLogger(Logging.Dimension.UI, logger);
+
+        /*
+         * Initialize variables.
+         */
+        skins = Skins.getInstance();
+
+        logger.trace("ArtistsWindow constructor: " + this.hashCode());
     }
-	
-    //---------------- Public methods --------------------------------------
 
-	/**
-	 * Displays the artists in a new window.
-	 * 
-	 * @param display display object for managing windows
-	 * @throws IOException If an error occurs trying to read the BXML file.
-	 * @throws SerializationException If an error occurs trying to 
-	 * deserialize the BXML file.
-	 */
-    public void displayArtists (Display display) 
-    		throws IOException, SerializationException
+    // ---------------- Public methods --------------------------------------
+
+    /**
+     * Displays the artists in a new window.
+     * 
+     * @param display display object for managing windows
+     * @throws IOException If an error occurs trying to read the BXML file.
+     * @throws SerializationException If an error occurs trying to deserialize
+     * the BXML file.
+     */
+    public void displayArtists(Display display) throws IOException, SerializationException
     {
-    	logger.trace("displayArtists: " + this.hashCode());
-    	
-    	if (display == null)
-    	{
-    		throw new IllegalArgumentException("display argument is null");
-    	}
-    	
-    	/*
-    	 * Get the show remote tracks preference.
-    	 */
-    	Preferences prefs = Preferences.getInstance();
-    	boolean showRemoteTracks = prefs.getShowRemoteTracks();
-    	
-    	/*
-    	 * Get the BXML information for the artists window, and generate the list of components
-    	 * to be skinned.
-    	 */
-		List<Component> components = new ArrayList<Component>();
-		initializeBxmlVariables(components);
-    
-		/*
-		 * Listener to handle the done button press.
-		 */
-		doneButton.getButtonPressListeners().add(new ButtonPressListener() 
-		{
-			@Override
-			public void buttonPressed(Button button) 
-			{
-				logger.info("done button pressed");
+        logger.trace("displayArtists: " + this.hashCode());
 
-				/*
-				 * Close the window.
-				 */
-				artistsWindow.close();
+        if (display == null)
+        {
+            throw new IllegalArgumentException("display argument is null");
+        }
 
-				/*
-				 * Pop the window off the skins window stack.
-				 */
-				skins.popSkinnedWindow();
-			}
-		});
+        /*
+         * Get the show remote tracks preference.
+         */
+        Preferences prefs = Preferences.getInstance();
+        boolean showRemoteTracks = prefs.getShowRemoteTracks();
 
-    	/*
-    	 * Mouse click listener for the table view.
-    	 */
-        artistsTableView.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
-		{
-            @Override
-            public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
+        /*
+         * Get the BXML information for the artists window, and generate the
+         * list of components to be skinned.
+         */
+        List<Component> components = new ArrayList<Component>();
+        initializeBxmlVariables(components);
+
+        /*
+         * Set up the various event handlers.
+         */
+        createEventHandlers();
+
+        /*
+         * Set the number of artists label.
+         */
+        numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + XMLHandler.getNumberOfArtists());
+
+        /*
+         * Create a list suitable for the setTableData() method.
+         */
+        List<HashMap<String, String>> displayArtists = new ArrayList<HashMap<String, String>>();
+
+        /*
+         * Now walk the artists, and add them all to the list.
+         */
+        Map<String, Artist> artists = XMLHandler.getArtists();
+        for (String artistKey : artists)
+        {
+            Artist artistObj = XMLHandler.getArtists().get(artistKey.toLowerCase());
+
+            /*
+             * Skip artists with no local tracks if remote tracks are not being
+             * shown.
+             */
+            if (artistObj.getNumLocalTracks() == 0 && showRemoteTracks == false)
             {
-            	
-            	/*
-            	 * For a right mouse click we pop up a dialog of alternate names.
-            	 */
-            	if (button == Mouse.Button.RIGHT)
-            	{
-                	TableView table = (TableView) component;
-                	Display display = component.getDisplay();
-            		
-            		/*
-            		 * Get the index for the clicked row, then set that row as selected.
-            		 */
-                	int index = table.getRowAt(y);
-                	table.setSelectedIndex(index);
-                	
-                	/*
-                	 * Get the data for the selected row.
-                	 */
-                	@SuppressWarnings("unchecked")
-					HashMap<String, String> selectedTrackRowData = 
-                			(HashMap<String, String>) table.getSelectedRow();
-					
-					/*
-					 * Create and open the alternate names popup dialog.
-					 */
-					try
-					{
-						handleAltNamesPopup(selectedTrackRowData, display, artistsWindow);
-					}
-					catch (IOException | SerializationException e)
-					{
-						logger.error("caught " + e.getClass().getSimpleName());
-						e.printStackTrace();
-					}
-            	}
- 
-                return false;
+                continue;
             }
-		});
 
-		/*
-		 * Add widget texts.
-		 */
-		doneButton.setButtonData(StringConstants.DONE);
+            HashMap<String, String> artistAttrs = artistObj.toDisplayMap();
+            displayArtists.add(artistAttrs);
+        }
 
-		/*
-		 * Set the window title.
-		 */
-		artistsWindow.setTitle(Skins.Window.ARTISTS.getDisplayValue());
+        logger.info("found " + displayArtists.getLength() + " artists for display");
 
-		/*
-		 * Register the artists window skin elements.
-		 */
-		Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-		skins.registerWindowElements(Skins.Window.ARTISTS, windowElements);
+        /*
+         * Create the appropriate column set.
+         */
+        if (showRemoteTracks == false)
+        {
+            ArtistDisplayColumns.createColumnSet(ArtistDisplayColumns.ColumnSet.LOCAL_VIEW, artistsTableView);
+        }
+        else
+        {
+            ArtistDisplayColumns.createColumnSet(ArtistDisplayColumns.ColumnSet.REMOTE_VIEW, artistsTableView);
+        }
 
-		/*
-		 * Set the number of artists label.
-		 */
-		numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + XMLHandler.getNumberOfArtists());
+        /*
+         * Add the artists to the window table view.
+         */
+        artistsTableView.setTableData(displayArtists);
 
-		/*
-		 * Create a list suitable for the setTableData() method.
-		 */
-		List<HashMap<String, String>> displayArtists = new ArrayList<HashMap<String, String>>();
+        /*
+         * Add a sort listener to allow column sorting.
+         */
+        artistsTableView.getTableViewSortListeners().add(new TableViewSortListener.Adapter()
+        {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void sortChanged(TableView tableView)
+            {
+                List<Object> tableDataOfTableView = (List<Object>) tableView.getTableData();
+                tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView, logger));
+            }
+        });
 
-		/*
-		 * Now walk the artists, and add them all to the list.
-		 */
-		Map<String, Artist> artists = XMLHandler.getArtists();
-		for (String artistKey : artists)
-		{
-			Artist artistObj = XMLHandler.getArtists().get(artistKey.toLowerCase());
-			
-			/*
-			 * Skip artists with no local tracks if remote tracks are not being shown.
-			 */
-			if (artistObj.getNumLocalTracks() == 0 && showRemoteTracks == false)
-			{
-				continue;
-			}
-			
-			HashMap<String, String> artistAttrs = artistObj.toDisplayMap();			
-			displayArtists.add(artistAttrs);
-		}
+        /*
+         * Add widget texts.
+         */
+        doneButton.setButtonData(StringConstants.DONE);
 
-		/*
-		 * Create the appropriate column set.
-		 */
-		if (showRemoteTracks == false)
-		{
-			ArtistDisplayColumns.createColumnSet(
-					ArtistDisplayColumns.ColumnSet.LOCAL_VIEW, artistsTableView);
-		}
-		else
-		{
-			ArtistDisplayColumns.createColumnSet(
-					ArtistDisplayColumns.ColumnSet.REMOTE_VIEW, artistsTableView);
-		}
+        /*
+         * Set the window title.
+         */
+        artistsWindow.setTitle(Skins.Window.ARTISTS.getDisplayValue());
 
-		/*
-		 * Add the artists to the window table view.
-		 */
-		artistsTableView.setTableData(displayArtists);
+        /*
+         * Register the artists window skin elements.
+         */
+        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
+        skins.registerWindowElements(Skins.Window.ARTISTS, windowElements);
 
-		/*
-		 * Add a sort listener to allow column sorting.
-		 */
-		artistsTableView.getTableViewSortListeners().add(new TableViewSortListener.Adapter()
-		{
-			@Override
-			@SuppressWarnings("unchecked")
-			public void sortChanged(TableView tableView) {
-				List<Object> tableDataOfTableView = (List<Object>)tableView.getTableData();
-				tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView));
-			}
-		});
+        /*
+         * Skin the artists window.
+         */
+        skins.skinMe(Skins.Window.ARTISTS);
 
-		/*
-		 * Skin the artists window.
-		 */
-		skins.skinMe(Skins.Window.ARTISTS);
+        /*
+         * Push the skinned window onto the skins window stack. It gets popped
+         * from our done button press handler.
+         */
+        skins.pushSkinnedWindow(Skins.Window.ARTISTS);
 
-		/*
-		 * Push the skinned window onto the skins window stack. It gets popped from our done button press
-		 * handler.
-		 */
-		skins.pushSkinnedWindow(Skins.Window.ARTISTS);
-
-		/*
-		 * Open the artists window.
-		 */
-		logger.info("opening artists window");
-		artistsWindow.open(display);
+        /*
+         * Open the artists window.
+         */
+        logger.info("opening artists window");
+        artistsWindow.open(display);
     }
 
-    //---------------- Private methods -------------------------------------
-    
-    public void handleAltNamesPopup (Map<String, String> artistRowData, Display display,
-    		Window owningWindow) 
-    		throws IOException, SerializationException
+    /**
+     * Displays a dialog of alternate artist names when the user right clicks on
+     * an artist name.
+     * 
+     * @param artistRowData row that was clicked in the table of artists
+     * @param display display object for managing windows
+     * @param owningWindow owning window on which to open the dialog
+     * @throws IOException If an error occurs trying to read the BXML file.
+     * @throws SerializationException If an error occurs trying to deserialize
+     * the BXML file.
+     */
+    public void handleAltNamesPopup(Map<String, String> artistRowData, Display display, Window owningWindow)
+            throws IOException, SerializationException
     {
-    	logger.trace("handleAltNamesPopup: " + this.hashCode());
-    	
-    	if (artistRowData == null)
-    	{
-    		throw new IllegalArgumentException("artistRowData argument is null");
-    	}
-    	
-    	if (display == null)
-    	{
-    		throw new IllegalArgumentException("display argument is null");
-    	}
-    	
-    	if (owningWindow == null)
-    	{
-    		throw new IllegalArgumentException("owningWindow argument is null");
-    	}
-        
+        logger.trace("handleAltNamesPopup: " + this.hashCode());
+
+        if (artistRowData == null)
+        {
+            throw new IllegalArgumentException("artistRowData argument is null");
+        }
+
+        if (display == null)
+        {
+            throw new IllegalArgumentException("display argument is null");
+        }
+
+        if (owningWindow == null)
+        {
+            throw new IllegalArgumentException("owningWindow argument is null");
+        }
+
         /*
          * Get the artist name and log it.
          */
-		String artistName = 
-				artistRowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
-		logger.info("right clicked on artist '" + artistName + "'");
-		
-		/*
-		 * Get the artist alternate names we want to display.
-		 */
-		Artist artistObj = XMLHandler.getArtists().get(artistName.toLowerCase());
-		List<String> altNames = artistObj.getAltNames();
-		
-		/*
-		 * Only display the dialog if there is more than one alternate name.
-		 */
-		if (altNames.getLength() > 1)
-		{
+        String artistName = artistRowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
+        logger.info("right clicked on artist '" + artistName + "'");
 
-			/*
-			 * Get the base BXML information for the alternate names dialog, and start the list of 
-			 * components to be skinned.
-			 */
-			List<Component> components = new ArrayList<Component>();
-			initializeAltNamesDialogBxmlVariables(components);
+        /*
+         * Get the artist alternate names we want to display.
+         */
+        Artist artistObj = XMLHandler.getArtists().get(artistName.toLowerCase());
+        List<String> altNames = artistObj.getAltNames();
 
-			/*
-			 * Build table rows to represent the alternate names. This method also adds
-			 * components that need to be skinned.
-			 */
-			List<TablePane.Row> altNamesRows = buildAltNamesRows(altNames, components);
+        /*
+         * Only display the dialog if there is more than one alternate name.
+         */
+        if (altNames.getLength() > 1)
+        {
+            logger.info("found " + altNames.getLength() + " alternate artist names to display");
 
-			/*
-			 * Add the generated rows to the owning table pane.
-			 */
-			Iterator<TablePane.Row> detailsRowsIter = altNamesRows.iterator();
-			while (detailsRowsIter.hasNext())
-			{
-				TablePane.Row detailRow = detailsRowsIter.next();
-				altNamesTablePane.getRows().add(detailRow);
-			}
+            /*
+             * Get the base BXML information for the alternate names dialog, and
+             * start the list of components to be skinned.
+             */
+            List<Component> components = new ArrayList<Component>();
+            initializeAltNamesDialogBxmlVariables(components);
 
-			/*
-			 * Set the window title.
-			 */
-			altNamesDialog.setTitle(Skins.Window.ALTNAMES.getDisplayValue());
+            /*
+             * Build table rows to represent the alternate names. This method
+             * also adds components that need to be skinned.
+             */
+            List<TablePane.Row> altNamesRows = buildAltNamesRows(altNames, components);
 
-			/*
-			 * Register the window elements.
-			 */
-			Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);		
-			skins.registerWindowElements(Skins.Window.ALTNAMES, windowElements);
+            /*
+             * Add the generated rows to the owning table pane.
+             */
+            for (TablePane.Row detailRow : altNamesRows)
+            {
+                altNamesTablePane.getRows().add(detailRow);
+            }
 
-			/*
-			 * Skin the alternate names dialog.
-			 */
-			skins.skinMe(Skins.Window.ALTNAMES);
+            /*
+             * Set the window title.
+             */
+            altNamesDialog.setTitle(Skins.Window.ALTNAMES.getDisplayValue());
 
-			/*
-			 * Open the alternate names dialog. There is no close button, so the user has to 
-			 * close the dialog using the host controls.
-			 */
-			logger.info("opening alternate names dialog");
-			altNamesDialog.open(display, owningWindow);
-		}
-		else
-		{
-			Alert.alert(MessageType.INFO, 
-					StringConstants.ALERT_NO_ALTERNATE_NAMES, artistsWindow);
-		}
+            /*
+             * Register the window elements.
+             */
+            Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
+            skins.registerWindowElements(Skins.Window.ALTNAMES, windowElements);
+
+            /*
+             * Skin the alternate names dialog.
+             */
+            skins.skinMe(Skins.Window.ALTNAMES);
+
+            /*
+             * Open the alternate names dialog. There is no close button, so the
+             * user has to close the dialog using the host controls.
+             */
+            logger.info("opening alternate names dialog");
+            altNamesDialog.open(display, owningWindow);
+        }
+        else
+        {
+            Alert.alert(MessageType.INFO, StringConstants.ALERT_NO_ALTERNATE_NAMES, artistsWindow);
+        }
     }
-    
+
+    // ---------------- Private methods -------------------------------------
+
+    /*
+     * Set up the various event handlers.
+     */
+    private void createEventHandlers()
+    {
+        logger.trace("createEventHandlers: " + this.hashCode());
+
+        /*
+         * Listener to handle the done button press.
+         */
+        doneButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("done button pressed");
+
+                /*
+                 * Close the window.
+                 */
+                artistsWindow.close();
+
+                /*
+                 * Pop the window off the skins window stack.
+                 */
+                skins.popSkinnedWindow();
+            }
+        });
+
+        /*
+         * Mouse click listener for the table view.
+         */
+        artistsTableView.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
+        {
+            @Override
+            public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
+            {
+
+                /*
+                 * For a right mouse click we pop up a dialog of alternate
+                 * names.
+                 */
+                if (button == Mouse.Button.RIGHT)
+                {
+                    TableView table = (TableView) component;
+                    Display display = component.getDisplay();
+
+                    /*
+                     * Get the index for the clicked row, then set that row as
+                     * selected.
+                     */
+                    int index = table.getRowAt(y);
+                    table.setSelectedIndex(index);
+
+                    /*
+                     * Get the data for the selected row.
+                     */
+                    @SuppressWarnings("unchecked") HashMap<String, String> selectedTrackRowData = (HashMap<String, String>) table
+                            .getSelectedRow();
+
+                    /*
+                     * Create and open the alternate names popup dialog.
+                     */
+                    try
+                    {
+                        handleAltNamesPopup(selectedTrackRowData, display, artistsWindow);
+                    }
+                    catch (IOException | SerializationException e)
+                    {
+                        MainWindow.logException(logger, e);
+                        throw new InternalErrorException(true, e.getMessage());
+                    }
+                }
+
+                return false;
+            }
+        });
+    }
+
     /*
      * Build the alternate names data for display.
      */
-    private List<TablePane.Row> buildAltNamesRows (List<String> altNames, List<Component> components)
+    private List<TablePane.Row> buildAltNamesRows(List<String> altNames, List<Component> components)
     {
-    	logger.trace("buildAltNamesRows: " + this.hashCode());
-    	
-    	List<TablePane.Row> result = new ArrayList<TablePane.Row>();
-		
-		/*
-		 * Build a row for all alternate names.
-		 */
-		for (String altName : altNames)
-		{
-			
-			/*
-			 * Start building a table row to be returned.
-			 */
-			TablePane.Row infoRow = new TablePane.Row();
-			infoRow.setHeight("1*");
-			
-			/*
-			 * Build the label that contains the actual alternate name.
-			 */
-			Label altNameLabel = new Label(altName);
-			Map<String, Object> altNameLabelStyles = new HashMap<String, Object>();
-			altNameLabelStyles.put("padding", 0);
-			altNameLabel.setStyles(altNameLabelStyles);
-			
-			/*
-			 * Add the label to the table row.
-			 */
-			infoRow.add(altNameLabel);
-			
-			/*
-			 * Add the components we created so they can be skinned.
-			 */
-			components.add(altNameLabel);
-			
-			/*
-			 * Add the table row to the result.
-			 */
-			result.add(infoRow);
-		}
-    	
-    	return result;
+        logger.trace("buildAltNamesRows: " + this.hashCode());
+
+        List<TablePane.Row> result = new ArrayList<TablePane.Row>();
+
+        /*
+         * Build a row for all alternate names.
+         */
+        for (String altName : altNames)
+        {
+
+            /*
+             * Start building a table row to be returned.
+             */
+            TablePane.Row infoRow = new TablePane.Row();
+            infoRow.setHeight("1*");
+
+            /*
+             * Build the label that contains the actual alternate name.
+             */
+            Label altNameLabel = new Label(altName);
+            Map<String, Object> altNameLabelStyles = new HashMap<String, Object>();
+            altNameLabelStyles.put("padding", 0);
+            altNameLabel.setStyles(altNameLabelStyles);
+
+            /*
+             * Add the label to the table row.
+             */
+            infoRow.add(altNameLabel);
+
+            /*
+             * Add the components we created so they can be skinned.
+             */
+            components.add(altNameLabel);
+
+            /*
+             * Add the table row to the result.
+             */
+            result.add(infoRow);
+        }
+
+        return result;
     }
-    
+
     /*
-     * Initialize artists window BXML variables and collect the list of components to be skinned.
+     * Initialize artists window BXML variables and collect the list of
+     * components to be skinned.
      */
-    private void initializeBxmlVariables (List<Component> components) 
-    		throws IOException, SerializationException
+    private void initializeBxmlVariables(List<Component> components) throws IOException, SerializationException
     {
-    	logger.trace("initializeBxmlVariables: " + this.hashCode());
-    	
+        logger.trace("initializeBxmlVariables: " + this.hashCode());
+
         BXMLSerializer windowSerializer = new BXMLSerializer();
 
-    	artistsWindow = (Window)windowSerializer.
-    			readObject(getClass().getResource("artistsWindow.bxml"));
-        
+        artistsWindow = (Window) windowSerializer.readObject(getClass().getResource("artistsWindow.bxml"));
+
         /*
          * Initialize the menu bar.
          */
-        MenuBars menuBar = (MenuBars)artistsWindow;
+        MenuBars menuBar = (MenuBars) artistsWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        infoBorder = 
-        		(Border)windowSerializer.getNamespace().get("infoBorder");
-		components.add(infoBorder);
-        infoFillPane = 
-        		(FillPane)windowSerializer.getNamespace().get("infoFillPane");
-		components.add(infoFillPane);
-        numArtistsLabel = 
-        		(Label)windowSerializer.getNamespace().get("numArtistsLabel");
-		components.add(numArtistsLabel);
-		artistsBorder = 
-        		(Border)windowSerializer.getNamespace().get("artistsBorder");
-		components.add(artistsBorder);
-		artistsTableView = 
-        		(TableView)windowSerializer.getNamespace().get("artistsTableView");
-		components.add(artistsTableView);		
-		artistsTableViewHeader = 
-        		(TableViewHeader)windowSerializer.getNamespace().get("artistsTableViewHeader");
-		components.add(artistsTableViewHeader);
-        actionBorder = 
-        		(Border)windowSerializer.getNamespace().get("actionBorder");
-		components.add(actionBorder);
-        actionBoxPane = 
-        		(BoxPane)windowSerializer.getNamespace().get("actionBoxPane");
-		components.add(actionBoxPane);
-		
-        doneButton = 
-        		(PushButton)windowSerializer.getNamespace().get("doneButton");
-		components.add(doneButton);
-    }
-    
-    /*
-     * Initialize alternate names dialog BXML variables and collect the static components to be skinned.
-     */
-    private void initializeAltNamesDialogBxmlVariables (List<Component> components) 
-    		throws IOException, SerializationException
-    {
-    	logger.trace("initializeAltNamesDialogBxmlVariables: " + this.hashCode());
-    	
-        BXMLSerializer dialogSerializer = new BXMLSerializer();
-		altNamesDialog = (Dialog)dialogSerializer.readObject(getClass().
-				getResource("artistAltNamesWindow.bxml"));
+        infoBorder = (Border) windowSerializer.getNamespace().get("infoBorder");
+        components.add(infoBorder);
+        infoFillPane = (FillPane) windowSerializer.getNamespace().get("infoFillPane");
+        components.add(infoFillPane);
+        numArtistsLabel = (Label) windowSerializer.getNamespace().get("numArtistsLabel");
+        components.add(numArtistsLabel);
+        artistsBorder = (Border) windowSerializer.getNamespace().get("artistsBorder");
+        components.add(artistsBorder);
+        artistsTableView = (TableView) windowSerializer.getNamespace().get("artistsTableView");
+        components.add(artistsTableView);
+        artistsTableViewHeader = (TableViewHeader) windowSerializer.getNamespace().get("artistsTableViewHeader");
+        components.add(artistsTableViewHeader);
+        actionBorder = (Border) windowSerializer.getNamespace().get("actionBorder");
+        components.add(actionBorder);
+        actionBoxPane = (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
+        components.add(actionBoxPane);
 
-		altNamesPrimaryBorder = 
-        		(Border)dialogSerializer.getNamespace().get("altNamesPrimaryBorder");
-		components.add(altNamesPrimaryBorder);
-		altNamesTablePane = 
-        		(TablePane)dialogSerializer.getNamespace().get("altNamesTablePane");
-		components.add(altNamesTablePane);
+        doneButton = (PushButton) windowSerializer.getNamespace().get("doneButton");
+        components.add(doneButton);
+    }
+
+    /*
+     * Initialize alternate names dialog BXML variables and collect the static
+     * components to be skinned.
+     */
+    private void initializeAltNamesDialogBxmlVariables(List<Component> components)
+            throws IOException, SerializationException
+    {
+        logger.trace("initializeAltNamesDialogBxmlVariables: " + this.hashCode());
+
+        BXMLSerializer dialogSerializer = new BXMLSerializer();
+
+        altNamesDialog = (Dialog) dialogSerializer.readObject(getClass().getResource("artistAltNamesWindow.bxml"));
+
+        altNamesPrimaryBorder = (Border) dialogSerializer.getNamespace().get("altNamesPrimaryBorder");
+        components.add(altNamesPrimaryBorder);
+        altNamesTablePane = (TablePane) dialogSerializer.getNamespace().get("altNamesTablePane");
+        components.add(altNamesTablePane);
     }
 }

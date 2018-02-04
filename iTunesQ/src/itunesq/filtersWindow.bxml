@@ -54,7 +54,7 @@
                     
                 <!-- Lay out the filters in a table pane. -->
                 <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                   		 verticalScrollBarPolicy="fill_to_capacity">
+                   	verticalScrollBarPolicy="fill_to_capacity">
                     <TablePane bxml:id="filterTablePane"
                        	styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
            				<columns>

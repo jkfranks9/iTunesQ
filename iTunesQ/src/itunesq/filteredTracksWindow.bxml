@@ -66,43 +66,43 @@
                	<!-- Lay out the contents in a split pane. -->
                 <SplitPane splitRatio="0.7">
                     
-                <!-- The left side is the tracks. -->
-                <left>
-                   	<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                   		verticalScrollBarPolicy="fill_to_capacity">
-                       	<TableView bxml:id="tracksTableView" selectMode="single"
-                           	styles="{includeTrailingVerticalGridLine:true}">
-                       	</TableView>
+                	<!-- The left side is the tracks. -->
+                	<left>
+                   		<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+                   			verticalScrollBarPolicy="fill_to_capacity">
+                       		<TableView bxml:id="tracksTableView" selectMode="single"
+                           		styles="{includeTrailingVerticalGridLine:true}">
+                       		</TableView>
 
-                       	<columnHeader>
-                           	<TableViewHeader bxml:id="tracksTableViewHeader" 
-                           		tableView="$tracksTableView" sortMode="single_column"
-                               	styles="{includeTrailingVerticalGridLine:true}"/>
-                       	</columnHeader>
-                   	</ScrollPane>
-                </left>
+                       		<columnHeader>
+                           		<TableViewHeader bxml:id="tracksTableViewHeader" 
+                           			tableView="$tracksTableView" sortMode="single_column"
+                               		styles="{includeTrailingVerticalGridLine:true}"/>
+                       		</columnHeader>
+                   		</ScrollPane>
+                	</left>
                     
-                <!-- The right side is the playlists associated with a given track. -->
-                <right>
-                   	<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                   		verticalScrollBarPolicy="fill_to_capacity">
-                       	<TableView bxml:id="trackPlaylistsTableView" selectMode="single"
-                           	styles="{includeTrailingVerticalGridLine:true}">
-	                       	<columns>
-                           		<TableView.Column bxml:id="trackPlaylistsTableViewNameColumn" 
-                           			name="name" width="8*"/>
-                           		<TableView.Column bxml:id="trackPlaylistsTableViewBypassColumn" 
-                           			name="bypass" width="3*"/>
-                           	</columns>
-                       	</TableView>
+                	<!-- The right side is the playlists associated with a given track. -->
+                	<right>
+                   		<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+                   			verticalScrollBarPolicy="fill_to_capacity">
+                       		<TableView bxml:id="trackPlaylistsTableView" selectMode="single"
+                           		styles="{includeTrailingVerticalGridLine:true}">
+	                       		<columns>
+                           			<TableView.Column bxml:id="trackPlaylistsTableViewNameColumn" 
+                           				name="name" width="8*"/>
+                           			<TableView.Column bxml:id="trackPlaylistsTableViewBypassColumn" 
+                           				name="bypass" width="3*"/>
+                           		</columns>
+                       		</TableView>
 
-                       	<columnHeader>
-                           	<TableViewHeader bxml:id="trackPlaylistsTableViewHeader" 
-                           		tableView="$trackPlaylistsTableView" sortMode="single_column"
-                               	styles="{includeTrailingVerticalGridLine:true}"/>
-                       	</columnHeader>
-                   	</ScrollPane>
-                </right>
+                       		<columnHeader>
+                           		<TableViewHeader bxml:id="trackPlaylistsTableViewHeader" 
+                           			tableView="$trackPlaylistsTableView" sortMode="single_column"
+                               		styles="{includeTrailingVerticalGridLine:true}"/>
+                       		</columnHeader>
+                   		</ScrollPane>
+                	</right>
                 </SplitPane>
             </Border>
         </TablePane.Row>

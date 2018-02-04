@@ -51,7 +51,7 @@
         <!-- Playlist compare row. -->
         <TablePane.Row height="10*">
             <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-               		 verticalScrollBarPolicy="fill_to_capacity">
+               	verticalScrollBarPolicy="fill_to_capacity">
                	<Border bxml:id="compareBorder">
                		<BoxPane bxml:id="compareBoxPane" orientation="vertical">
            				<Label bxml:id="compareBorderLabel"

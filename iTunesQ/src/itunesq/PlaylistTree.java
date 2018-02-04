@@ -1,9 +1,6 @@
 package itunesq;
 
-import java.io.Serializable;
 import java.util.Comparator;
-import java.util.Iterator;
-
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.wtk.content.TreeBranch;
 import org.apache.pivot.wtk.content.TreeNode;
@@ -90,10 +87,8 @@ public final class PlaylistTree
         /*
          * Now walk the map, and build the tree.
          */
-        Iterator<String> playlistsIter = playlists.iterator();
-        while (playlistsIter.hasNext())
+        for (String playlistKey : playlists)
         {
-        	String playlistKey = playlistsIter.next();
         	Playlist playlistObj = playlists.get(playlistKey);
         	
         	/*
@@ -331,9 +326,8 @@ public final class PlaylistTree
     /*
      * Class to compare TreeNode instances by name.
      */
-    private static final class TreeNodeComparator implements Comparator<TreeNode>, Serializable 
+    private static final class TreeNodeComparator implements Comparator<TreeNode> 
     {
-        private static final long serialVersionUID = 1L;
 
         public TreeNodeComparator () 
         {

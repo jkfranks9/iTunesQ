@@ -1,8 +1,6 @@
 package itunesq;
 
 import java.util.Date;
-import java.util.Iterator;
-
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
@@ -435,11 +433,8 @@ public class Track
 	{
 		int playlistCount = 0;
 		
-		Iterator<TrackPlaylistInfo> trkPlaylistsIter = trkPlaylists.iterator();
-		while (trkPlaylistsIter.hasNext())
-		{
-			TrackPlaylistInfo playlistInfo = trkPlaylistsIter.next();
-			
+		for (TrackPlaylistInfo playlistInfo : trkPlaylists)
+		{	
 			if (playlistInfo.getBypassed() == false)
 			{
 				playlistCount++;
@@ -541,11 +536,8 @@ public class Track
 		StringBuilder playlistsStr = new StringBuilder();
 		StringBuilder bypassedStr = new StringBuilder();
 		
-		Iterator<TrackPlaylistInfo> trkPlaylistsIter = trkPlaylists.iterator();
-		while (trkPlaylistsIter.hasNext())
-		{
-			TrackPlaylistInfo playlistInfo = trkPlaylistsIter.next();
-			
+		for (TrackPlaylistInfo playlistInfo : trkPlaylists)
+		{	
 			if (playlistsStr.length() > 0)
 			{
 				playlistsStr.append(",");

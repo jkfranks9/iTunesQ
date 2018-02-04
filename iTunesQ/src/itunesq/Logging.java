@@ -55,11 +55,12 @@ public class Logging
 	private Map<Dimension, List<Logger>> loggerRegistry;
 	private boolean globalLogLevel;
 	private Level defaultLevel;
+	private Logger diagLogger = null;
 	
 	/**
-	 * The dimension, or scope, of a logger. For example, <code>XML</code> only 
-	 * concerns logging related to the reading and processing of the iTunes 
-	 * XML file.
+	 * The dimension, or scope, of a logger. For example, <code>XML</code> 
+	 * only concerns logging related to the reading and processing of the 
+	 * iTunes XML file.
 	 * <p>
 	 * Each dimension contains the associated log level.
 	 */
@@ -164,6 +165,8 @@ public class Logging
 
     //---------------- Private variables -----------------------------------
 	
+	private Preferences userPrefs = null;
+	
 	private static final String logFileName = "iTunesQ";
 	private static final String logFileSuffix = ".log";
 	private static final String fileNamePattern = "%date %level [%thread] [%file:%line] %msg%n";
@@ -174,6 +177,7 @@ public class Logging
 	private Logging ()
 	{
 		loggerRegistry = new HashMap<Dimension, List<Logger>>();
+		userPrefs = Preferences.getInstance();
 	}
 	
     //---------------- Getters and setters ---------------------------------
@@ -186,6 +190,16 @@ public class Logging
 	public Level getDefaultLogLevel ()
 	{
 		return defaultLevel;
+	}
+	
+	/**
+	 * Gets the diagnostic logger.
+	 * 
+	 * @return diagnostic logger
+	 */
+	public Logger getDiagLogger ()
+	{
+		return diagLogger;
 	}
 	
     //---------------- Public methods --------------------------------------
@@ -205,6 +219,18 @@ public class Logging
 		 */
 		globalLogLevel = true;
 		Dimension.ALL.setLogLevel(level);
+	}
+	
+	/**
+	 * Creates the diagnostic logger. This logger is used for diagnostic 
+	 * information that must always be logged, regardless of any user defined
+	 * logging levels.
+	 */
+	public void createDiagLogger ()
+	{
+    	diagLogger = (Logger) LoggerFactory.getLogger(getClass().getSimpleName() + "_DIAG");
+    	buildLogger(diagLogger);
+    	diagLogger.setLevel(Level.INFO);
 	}
 	
 	/**
@@ -246,11 +272,8 @@ public class Logging
 		 */
 		else
 		{
-    		Iterator<Logger> loggersIter = loggers.iterator();
-    		while (loggersIter.hasNext())
+    		for (Logger existingLogger : loggers)
     		{
-    			Logger existingLogger = loggersIter.next();
-
     			if (existingLogger.getName().equals(logger.getName()))
     			{
     				registrationNeeded = false;
@@ -265,69 +288,9 @@ public class Logging
 		{
 			
 			/*
-			 * Get the preferences object singleton.
+			 * Build the logger object.
 			 */
-			Preferences userPrefs = Preferences.getInstance();
-			
-	        /*
-	         * We want to create a rolling file appender for every logger. We do this programmatically
-	         * instead of in the logback configuration file so we can control the log file path with
-	         * a preference.
-	         * 
-	         * First get the logger context for the ILoggerFactory. This gets attached to the various
-	         * rolling file appender components.
-	         */
-			LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
-			
-			/*
-			 * Create the rolling file appender.
-			 */
-			RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<ILoggingEvent>();
-			appender.setContext(loggerContext);
-
-			/*
-			 * Create a time based rolling policy. This rolls over the log every day, keeping maxHistory
-			 * days worth in the history. Since we're a short running application, setCleanHistoryOnStart
-			 * ensures that we perform the rollover check on every invocation.
-			 */
-			TimeBasedRollingPolicy<ILoggingEvent> policy = new TimeBasedRollingPolicy<ILoggingEvent>();
-			policy.setContext(loggerContext);
-			policy.setParent(appender);
-			
-			String saveDirectory = Preferences.getSaveDirectory();
-			if (saveDirectory == null)
-			{
-				saveDirectory = Preferences.getDefaultSaveDirectory();
-			}
-			policy.setFileNamePattern(saveDirectory + "/" + logFileName + "-%d" + logFileSuffix);
-			policy.setMaxHistory(userPrefs.getMaxLogHistory());
-			policy.setCleanHistoryOnStart(true);
-			policy.start();
-
-			/*
-			 * Create a pattern layout encoder that describes the format of log records.
-			 */
-			PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-			encoder.setContext(loggerContext);
-			encoder.setPattern(fileNamePattern);
-			encoder.start();
-			
-			/*
-			 * Add the policy and encoder to the rolling file appender.
-			 */
-			appender.setRollingPolicy(policy);
-			appender.setEncoder(encoder);
-			appender.start();
-			
-			/*
-			 * Finally, add the appender to the input logger.
-			 */
-			logger.addAppender(appender);
-			
-			/*
-			 * We have a simple logging system, so there is no need for additivity.
-			 */
-			logger.setAdditive(false);
+			buildLogger(logger);
 			
 			/*
 			 * Add this logger to the list for the specified dimension.
@@ -424,16 +387,11 @@ public class Logging
 	 */
 	public void updateLogLevelsFromPrefs ()
 	{
-		
-        /*
-         * Get the preferences object instance.
-         */
-        Preferences prefs = Preferences.getInstance();
         
         /*
          * Get the global log level indicator and the associated global log level.
          */
-        globalLogLevel = prefs.getGlobalLogLevel();
+        globalLogLevel = userPrefs.getGlobalLogLevel();
     	Level globalLevel = Dimension.ALL.getLogLevel();
         
         /*
@@ -441,7 +399,7 @@ public class Logging
          */    	
         for (Dimension dimension : Dimension.values())
         {
-            Level level = prefs.getLogLevel(dimension);
+            Level level = userPrefs.getLogLevel(dimension);
         	if (level != null)
         	{
         		dimension.setLogLevel(level);
@@ -457,11 +415,8 @@ public class Logging
         	List<Logger> loggers = loggerRegistry.get(dimension);
         	if (loggers != null)
         	{
-        		Iterator<Logger> loggersIter = loggers.iterator();
-        		while (loggersIter.hasNext())
+        		for (Logger logger : loggers)
         		{
-        			Logger logger = loggersIter.next();
-
         			if (globalLogLevel == true)
         			{
         				logger.setLevel(globalLevel);
@@ -480,11 +435,6 @@ public class Logging
 	 */
 	public void updateMaxHistoryFromPref ()
 	{
-		
-		/*
-		 * Get the preferences object singleton.
-		 */
-		Preferences userPrefs = Preferences.getInstance();
         
         /*
          * Get the current maximum log history.
@@ -503,10 +453,8 @@ public class Logging
         		/*
         		 * Loop through all loggers for this dimension.
         		 */
-        		Iterator<Logger> loggersIter = loggers.iterator();
-        		while (loggersIter.hasNext())
+        		for (Logger logger : loggers)
         		{
-        			Logger logger = loggersIter.next();
         			
         			/*
         			 * Loop through all appenders for this logger. Should only be one.
@@ -537,5 +485,71 @@ public class Logging
         		}
         	}
         }
+	}
+	
+    //---------------- Private methods -------------------------------------
+	
+	private void buildLogger (Logger logger)
+	{
+		
+        /*
+         * We want to create a rolling file appender for every logger. We do this programmatically
+         * instead of in the logback configuration file so we can control the log file path with
+         * a preference.
+         * 
+         * First get the logger context for the ILoggerFactory. This gets attached to the various
+         * rolling file appender components.
+         */
+		LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
+		
+		/*
+		 * Create the rolling file appender.
+		 */
+		RollingFileAppender<ILoggingEvent> appender = new RollingFileAppender<ILoggingEvent>();
+		appender.setContext(loggerContext);
+
+		/*
+		 * Create a time based rolling policy. This rolls over the log every day, keeping maxHistory
+		 * days worth in the history. Since we're a short running application, setCleanHistoryOnStart
+		 * ensures that we perform the rollover check on every invocation.
+		 */
+		TimeBasedRollingPolicy<ILoggingEvent> policy = new TimeBasedRollingPolicy<ILoggingEvent>();
+		policy.setContext(loggerContext);
+		policy.setParent(appender);
+		
+		String saveDirectory = Preferences.getSaveDirectory();
+		if (saveDirectory == null)
+		{
+			saveDirectory = Preferences.getDefaultSaveDirectory();
+		}
+		policy.setFileNamePattern(saveDirectory + "/" + logFileName + "-%d" + logFileSuffix);
+		policy.setMaxHistory(userPrefs.getMaxLogHistory());
+		policy.setCleanHistoryOnStart(true);
+		policy.start();
+
+		/*
+		 * Create a pattern layout encoder that describes the format of log records.
+		 */
+		PatternLayoutEncoder encoder = new PatternLayoutEncoder();
+		encoder.setContext(loggerContext);
+		encoder.setPattern(fileNamePattern);
+		encoder.start();
+		
+		/*
+		 * Add the policy and encoder to the rolling file appender.
+		 */
+		appender.setRollingPolicy(policy);
+		appender.setEncoder(encoder);
+		appender.start();
+		
+		/*
+		 * Finally, add the appender to the input logger.
+		 */
+		logger.addAppender(appender);
+		
+		/*
+		 * We have a simple logging system, so there is no need for additivity.
+		 */
+		logger.setAdditive(false);
 	}
 }

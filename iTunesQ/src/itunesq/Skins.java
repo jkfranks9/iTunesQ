@@ -1,8 +1,6 @@
 package itunesq;
 
 import java.awt.Font;
-import java.util.Iterator;
-
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.ArrayStack;
 import org.apache.pivot.collections.HashMap;
@@ -29,6 +27,9 @@ import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TableViewHeader;
 import org.apache.pivot.wtk.TextInput;
 import org.apache.pivot.wtk.TreeView;
+import org.slf4j.LoggerFactory;
+
+import ch.qos.logback.classic.Logger;
 
 /**
  * Class that represents window skins. This is a singleton class.
@@ -308,7 +309,7 @@ public class Skins
 		SKINPREVIEW(StringConstants.SKIN_WINDOW_SKINPREVIEW),
 		
 		/**
-		 * window that displays track details
+		 * track details window
 		 */
 		TRACKINFO(StringConstants.SKIN_WINDOW_TRACKINFO),
 		
@@ -323,7 +324,7 @@ public class Skins
 		FINDDUPLICATES(StringConstants.SKIN_WINDOW_FINDDUPS),
 		
 		/**
-		 * find duplicates window
+		 * artist alternate names window
 		 */
 		ALTNAMES(StringConstants.SKIN_WINDOW_ALTNAMES);
 		
@@ -428,16 +429,37 @@ public class Skins
 	/*
 	 * The window stack is used when multiple windows are displayed on top of each other. If the skin is
 	 * changed when there are multiple stacked windows, then they all need to be re-skinned. Window 
-	 * handlers that call the skinMe() method are responsible to maintain this stack. The preferences
-	 * window handler calls reskinWindowStack() if the skin is changed.
+	 * handlers that call the skinMe method are responsible to maintain this stack. The preferences
+	 * window handler calls reskinWindowStack if the skin is changed.
 	 */
 	private Stack<Window> windowStack;
+
+	/*
+	 * Other variables.
+	 */
+	private Logger logger = null;
 	
 	/*
 	 * Constructor. Making it private prevents instantiation by any other class.
 	 */
 	private Skins ()
 	{
+    	
+    	/*
+    	 * Create a UI logger.
+    	 */
+    	String className = getClass().getSimpleName();
+    	logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+    	
+    	/*
+    	 * Get the logging object singleton.
+    	 */
+    	Logging logging = Logging.getInstance();
+    	
+    	/*
+    	 * Register our logger.
+    	 */
+    	logging.registerLogger(Logging.Dimension.UI, logger);
 		
 		/*
 		 * Initialize the window registry.
@@ -471,7 +493,12 @@ public class Skins
         	skinName = defaultSkin;
         }
 
+        /*
+         * Initialize the skin elements for the current skin.
+         */
 		initializeSkinElements(skinName);
+    	
+    	logger.trace("Skins constructor: " + this.hashCode());
 	}
 	
     //---------------- Getters and setters ---------------------------------
@@ -496,10 +523,8 @@ public class Skins
 	public Sequence<String> getSkinNames ()
 	{
 		Sequence<String> skinNames = new ArrayList<String>();
-		Iterator<String> skinRegistryIter = skinRegistry.iterator();
-		while (skinRegistryIter.hasNext())
+		for (String skin : skinRegistry)
 		{
-			String skin = skinRegistryIter.next();
 			skinNames.add(skin);
 		}
 		return skinNames;
@@ -512,6 +537,7 @@ public class Skins
 	 */
 	public void initializeSkinElements (String skinName)
 	{
+    	logger.trace("initializeSkinElements: " + this.hashCode());
 		
 		/*
 		 * Set the current skin name. This is the only way to set this field; it does not have its
@@ -537,6 +563,8 @@ public class Skins
 	 */
 	public void registerWindowElements (Window window, Map<Element, List<Component>> elements)
 	{
+    	logger.trace("registerWindowElements: " + this.hashCode());
+    	
     	if (window == null)
     	{
     		throw new IllegalArgumentException("window argument is null");
@@ -546,6 +574,9 @@ public class Skins
     	{
     		throw new IllegalArgumentException("elements argument is null");
     	}
+
+    	logger.debug("registering " + elements.getCount() 
+    		+ " elements for window " + window.getDisplayValue());
     	
 		windowRegistry.put(window, elements);
 	}
@@ -562,6 +593,8 @@ public class Skins
 	 */
 	public void registerDynamicWindowElements (Window window, Map<Element, List<Component>> elements)
 	{
+    	logger.trace("registerDynamicWindowElements: " + this.hashCode());
+    	
     	if (window == null)
     	{
     		throw new IllegalArgumentException("window argument is null");
@@ -577,14 +610,16 @@ public class Skins
 		{
 			List<Component> windowElementComponents = windowElements.remove(element);
 			List<Component> inputComponents = elements.remove(element);
-			Iterator<Component> inputComponentsIter = inputComponents.iterator();
-			while (inputComponentsIter.hasNext())
+			for (Component inputComponent : inputComponents)
 			{
-				Component inputComponent = inputComponentsIter.next();
 				windowElementComponents.add(inputComponent);
 			}
 			windowElements.put(element, windowElementComponents);
 		}
+
+    	logger.debug("registering " + elements.getCount() 
+    		+ " dynamic elements for window " + window.getDisplayValue());
+    	
 		windowRegistry.put(window, windowElements);
 	}
 	
@@ -597,10 +632,14 @@ public class Skins
 	 */
 	public void pushSkinnedWindow (Window window)
 	{
+    	logger.trace("pushSkinnedWindow: " + this.hashCode());
+    	
     	if (window == null)
     	{
     		throw new IllegalArgumentException("window argument is null");
     	}
+    	
+    	logger.debug("window " + window.getDisplayValue() + " pushed onto window stack");
     	
 		windowStack.push(window);
 	}
@@ -613,6 +652,10 @@ public class Skins
 	 */
 	public void popSkinnedWindow ()
 	{
+    	logger.trace("popSkinnedWindow: " + this.hashCode());
+    	
+    	logger.debug("window popped off of window stack");
+    	
 		windowStack.pop();
 	}
 	
@@ -622,10 +665,10 @@ public class Skins
 	 */
 	public void reskinWindowStack ()
 	{
-		Iterator<Window> windowStackIter = windowStack.iterator();
-		while (windowStackIter.hasNext())
+    	logger.trace("reskinWindowStack: " + this.hashCode());
+    	
+		for (Window window : windowStack)
 		{
-			Window window = windowStackIter.next();
 			skinMe(window);
 		}
 	}
@@ -637,6 +680,8 @@ public class Skins
 	 */
 	public void skinMe (Window window)
 	{
+    	logger.trace("skinMe: " + this.hashCode());
+    	
     	if (window == null)
     	{
     		throw new IllegalArgumentException("window argument is null");
@@ -669,10 +714,8 @@ public class Skins
 			/*
 			 * Walk through all components.
 			 */
-			Iterator<Component> componentsIter = components.iterator();
-			while (componentsIter.hasNext())
+			for (Component component : components)
 			{
-				Component component = componentsIter.next();
 				
 				/*
 				 * Apply the skin to this component.
@@ -691,6 +734,8 @@ public class Skins
 	 */
 	public Map<Element, List<Component>> mapComponentsToSkinElements (List<Component> components)
 	{
+    	logger.trace("mapComponentsToSkinElements: " + this.hashCode());
+    	
     	if (components == null)
     	{
     		throw new IllegalArgumentException("components argument is null");
@@ -708,10 +753,8 @@ public class Skins
 			/*
 			 * Walk through the input component list.
 			 */
-			Iterator<Component> componentsIter = components.iterator();
-			while (componentsIter.hasNext())
+			for (Component component : components)
 			{
-				Component component = componentsIter.next();
 				
 				/*
 				 * Add this component for this element if it's used.
@@ -876,6 +919,8 @@ public class Skins
 	 */
 	private void applySkinToComponent (Element element, Component component)
 	{
+    	logger.trace("applySkinToComponent: " + this.hashCode());
+    	
 		Map<String, String> componentSkinValue = new HashMap<String, String>();
 		
 		switch (element)
@@ -973,7 +1018,7 @@ public class Skins
 			break;
 			
 		/*
-		 * Active is used for many components. The name of the style varies. 
+		 * Active is used for many components. The name of the style varies.
 		 */
 		case ACTIVE:
 			if (component instanceof MenuBar || component instanceof Menu)
@@ -988,7 +1033,7 @@ public class Skins
 			break;
 			
 		/*
-		 * Inactive is used for TabPane, TableView and TreeView components.
+		 * Inactive is used for TabPane, TableView and TreeView components. The name of the style varies.
 		 */
 		case INACTIVE:
 			if (component instanceof TabPane)
@@ -1046,6 +1091,13 @@ public class Skins
 			break;
 			
 		default :
+		}
+		
+		logger.debug("element " + element.toString() + ", component " + component.getName()
+				+ " styles:");
+		for (String styleName : componentSkinValue)
+		{
+			logger.debug("... style name " + styleName);
 		}
 	}
 }

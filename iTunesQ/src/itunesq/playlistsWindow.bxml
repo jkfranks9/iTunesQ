@@ -72,7 +72,7 @@
                     
                    	<!-- The left side is the playlists. -->
                    	<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                   		 verticalScrollBarPolicy="fill_to_capacity">
+                   		verticalScrollBarPolicy="fill_to_capacity">
                        	<TreeView bxml:id="playlistsTreeView"/>
                    	</ScrollPane>
                 </left>
@@ -80,7 +80,7 @@
                 <!-- The right side is the tracks associated with a given playlist. -->
                 <right>
                    	<ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                   		 verticalScrollBarPolicy="fill_to_capacity">
+                   		verticalScrollBarPolicy="fill_to_capacity">
                        	<TableView bxml:id="playlistTracksTableView" selectMode="single"
                            	styles="{includeTrailingVerticalGridLine:true}">
                        	</TableView>

@@ -63,7 +63,7 @@
         <TablePane.Row height="10*">
             <Border bxml:id="tracksBorder">
                 <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                  		 verticalScrollBarPolicy="fill_to_capacity">
+                	verticalScrollBarPolicy="fill_to_capacity">
                         
                     <!-- Table containing all the tracks. -->
                     <TableView bxml:id="tracksTableView" selectMode="single"

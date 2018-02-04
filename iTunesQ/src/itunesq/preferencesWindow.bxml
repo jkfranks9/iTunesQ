@@ -102,7 +102,6 @@
            						<Label bxml:id="columnPrefsBorderLabel"
            						styles="{font:{bold:true}, padding:5}"/>
                					<Border bxml:id="columnPrefsBorder">
-                
                    					<TablePane bxml:id="columnPrefsTablePane"
                    						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
            								<columns>
@@ -277,7 +276,6 @@
            						<Label bxml:id="logLevelPrefsBorderLabel"
            							styles="{font:{bold:true}, padding:5}"/>
                					<Border bxml:id="logLevelPrefsBorder">
-                
                    					<TablePane bxml:id="logLevelPrefsTablePane"
                    						styles="{horizontalSpacing:10, padding:5}">
            								<columns>

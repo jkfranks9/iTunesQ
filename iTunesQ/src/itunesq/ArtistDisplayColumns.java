@@ -1,7 +1,5 @@
 package itunesq;
 
-import java.util.Iterator;
-
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
@@ -142,11 +140,9 @@ public class ArtistDisplayColumns
 			names.clear();
 			widths.clear();
 			
-			Iterator<List<String>> columnDefIter = columnDef.iterator();
-			while (columnDefIter.hasNext())
+			for (List<String> columnData : columnDef)
 			{
 				int index = 0;
-				List<String> columnData = columnDefIter.next();
 				this.headers.add(columnData.get(index++));
 				this.names.add(columnData.get(index++));
 				this.widths.add(columnData.get(index++));

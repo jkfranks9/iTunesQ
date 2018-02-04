@@ -19,7 +19,6 @@
            		    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
            			<Label bxml:id="duplicatesSpecLabel"
                			styles="{font:{bold:true}, padding:5}"/>
-               			
                    	<TablePane bxml:id="duplicatesSpecTablePane"
                    		styles="{horizontalSpacing:10, verticalSpacing:5, padding:5}">
            				<columns>
