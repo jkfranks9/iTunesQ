@@ -48,12 +48,13 @@ public class MenuBars extends Frame implements Bindable
     /**
      * Attributes of a display window.
      * <p>
-     * When we display a list of tracks that result from some type of query, the
-     * File {@literal ->} Save menu is enabled. This is handled by the
-     * <code>FileSaveDialog</code> class. That class in turn needs to gather the
-     * list of resulting tracks, and so needs the associated window handler,
-     * which should always be of type <code>TracksWindow</code>. It also needs
-     * other attributes, for example the string representation of the query.
+     * When we display a list of tracks that result from some type of query,
+     * the File {@literal ->} Save menu is enabled. This is handled by the
+     * <code>FileSaveDialog</code> class. That class in turn needs to gather
+     * the list of resulting tracks, and so needs the associated window 
+     * handler, which should always be of type <code>TracksWindow</code>. It 
+     * also needs other attributes, for example the string representation of 
+     * the query.
      * <p>
      * This <code>enum</code> defines values used to set and get these
      * attributes on the window represented by this class.
@@ -100,7 +101,7 @@ public class MenuBars extends Frame implements Bindable
     @BXML private Sheet preferencesSheet;
 
     /*
-     * Other BXML variables.
+     * Menu BXML variables.
      */
     @BXML private MenuBar menuBarHolder = null;
     @BXML private MenuBar.Item fileMenu = null;
@@ -194,13 +195,24 @@ public class MenuBars extends Frame implements Bindable
                                 }
 
                                 logger.info("updating for new XML file '" + xmlFileName + "'");
+                                
+                                /*
+                                 * Gray out the main buttons until the XML file is successfully processed.
+                                 */
+                                MainWindow.updateMainButtonsState(false);
 
                                 /*
                                  * Update based on the new XML file.
+                                 * 
+                                 * We're going to read and process the XML file in a background task, 
+                                 * with an activity indicator on the main window. This lets the user 
+                                 * know that something is going on in the background. When the task 
+                                 * completes successfully, we update the main window labels and 
+                                 * inactivate the activity indicator.
                                  */
                                 try
                                 {
-                                    Utilities.updateFromXMLFile(xmlFileName);
+                                    Utilities.updateFromXMLFile(xmlFileName, MenuBars.this);
                                 }
                                 catch (IOException e)
                                 {
@@ -288,6 +300,8 @@ public class MenuBars extends Frame implements Bindable
             }
         });
     }
+    
+    //---------------- Public methods --------------------------------------
 
     /**
      * Initializes the BXML variables and data for the menu bar that appears on
@@ -322,18 +336,27 @@ public class MenuBars extends Frame implements Bindable
          * MenuBar.Item. So we only need to add the top level components to the
          * input component list.
          */
-        menuBarHolder = (MenuBar) windowSerializer.getNamespace().get("menuBarHolder");
+        menuBarHolder = 
+                (MenuBar) windowSerializer.getNamespace().get("menuBarHolder");
         components.add(menuBarHolder);
-        fileMenu = (MenuBar.Item) windowSerializer.getNamespace().get("fileMenu");
-        fileMenuItems = (Menu) windowSerializer.getNamespace().get("fileMenuItems");
+        fileMenu = 
+                (MenuBar.Item) windowSerializer.getNamespace().get("fileMenu");
+        fileMenuItems = 
+                (Menu) windowSerializer.getNamespace().get("fileMenuItems");
         components.add(fileMenuItems);
-        fileMenuOpen = (Menu.Item) windowSerializer.getNamespace().get("fileMenuOpen");
-        fileMenuSave = (Menu.Item) windowSerializer.getNamespace().get("fileMenuSave");
-        fileMenuExit = (Menu.Item) windowSerializer.getNamespace().get("fileMenuExit");
-        editMenu = (MenuBar.Item) windowSerializer.getNamespace().get("editMenu");
-        editMenuItems = (Menu) windowSerializer.getNamespace().get("editMenuItems");
+        fileMenuOpen = 
+                (Menu.Item) windowSerializer.getNamespace().get("fileMenuOpen");
+        fileMenuSave = 
+                (Menu.Item) windowSerializer.getNamespace().get("fileMenuSave");
+        fileMenuExit = 
+                (Menu.Item) windowSerializer.getNamespace().get("fileMenuExit");
+        editMenu = 
+                (MenuBar.Item) windowSerializer.getNamespace().get("editMenu");
+        editMenuItems = 
+                (Menu) windowSerializer.getNamespace().get("editMenuItems");
         components.add(editMenuItems);
-        editMenuPreferences = (Menu.Item) windowSerializer.getNamespace().get("editMenuPreferences");
+        editMenuPreferences = 
+                (Menu.Item) windowSerializer.getNamespace().get("editMenuPreferences");
 
         /*
          * Initialize the 'File' menu text.
@@ -364,8 +387,8 @@ public class MenuBars extends Frame implements Bindable
     }
 
     /**
-     * Initializes the class after it has been completely processed and bound by
-     * the serializer. This method is required to be overriden for the
+     * Initializes the class after it has been completely processed and bound
+     * by the serializer. This method is required to be overriden for the
      * <code>Bindable</code> interface, but does nothing.
      * 
      * @param namespace serializer's namespace

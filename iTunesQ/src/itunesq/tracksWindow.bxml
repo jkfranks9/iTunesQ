@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <itq:MenuBars maximized="true"
-    styles="{padding:{top:4, left:4, bottom:4, right:4}, showWindowControls:false, backgroundColor:5}"
+    styles="{padding:{top:5, left:5, bottom:5, right:5}, showWindowControls:false, backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns:itq="itunesq"
     xmlns="org.apache.pivot.wtk">
@@ -83,7 +83,7 @@
         <TablePane.Row height="1*">
             <Border bxml:id="actionBorder">
                 <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
-                    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
                	    <PushButton bxml:id="findDuplicatesButton"/>
                	    <PushButton bxml:id="tracksDoneButton"/>
                 </BoxPane>

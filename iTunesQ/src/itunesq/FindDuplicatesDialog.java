@@ -55,7 +55,7 @@ public class FindDuplicatesDialog
         EXACT, ARTIST, NOT_ARTIST, ALBUM, KIND, DURATION, YEAR, RATING
     }
 
-    private static final int numMatchCriteria = MatchCriteria.values().length;
+    private static final int NUM_MATCH_CRITERIA = MatchCriteria.values().length;
 
     private Logger uiLogger = null;
     private Logger trackLogger = null;
@@ -82,7 +82,7 @@ public class FindDuplicatesDialog
     @BXML private PushButton duplicatesDoneButton = null;
 
     /**
-     * Class constructor specifying the owning window.
+     * Class constructor.
      * 
      * @param owner owning window. This dialog is modal over the window.
      */
@@ -129,7 +129,8 @@ public class FindDuplicatesDialog
      * @throws SerializationException If an error occurs trying to deserialize
      * the BXML file.
      */
-    public void displayFindDuplicatesDialog(Display display) throws IOException, SerializationException
+    public void displayFindDuplicatesDialog(Display display) 
+            throws IOException, SerializationException
     {
         uiLogger.trace("displayFindDuplicatesDialog: " + this.hashCode());
 
@@ -161,6 +162,7 @@ public class FindDuplicatesDialog
          */
         duplicatesSpecLabel.setText(StringConstants.FIND_DUPLICATES_SPEC);
         duplicatesSpecLabel.setTooltipText(StringConstants.FIND_DUPLICATES_SPEC_TIP);
+        duplicatesSpecLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         duplicatesSpecExactCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXACT);
         duplicatesSpecArtistCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_ARTIST);
         duplicatesSpecNotArtistCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_NOT_ARTIST);
@@ -221,7 +223,7 @@ public class FindDuplicatesDialog
                 /*
                  * Gather the selected match criteria.
                  */
-                matchSpec = new BitSet(numMatchCriteria);
+                matchSpec = new BitSet(NUM_MATCH_CRITERIA);
                 matchSpec.set(MatchCriteria.EXACT.ordinal(), duplicatesSpecExactCheckbox.isSelected());
 
                 if (matchSpec.get(MatchCriteria.EXACT.ordinal()) == false)
@@ -234,6 +236,8 @@ public class FindDuplicatesDialog
                     matchSpec.set(MatchCriteria.YEAR.ordinal(), duplicatesSpecYearCheckbox.isSelected());
                     matchSpec.set(MatchCriteria.RATING.ordinal(), duplicatesSpecRatingCheckbox.isSelected());
                 }
+                
+                uiLogger.debug("selected match criteria: " + matchSpec.toString());
 
                 /*
                  * Initialize the duplicate tracks list, and sort it by name.
@@ -309,8 +313,8 @@ public class FindDuplicatesDialog
 
                     String queryStr = getMatchCriteriaAsString();
                     TracksWindow tracksWindowHandler = new TracksWindow();
-                    tracksWindowHandler.saveWindowAttributes(TracksWindow.QueryType.DUPLICATES,
-                            TracksWindow.QueryType.DUPLICATES.getDisplayValue() + ": " + queryStr,
+                    tracksWindowHandler.saveWindowAttributes(ListQueryType.Type.TRACK_DUPLICATES,
+                            ListQueryType.Type.TRACK_DUPLICATES.getDisplayValue() + ": " + queryStr,
                             TrackDisplayColumns.ColumnSet.DUPLICATES_VIEW.getNamesList());
 
                     try
@@ -612,7 +616,7 @@ public class FindDuplicatesDialog
      */
     private String getMatchCriteriaAsString()
     {
-        uiLogger.trace("matchTracks: " + this.hashCode());
+        uiLogger.trace("getMatchCriteriaAsString: " + this.hashCode());
 
         StringBuilder result = new StringBuilder();
 
@@ -684,50 +688,66 @@ public class FindDuplicatesDialog
      * Initialize BXML variables and collect the list of components to be
      * skinned.
      */
-    private void initializeBxmlVariables(List<Component> components) throws IOException, SerializationException
+    private void initializeBxmlVariables(List<Component> components) 
+            throws IOException, SerializationException
     {
         uiLogger.trace("initializeBxmlVariables: " + this.hashCode());
 
         BXMLSerializer dialogSerializer = new BXMLSerializer();
 
-        findDuplicatesDialog = (Dialog) dialogSerializer
-                .readObject(getClass().getResource("findDuplicatesDialog.bxml"));
+        findDuplicatesDialog = 
+                (Dialog) dialogSerializer.readObject(getClass().getResource("findDuplicatesDialog.bxml"));
 
-        duplicatesSpecBorder = (Border) dialogSerializer.getNamespace().get("duplicatesSpecBorder");
+        duplicatesSpecBorder = 
+                (Border) dialogSerializer.getNamespace().get("duplicatesSpecBorder");
         components.add(duplicatesSpecBorder);
-        duplicatesSpecBoxPane = (BoxPane) dialogSerializer.getNamespace().get("duplicatesSpecBoxPane");
+        duplicatesSpecBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("duplicatesSpecBoxPane");
         components.add(duplicatesSpecBoxPane);
-        duplicatesSpecLabel = (Label) dialogSerializer.getNamespace().get("duplicatesSpecLabel");
+        duplicatesSpecLabel = 
+                (Label) dialogSerializer.getNamespace().get("duplicatesSpecLabel");
         components.add(duplicatesSpecLabel);
-        duplicatesSpecTablePane = (TablePane) dialogSerializer.getNamespace().get("duplicatesSpecTablePane");
+        duplicatesSpecTablePane = 
+                (TablePane) dialogSerializer.getNamespace().get("duplicatesSpecTablePane");
         components.add(duplicatesSpecTablePane);
-        duplicatesSpecExactBoxPane = (BoxPane) dialogSerializer.getNamespace().get("duplicatesSpecExactBoxPane");
+        duplicatesSpecExactBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("duplicatesSpecExactBoxPane");
         components.add(duplicatesSpecExactBoxPane);
-        duplicatesSpecExactCheckbox = (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecExactCheckbox");
+        duplicatesSpecExactCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecExactCheckbox");
         components.add(duplicatesSpecExactCheckbox);
-        duplicatesSpecFuzzyBoxPane = (BoxPane) dialogSerializer.getNamespace().get("duplicatesSpecFuzzyBoxPane");
+        duplicatesSpecFuzzyBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("duplicatesSpecFuzzyBoxPane");
         components.add(duplicatesSpecFuzzyBoxPane);
-        duplicatesSpecArtistCheckbox = (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecArtistCheckbox");
+        duplicatesSpecArtistCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecArtistCheckbox");
         components.add(duplicatesSpecArtistCheckbox);
-        duplicatesSpecNotArtistCheckbox = (Checkbox) dialogSerializer.getNamespace()
-                .get("duplicatesSpecNotArtistCheckbox");
+        duplicatesSpecNotArtistCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecNotArtistCheckbox");
         components.add(duplicatesSpecNotArtistCheckbox);
-        duplicatesSpecAlbumCheckbox = (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecAlbumCheckbox");
+        duplicatesSpecAlbumCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecAlbumCheckbox");
         components.add(duplicatesSpecAlbumCheckbox);
-        duplicatesSpecKindCheckbox = (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecKindCheckbox");
+        duplicatesSpecKindCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecKindCheckbox");
         components.add(duplicatesSpecKindCheckbox);
-        duplicatesSpecDurationCheckbox = (Checkbox) dialogSerializer.getNamespace()
-                .get("duplicatesSpecDurationCheckbox");
+        duplicatesSpecDurationCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecDurationCheckbox");
         components.add(duplicatesSpecDurationCheckbox);
-        duplicatesSpecYearCheckbox = (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecYearCheckbox");
+        duplicatesSpecYearCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecYearCheckbox");
         components.add(duplicatesSpecYearCheckbox);
-        duplicatesSpecRatingCheckbox = (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecRatingCheckbox");
+        duplicatesSpecRatingCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecRatingCheckbox");
         components.add(duplicatesSpecRatingCheckbox);
-        duplicatesButtonBorder = (Border) dialogSerializer.getNamespace().get("duplicatesButtonBorder");
+        duplicatesButtonBorder = 
+                (Border) dialogSerializer.getNamespace().get("duplicatesButtonBorder");
         components.add(duplicatesButtonBorder);
-        duplicatesButtonBoxPane = (BoxPane) dialogSerializer.getNamespace().get("duplicatesButtonBoxPane");
+        duplicatesButtonBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("duplicatesButtonBoxPane");
         components.add(duplicatesButtonBoxPane);
-        duplicatesDoneButton = (PushButton) dialogSerializer.getNamespace().get("duplicatesDoneButton");
+        duplicatesDoneButton = 
+                (PushButton) dialogSerializer.getNamespace().get("duplicatesDoneButton");
         components.add(duplicatesDoneButton);
     }
 }

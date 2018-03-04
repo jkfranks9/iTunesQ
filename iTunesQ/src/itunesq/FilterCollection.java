@@ -1,6 +1,7 @@
 package itunesq;
 
 import java.util.Comparator;
+
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Sequence;
@@ -72,26 +73,16 @@ public class FilterCollection
 	}
 
     //---------------- Getters and setters ---------------------------------
-	
-	/**
-	 * Gets the filter collection.
-	 * 
-	 * @return collection of all filters as a list
-	 */
-	public List<Filter> getFilters ()
-	{
-		return filters;
-	}
-	
-	/**
-	 * Adds a filter to the filter collection.
-	 * 
-	 * @param filter filter to be added
-	 */
-	public void addFilter (Filter filter)
-	{
-		filters.add(filter);
-	}
+    
+    /**
+     * Adds a filter to the filter collection.
+     * 
+     * @param filter filter to be added
+     */
+    public void addFilter (Filter filter)
+    {
+        filters.add(filter);
+    }
 	
 	/**
 	 * Gets the result list of displayable tracks.
@@ -125,12 +116,12 @@ public class FilterCollection
 	 */
 	public boolean executeFilterList () 
 	{
+        logger.trace("executeFilterList: " + this.hashCode());
+        
 		boolean result = false;
 		int startSubIndex = -1;
 		int stopSubIndex = -1;
 		int subRange = -1;
-		
-		logger.trace("executeFilterList: " + this.hashCode());
 		
 		/*
 		 * Clear the error string before starting.
@@ -301,10 +292,10 @@ public class FilterCollection
 	 */
 	private boolean evaluateFilters () 
 	{
+        logger.trace("evaluateFilters: " + this.hashCode());
+        
 		boolean evaluation = true;
-		boolean result;
-		
-		logger.trace("evaluateFilters: " + this.hashCode());
+		boolean result;		
 
         /*
          * Create a list of tracks to be displayed. Make sure it's sorted by track name.
@@ -589,7 +580,7 @@ public class FilterCollection
 			break;
 			
 		case PLAYLIST_COUNT:
-			int playlistCount = track.getTrkPlaylistCount();
+			int playlistCount = track.getNonBypassedPlaylistCount();
 			
 			/*
 			 * For an Integer value, we support all but the CONTAINS operator.

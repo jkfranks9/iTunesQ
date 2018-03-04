@@ -60,10 +60,16 @@ public final class Preferences implements Serializable
     /*
      * Variables for the actual preferences we want to serialize.
      * 
-     * - iTunes XML file name - list of bypass playlist preferences - list of
-     * ignored playlist preferences - various track column sets - show remote
-     * tracks flag - skin name - maximum log file history - global log level
-     * flag - log levels
+     * - iTunes XML file name 
+     * - list of bypass playlist preferences 
+     * - list of ignored playlist preferences 
+     * - various track column sets 
+     * - show remote tracks flag 
+     * - skin name 
+     * - maximum log file history 
+     * - global log level flag 
+     * - log levels
+     * - manual alternate artist overrides
      */
     private String xmlFileName;
     private List<BypassPreference> bypassPrefs;
@@ -77,11 +83,18 @@ public final class Preferences implements Serializable
     private int maxLogHistory;
     private boolean globalLogLevel;
     private Map<String, Level> logLevels;
+    
+    /*
+     * The manual alternate artist overrides are special. They need to be saved, which is why they're
+     * here. But they are not part of the Edit -> Preferences window. Instead, they are saved when a
+     * user sets a manual override from the artists display window, and used during XML processing to
+     * properly set up the artists database.
+     */
+    private Map<String, List<String>> manualOverrides;
 
     /*
      * Default save directory for things like preferences and log files.
      */
-
     private static transient final String HOME_ENV = System.getenv("HOME");
     private static transient final String DEFAULT_PREFS_PATH = "itq";
     private static transient final String DEFAULT_SAVE_DIRECTORY = HOME_ENV + "/" + DEFAULT_PREFS_PATH;
@@ -91,19 +104,19 @@ public final class Preferences implements Serializable
      */
     private static transient String saveDirectory;
 
-    // ---------------- Private variables -----------------------------------
-
-    /*
-     * Serialized file name suffix.
-     */
-    private static transient final String PREFS_SUFFIX = ".ser";
-
     /*
      * The serialized file name includes the class name. That's initialized in
      * updateSaveDirectory, which is called by MainWindow before our
      * constructor.
      */
     private static transient String prefsFile;
+
+    // ---------------- Private variables -----------------------------------
+
+    /*
+     * Serialized file name suffix.
+     */
+    private static transient final String PREFS_SUFFIX = ".ser";
 
     /*
      * Other variables.
@@ -134,6 +147,9 @@ public final class Preferences implements Serializable
 
         logLevels = new HashMap<String, Level>();
         globalLogLevel = true;
+        
+        manualOverrides = new HashMap<String, List<String>>();
+        manualOverrides.setComparator(String.CASE_INSENSITIVE_ORDER);
     }
 
     // ---------------- Getters and setters ---------------------------------
@@ -322,6 +338,16 @@ public final class Preferences implements Serializable
     }
 
     /**
+     * Gets the default maximum log history.
+     * 
+     * @return default maximum log history
+     */
+    public static int getDefaultMaxLogHistory()
+    {
+        return InternalConstants.DEFAULT_MAX_HISTORY;
+    }
+
+    /**
      * Gets the global log level indicator.
      * 
      * @return global log level indicator
@@ -363,6 +389,16 @@ public final class Preferences implements Serializable
     {
         logLevels.put(dimension.getDisplayValue(), level);
     }
+    
+    /**
+     * Gets the artist alternate name manual overrides.
+     * 
+     * @return artist alternate name manual overrides
+     */
+    public Map<String, List<String>> getManualOverrides ()
+    {
+        return manualOverrides;
+    }
 
     /**
      * Gets the default save directory.
@@ -372,16 +408,6 @@ public final class Preferences implements Serializable
     public static String getDefaultSaveDirectory()
     {
         return DEFAULT_SAVE_DIRECTORY;
-    }
-
-    /**
-     * Gets the default maximum log history.
-     * 
-     * @return default maximum log history
-     */
-    public static int getDefaultMaxLogHistory()
-    {
-        return InternalConstants.DEFAULT_MAX_HISTORY;
     }
 
     /**
@@ -531,6 +557,69 @@ public final class Preferences implements Serializable
             this.trackColumnsPlaylistView.add(trackColumnsPref);
         }
     }
+    
+    /**
+     * Adds an artist alternate name manual override.
+     * 
+     * @param primaryArtist primary artist name
+     * @param alternateArtist alternate artist name
+     */
+    public void addArtistManualOverride (String primaryArtist, String alternateArtist)
+    {
+        logger.trace("addArtistManualOverride: " + this.hashCode());
+        
+        List<String> alternateNames;
+        if (manualOverrides.containsKey(primaryArtist))
+        {
+            alternateNames = manualOverrides.get(primaryArtist);
+        }
+        else
+        {
+            alternateNames = new ArrayList<String>();
+        }
+        alternateNames.add(alternateArtist);
+        manualOverrides.put(primaryArtist, alternateNames);
+    }
+    
+    /**
+     * Gets the primary artist name associated with an alternate artist if
+     * a manual override exists.
+     * 
+     * @param alternateArtist alternate artist display name to check for a 
+     * manual override
+     * @return primary artist normalized name for the alternate artist, or null
+     * if a manual override was not found
+     */
+    public String getManualOverridePrimaryName (String alternateArtist)
+    {
+        logger.trace("getManualOverridePrimaryName: " + this.hashCode());
+        
+        String result = null;
+        
+        for (String primaryName : manualOverrides)
+        {
+            for (String alternateName : manualOverrides.get(primaryName))
+            {
+                if (alternateName.equals(alternateArtist))
+                {
+                    
+                    /*
+                     * We found a match, but we need to return a normalized name.
+                     */
+                    ArtistNames temp = new ArtistNames(primaryName);
+                    result = new String(temp.normalizeName());
+                    break;
+                }
+            }
+            
+            if (result != null)
+            {
+                break;
+            }
+        }
+        
+        return result;
+    }
 
     /**
      * Sets the preferences save directory, and moves the existing preferences
@@ -610,7 +699,7 @@ public final class Preferences implements Serializable
     }
 
     /**
-     * Initializes the logger for this class.
+     * Initializes logging for this class.
      * <p>
      * This cannot be done in the constructor, because calling
      * <code>registerLogger</code> from the constructor would cause an endless
@@ -672,6 +761,7 @@ public final class Preferences implements Serializable
         this.maxLogHistory = prefs.maxLogHistory;
         this.globalLogLevel = prefs.globalLogLevel;
         this.logLevels = prefs.logLevels;
+        this.manualOverrides = prefs.manualOverrides;
     }
 
     /**
@@ -683,7 +773,8 @@ public final class Preferences implements Serializable
      * @throws ClassNotFoundException If the class of a serialized object cannot
      * be found.
      */
-    public Preferences readPreferences() throws IOException, ClassNotFoundException
+    public Preferences readPreferences() 
+            throws IOException, ClassNotFoundException
     {
         Preferences prefs = null;
         logger.info("reading preferences from '" + prefsFile + "'");
@@ -722,7 +813,8 @@ public final class Preferences implements Serializable
      * @throws IOException If an error occurs trying to write the preferences
      * file.
      */
-    public void writePreferences() throws IOException
+    public void writePreferences() 
+            throws IOException
     {
         logger.info("writing preferences to '" + prefsFile + "'");
 
@@ -937,12 +1029,29 @@ public final class Preferences implements Serializable
                 output.append(indent + listPrefix + dimension + "(" + level.toString() + ")" + lineSeparator);
             }
         }
+        
+        /*
+         * Artist alternate name manual overrides.
+         */
+        Map<String, List<String>> inManualOverrides = manualOverrides;
+        if (inManualOverrides != null && inManualOverrides.getCount() > 0)
+        {
+            output.append(String.format("%2d", ++itemNum) + ") " + "Manual artist overrides:" + lineSeparator);
+            
+            for (String primaryName : manualOverrides)
+            {
+                output.append(indent + primaryName + lineSeparator);
+                for (String alternateName : manualOverrides.get(primaryName))
+                {
+                    output.append(indent + listPrefix + alternateName + lineSeparator);
+                }
+            }
+        }
 
         /*
          * Log it!
          */
-        Logging logging = Logging.getInstance();
-        Logger diagLogger = logging.getDiagLogger();
+        Logger diagLogger = Logging.getInstance().getDiagLogger();
         diagLogger.info(output.toString());
     }
 }

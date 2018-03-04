@@ -1,8 +1,10 @@
 package itunesq;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -30,10 +32,12 @@ import javax.mail.internet.MimeMultipart;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
+import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.util.Version;
+import org.apache.pivot.wtk.ActivityIndicator;
 import org.apache.pivot.wtk.Alert;
 import org.apache.pivot.wtk.Application;
 import org.apache.pivot.wtk.Border;
@@ -57,7 +61,8 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that represents the Apache Pivot application for the iTunes Query Tool.
+ * Class that represents the Apache Pivot application for the iTunes Query 
+ * Tool.
  * <p>
  * This application operates on the XML file containing iTunes library tracks
  * and playlists. The XML file is exported by the iTunes application. As such,
@@ -72,13 +77,14 @@ import ch.qos.logback.classic.Logger;
  * <li>show all artists in the library, along with associated data</li>
  * <li>query tracks using a collection of filters</li>
  * <li>compare two or more playlists</li>
+ * <li>expand a playlist into a family of tracks or additional playlists</li>
  * <li>save or print the results of a track or playlist query, or a list of
  * duplicate tracks</li>
  * </ul>
  * <p>
  * This is the main class for the application. The <code>startup</code> method
- * is called when the application starts. Its primary job is to manage the Pivot
- * UI.
+ * is called when the application starts. Its primary job is to manage the 
+ * Pivot UI.
  * 
  * @author Jon
  * @see <a href="http://pivot.apache.org/">Apache Pivot</a>
@@ -87,17 +93,74 @@ import ch.qos.logback.classic.Logger;
 public class MainWindow implements Application, Application.UncaughtExceptionHandler, DialogCloseListener
 {
 
+    //---------------- Class variables -------------------------------------
+
+    private static DiagTrigger diagTrigger = null;
+    private static final String DIAG_TRIGGER_PROPERTY_KEY = "diag-trigger";
+    
+    /*
+     * Diagnostic trigger, to enable breakpoints based on item names, or special logging.
+     */
+    public enum DiagTrigger
+    {
+        NONE("none"),
+        TRACK("track"),
+        PLAYLIST("playlist"),
+        ARTIST("artist"),
+        SKIN_LOGGING("skin"),
+        LOGGER_LOGGING("logger");
+        
+        private String displayValue;
+        
+        /*
+         * Constructor.
+         */
+        private DiagTrigger (String s)
+        {
+            displayValue = s;
+        }
+        
+        /*
+         * Get the display value.
+         */
+        public String getDisplayValue ()
+        {
+            return displayValue;
+        }
+        
+        /*
+         * Perform a reverse lookup of the <code>enum</code> from the display value.
+         */
+        public static DiagTrigger getEnum(String value)
+        {
+            return lookup.get(value);
+        }
+        
+        /*
+         * Reverse lookup capability to get the enum based on its display value.
+         */
+        private static final Map<String, DiagTrigger> lookup = new HashMap<String, DiagTrigger>();      
+        static
+        {
+            for (DiagTrigger value : DiagTrigger.values())
+            {
+                lookup.put(value.getDisplayValue(), value);
+            }
+        }
+    }
+
     // ---------------- Private variables -----------------------------------
 
     private Window mainWindow = null;
     private Display display = null;
+    private String xmlFileName = null;
     private boolean xmlFileExists = false;
     private Logger logger = null;
     private Logging logging = null;
     private Preferences userPrefs = null;
     private String saveDirectory = null;
-
     private static boolean exceptionLogged = false;
+    private static String diagTriggerValue = null;
 
     /*
      * BXML variables.
@@ -105,6 +168,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
     @BXML private Border infoBorder = null;
     @BXML private FillPane infoFillPane = null;
     @BXML private Label titleLabel = null;
+    @BXML private static ActivityIndicator activityIndicator = null;
     @BXML private Separator fileSeparator = null;
     @BXML private BoxPane fileBoxPane = null;
     @BXML private Label fileLabel = null;
@@ -115,11 +179,11 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
     @BXML private Label numArtistsLabel = null;
     @BXML private Border actionBorder = null;
     @BXML private BoxPane actionBoxPane = null;
-    @BXML private PushButton viewTracksButton = null;
-    @BXML private PushButton viewPlaylistsButton = null;
-    @BXML private PushButton viewArtistsButton = null;
-    @BXML private PushButton queryTracksButton = null;
-    @BXML private PushButton queryPlaylistsButton = null;
+    @BXML private static PushButton viewTracksButton = null;
+    @BXML private static PushButton viewPlaylistsButton = null;
+    @BXML private static PushButton viewArtistsButton = null;
+    @BXML private static PushButton queryTracksButton = null;
+    @BXML private static PushButton queryPlaylistsButton = null;
 
     /**
      * Class constructor.
@@ -210,8 +274,36 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         PlaylistCollection.initializeLogging();
         PlaylistTree.initializeLogging();
         XMLHandler.initializeLogging();
+        
+        /*
+         * Initialize variables.
+         */
+        diagTrigger = DiagTrigger.NONE;
 
         logger.trace("MainWindow constructor: " + this.hashCode());
+    }
+    
+    //---------------- Getters and setters ---------------------------------
+    
+    /**
+     * Gets the diagnostic trigger.
+     * 
+     * @return diagnostic trigger
+     */
+    public static DiagTrigger getDiagTrigger ()
+    {
+        return diagTrigger;
+    }
+    
+    /**
+     * Gets the diagnostic trigger data value.
+     * 
+     * @return diagnostic trigger data value, or a string that should not
+     * match anything if the trigger value could not be obtained
+     */
+    public static String getDiagTriggerValue ()
+    {
+        return (diagTriggerValue != null) ? diagTriggerValue : "__NON_MATCHING__";
     }
 
     // ---------------- Public methods --------------------------------------
@@ -253,6 +345,21 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         if (pivotVersion != null)
         {
             diagLogger.info("Pivot version: " + pivotVersion.toString());
+        }
+        
+        /*
+         * Set the diag trigger if the property is set. This lets us create breakpoints based on the 
+         * names of items like tracks or artists. Ignore any errors by setting the trigger to "none"
+         * if a bogus value was specified.
+         */
+        String diagProperty = properties.get(DIAG_TRIGGER_PROPERTY_KEY);
+        if (diagProperty != null)
+        {
+            diagTrigger = DiagTrigger.getEnum(diagProperty);
+            if (diagTrigger == null)
+            {
+                diagTrigger = DiagTrigger.NONE;
+            }
         }
 
         /*
@@ -315,27 +422,28 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         ArtistDisplayColumns.initializeColumnSets();
 
         /*
-         * Get the XML file name, if it exists.
+         * Initialize the playlist display column sets.
          */
-        String xmlFileName = null;
-        xmlFileName = userPrefs.getXMLFileName();
+        PlaylistDisplayColumns.initializeColumnSets();
 
         /*
-         * We have an XML file name, so read and process it.
+         * Get the XML file name, if it exists.
          */
-        if (xmlFileName != null)
+        if ((xmlFileName = userPrefs.getXMLFileName()) != null)
         {
-            logger.info("using XML file '" + xmlFileName + "'");
-            xmlFileExists = true;
-
-            XMLHandler.processXML(xmlFileName);
-
-            /*
-             * Update the main window information based on the XML file
-             * contents.
-             */
-            Utilities.updateMainWindowLabels(xmlFileName);
+            xmlFileExists = true; 
         }
+        
+        /*
+         * Gray out the main buttons until the XML file is successfully processed.
+         */
+        updateMainButtonsState(false);
+        
+        /*
+         * Set the activity indicator size.
+         */
+        activityIndicator.setPreferredWidth(InternalConstants.ACTIVITY_INDICATOR_SIZE);
+        activityIndicator.setPreferredHeight(InternalConstants.ACTIVITY_INDICATOR_SIZE);
 
         /*
          * Add widget texts.
@@ -345,14 +453,19 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         dataSeparator.setHeading(StringConstants.MAIN_XML_FILE_STATS);
         viewTracksButton.setButtonData(StringConstants.MAIN_VIEW_TRACKS);
         viewTracksButton.setTooltipText(StringConstants.MAIN_VIEW_TRACKS_TIP);
+        viewTracksButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         viewPlaylistsButton.setButtonData(StringConstants.MAIN_VIEW_PLAYLISTS);
         viewPlaylistsButton.setTooltipText(StringConstants.MAIN_VIEW_PLAYLISTS_TIP);
+        viewPlaylistsButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         viewArtistsButton.setButtonData(StringConstants.MAIN_VIEW_ARTISTS);
         viewArtistsButton.setTooltipText(StringConstants.MAIN_VIEW_ARTISTS_TIP);
+        viewArtistsButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         queryTracksButton.setButtonData(StringConstants.QUERY_TRACKS);
         queryTracksButton.setTooltipText(StringConstants.MAIN_QUERY_TRACKS_TIP);
+        queryTracksButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         queryPlaylistsButton.setButtonData(StringConstants.QUERY_PLAYLISTS);
         queryPlaylistsButton.setTooltipText(StringConstants.MAIN_QUERY_PLAYLISTS_TIP);
+        queryPlaylistsButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * Set the window title.
@@ -381,6 +494,68 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          */
         logger.info("opening main window");
         mainWindow.open(display);
+        
+        /*
+         * Collect the diag trigger value if needed for the type.
+         */
+        switch (diagTrigger)
+        {
+        case NONE:  
+        case SKIN_LOGGING:
+        case LOGGER_LOGGING:
+            break;
+          
+        default:
+            getDiagTriggerData(skins);
+        }
+
+        /*
+         * We have an XML file name, so read and process it.
+         * 
+         * We're going to read and process the XML file in a background task, with an activity
+         * indicator on the main window. This lets the user know that something is going on in
+         * the background. When the task completes successfully, we update the main window labels
+         * and inactivate the activity indicator.
+         */
+        if (xmlFileName != null)
+        {
+            logger.info("using XML file '" + xmlFileName + "'");
+            
+            Utilities.updateFromXMLFile(xmlFileName, mainWindow);
+        }
+    }
+    
+    /**
+     * Sets the main window activity indicator active or inactive.
+     * 
+     * @param value true or false
+     */
+    public static void updateActivityIndicator (boolean value)
+    {
+        activityIndicator.setActive(value);
+        
+        /*
+         * We use the activity indicator going inactive as the trigger to enable the main window
+         * buttons.
+         */
+        if (value == false)
+        {
+            updateMainButtonsState(true);
+        }
+    }
+    
+    /**
+     * Enables or disables the main window buttons.
+     * 
+     * @param state true or false
+     */
+    public static void updateMainButtonsState (boolean state)
+    {
+        viewTracksButton.setEnabled(state);
+        viewPlaylistsButton.setEnabled(state);
+        viewArtistsButton.setEnabled(state);
+        queryTracksButton.setEnabled(state);
+        queryPlaylistsButton.setEnabled(state);
     }
 
     /**
@@ -924,12 +1099,71 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         {
         }
     }
+    
+    /*
+     * Get the diag trigger data from a secret file.
+     */
+    private void getDiagTriggerData (Skins skins)
+    {
+        logger.trace("getDiagTriggerData: " + this.hashCode());
+        
+        /*
+         * Create the file name we expect to find, based on the type of diag trigger.
+         */
+        String diagTriggerFilename = saveDirectory + "/diag-trigger/" + diagTrigger.getDisplayValue();
+        BufferedReader reader = null;
+        
+        /*
+         * Create a reader to read the file.
+         */
+        try
+        {
+            reader = new BufferedReader(new FileReader(diagTriggerFilename));
+        }
+        catch (FileNotFoundException e)
+        {
+            // Not an error: dumb user forgot the file.
+        }
+
+        /*
+         * Continue if we have a file to read.
+         */
+        if (reader != null)
+        {
+            
+            /*
+             * We expect only a single line in the file, containing the data, so that's all we read.
+             */
+            try
+            {
+                diagTriggerValue = reader.readLine();
+            }
+            catch (IOException e)
+            {
+                logException(logger, e);
+                throw new InternalErrorException(true, e.getMessage());
+            }
+            finally
+            {
+                try
+                {
+                    reader.close();
+                }
+                catch (IOException e)
+                {
+                    logException(logger, e);
+                    throw new InternalErrorException(true, e.getMessage());
+                }
+            }
+        }
+    }
 
     /*
      * Initialize BXML variables and collect the list of components to be
      * skinned.
      */
-    private void initializeBxmlVariables(List<Component> components) throws IOException, SerializationException
+    private void initializeBxmlVariables(List<Component> components) 
+            throws IOException, SerializationException
     {
         logger.trace("initializeBxmlVariables: " + this.hashCode());
 
@@ -943,41 +1177,62 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         MenuBars menuBar = (MenuBars) mainWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        infoBorder = (Border) windowSerializer.getNamespace().get("infoBorder");
+        infoBorder = 
+                (Border) windowSerializer.getNamespace().get("infoBorder");
         components.add(infoBorder);
-        infoFillPane = (FillPane) windowSerializer.getNamespace().get("infoFillPane");
+        infoFillPane = 
+                (FillPane) windowSerializer.getNamespace().get("infoFillPane");
         components.add(infoFillPane);
-        titleLabel = (Label) windowSerializer.getNamespace().get("titleLabel");
+        titleLabel = 
+                (Label) windowSerializer.getNamespace().get("titleLabel");
         components.add(titleLabel);
-        fileSeparator = (Separator) windowSerializer.getNamespace().get("fileSeparator");
+        activityIndicator = 
+                (ActivityIndicator) windowSerializer.getNamespace().get("activityIndicator");
+        components.add(activityIndicator);
+        fileSeparator = 
+                (Separator) windowSerializer.getNamespace().get("fileSeparator");
         components.add(fileSeparator);
-        fileBoxPane = (BoxPane) windowSerializer.getNamespace().get("fileBoxPane");
+        fileBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("fileBoxPane");
         components.add(fileBoxPane);
-        fileLabel = (Label) windowSerializer.getNamespace().get("fileLabel");
+        fileLabel = 
+                (Label) windowSerializer.getNamespace().get("fileLabel");
         components.add(fileLabel);
-        dataSeparator = (Separator) windowSerializer.getNamespace().get("dataSeparator");
+        dataSeparator = 
+                (Separator) windowSerializer.getNamespace().get("dataSeparator");
         components.add(dataSeparator);
-        dataBoxPane = (BoxPane) windowSerializer.getNamespace().get("dataBoxPane");
+        dataBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("dataBoxPane");
         components.add(dataBoxPane);
-        numTracksLabel = (Label) windowSerializer.getNamespace().get("numTracksLabel");
+        numTracksLabel = 
+                (Label) windowSerializer.getNamespace().get("numTracksLabel");
         components.add(numTracksLabel);
-        numPlaylistsLabel = (Label) windowSerializer.getNamespace().get("numPlaylistsLabel");
+        numPlaylistsLabel = 
+                (Label) windowSerializer.getNamespace().get("numPlaylistsLabel");
         components.add(numPlaylistsLabel);
-        numArtistsLabel = (Label) windowSerializer.getNamespace().get("numArtistsLabel");
+        numArtistsLabel = 
+                (Label) windowSerializer.getNamespace().get("numArtistsLabel");
         components.add(numArtistsLabel);
-        actionBorder = (Border) windowSerializer.getNamespace().get("actionBorder");
+        actionBorder = 
+                (Border) windowSerializer.getNamespace().get("actionBorder");
         components.add(actionBorder);
-        actionBoxPane = (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
+        actionBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
         components.add(actionBoxPane);
-        viewTracksButton = (PushButton) windowSerializer.getNamespace().get("viewTracksButton");
+        viewTracksButton = 
+                (PushButton) windowSerializer.getNamespace().get("viewTracksButton");
         components.add(viewTracksButton);
-        viewPlaylistsButton = (PushButton) windowSerializer.getNamespace().get("viewPlaylistsButton");
+        viewPlaylistsButton = 
+                (PushButton) windowSerializer.getNamespace().get("viewPlaylistsButton");
         components.add(viewPlaylistsButton);
-        viewArtistsButton = (PushButton) windowSerializer.getNamespace().get("viewArtistsButton");
+        viewArtistsButton = 
+                (PushButton) windowSerializer.getNamespace().get("viewArtistsButton");
         components.add(viewArtistsButton);
-        queryTracksButton = (PushButton) windowSerializer.getNamespace().get("queryTracksButton");
+        queryTracksButton = 
+                (PushButton) windowSerializer.getNamespace().get("queryTracksButton");
         components.add(queryTracksButton);
-        queryPlaylistsButton = (PushButton) windowSerializer.getNamespace().get("queryPlaylistsButton");
+        queryPlaylistsButton = 
+                (PushButton) windowSerializer.getNamespace().get("queryPlaylistsButton");
         components.add(queryPlaylistsButton);
     }
 

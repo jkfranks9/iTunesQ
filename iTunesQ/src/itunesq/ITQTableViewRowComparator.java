@@ -40,8 +40,7 @@ public class ITQTableViewRowComparator implements Comparator<Object>
     private Map<String, NumericalType> numericalColumns = null;
 
     /**
-     * Class constructor specifying the table view object with which we'll be
-     * working.
+     * Class constructor.
      * 
      * @param tableView table view object containing the rows to be sorted
      * @param logger logger for logging messages
@@ -60,13 +59,25 @@ public class ITQTableViewRowComparator implements Comparator<Object>
          * Initialize the list of column names that contain numerical data.
          */
         numericalColumns = new HashMap<String, NumericalType>();
-        numericalColumns.put(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue(), NumericalType.NUMBER);
-        numericalColumns.put(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue(), NumericalType.TIME);
-        numericalColumns.put(StringConstants.ARTIST_COLUMN_LOCAL_TRACKS_NAME, NumericalType.NUMBER);
-        numericalColumns.put(StringConstants.ARTIST_COLUMN_LOCAL_TIME_NAME, NumericalType.TIME);
-        numericalColumns.put(StringConstants.ARTIST_COLUMN_REMOTE_TRACKS_NAME, NumericalType.NUMBER);
-        numericalColumns.put(StringConstants.ARTIST_COLUMN_REMOTE_TIME_NAME, NumericalType.TIME);
+        numericalColumns.put(TrackDisplayColumns.ColumnNames.NUMBER.getNameValue(), 
+                NumericalType.NUMBER);
+        numericalColumns.put(TrackDisplayColumns.ColumnNames.DURATION.getNameValue(), 
+                NumericalType.TIME);
+        numericalColumns.put(ArtistDisplayColumns.ColumnNames.NUM_ALTNAMES.getNameValue(), 
+                NumericalType.NUMBER);
+        numericalColumns.put(ArtistDisplayColumns.ColumnNames.LOCAL_NUM_TRACKS.getNameValue(), 
+                NumericalType.NUMBER);
+        numericalColumns.put(ArtistDisplayColumns.ColumnNames.LOCAL_TOTAL_TIME.getNameValue(), 
+                NumericalType.TIME);
+        numericalColumns.put(ArtistDisplayColumns.ColumnNames.REMOTE_NUM_TRACKS.getNameValue(), 
+                NumericalType.NUMBER);
+        numericalColumns.put(ArtistDisplayColumns.ColumnNames.REMOTE_TOTAL_TIME.getNameValue(), 
+                NumericalType.TIME);
+        numericalColumns.put(PlaylistDisplayColumns.ColumnNames.NUM_TRACKS.getNameValue(), 
+                NumericalType.NUMBER);
     }
+
+    // ---------------- Public methods --------------------------------------
 
     /**
      * Compares two rows in the table view.

@@ -43,61 +43,12 @@ import ch.qos.logback.classic.Logger;
 public class TracksWindow
 {
 
-    // ---------------- Public variables ------------------------------------
-
-    /**
-     * The type of query associated with the list of tracks.
-     */
-    public enum QueryType
-    {
-
-        /**
-         * the tracks list is not associated with a query
-         */
-        NONE(""),
-
-        /**
-         * the tracks list is the result of a tracks query
-         */
-        TRACKS(StringConstants.TRACK_QUERY_TRACKS),
-
-        /**
-         * the tracks list is a list of duplicates
-         */
-        DUPLICATES(StringConstants.TRACK_QUERY_DUPLICATES),
-
-        /**
-         * the tracks list is the result of a playlist query
-         */
-        PLAYLISTS(StringConstants.TRACK_QUERY_PLAYLISTS);
-
-        private String displayValue;
-
-        /*
-         * Constructor.
-         */
-        private QueryType(String s)
-        {
-            displayValue = s;
-        }
-
-        /**
-         * Gets the display value.
-         * 
-         * @return enum display value
-         */
-        public String getDisplayValue()
-        {
-            return displayValue;
-        }
-    }
-
     // ---------------- Private variables -----------------------------------
 
     private Window tracksWindow = null;
     private Dialog trackInfoDialog = null;
     private Skins skins = null;
-    private QueryType queryType = null;
+    private ListQueryType.Type queryType = null;
     private String queryStr = null;
     private List<String> columnNames = null;
     private Logger logger = null;
@@ -112,8 +63,6 @@ public class TracksWindow
     @BXML private TableView tracksTableView = null;
     @BXML private TableViewHeader tracksTableViewHeader = null;
     @BXML private TableView trackPlaylistsTableView = null;
-    @BXML private TableView.Column trackPlaylistsTableViewNameColumn = null;
-    @BXML private TableView.Column trackPlaylistsTableViewBypassColumn = null;
     @BXML private TableViewHeader trackPlaylistsTableViewHeader = null;
     @BXML private Border actionBorder = null;
     @BXML private BoxPane actionBoxPane = null;
@@ -149,7 +98,7 @@ public class TracksWindow
          * Initialize variables.
          */
         skins = Skins.getInstance();
-        queryType = QueryType.NONE;
+        queryType = ListQueryType.Type.NONE;
 
         logger.trace("TracksWindow constructor: " + this.hashCode());
     }
@@ -163,7 +112,7 @@ public class TracksWindow
      * @param queryStr string representation of the query
      * @param columnNames column names associated with the query
      */
-    public void saveWindowAttributes(QueryType queryType, String queryStr, List<String> columnNames)
+    public void saveWindowAttributes(ListQueryType.Type queryType, String queryStr, List<String> columnNames)
     {
         logger.trace("saveWindowAttributes: " + this.hashCode());
 
@@ -209,7 +158,7 @@ public class TracksWindow
          * set other needed attributes. The attributes are used for the File ->
          * Save menu on queried track results.
          */
-        if (queryType != QueryType.NONE)
+        if (queryType != ListQueryType.Type.NONE)
         {
             tracksWindow.setAttribute(MenuBars.WindowAttributes.HANDLER, this);
             tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_TYPE, queryType);
@@ -277,8 +226,12 @@ public class TracksWindow
             TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.FULL_VIEW, tracksTableView);
             break;
 
-        case DUPLICATES:
+        case TRACK_DUPLICATES:
             TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.DUPLICATES_VIEW, tracksTableView);
+            break;
+
+        case TRACK_FAMILY:
+            TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.FAMILY_VIEW, tracksTableView);
             break;
 
         default:
@@ -305,21 +258,22 @@ public class TracksWindow
         });
 
         /*
-         * Set the playlist information column header text if we're here because
-         * of a query.
+         * Create the track playlists column set if we're here because of a query.
          */
-        if (queryType != QueryType.NONE)
+        if (queryType != ListQueryType.Type.NONE)
         {
-            trackPlaylistsTableViewNameColumn.setHeaderData(StringConstants.TRACK_PLAYLISTS_NAME_COLUMN);
-            trackPlaylistsTableViewBypassColumn.setHeaderData(StringConstants.TRACK_PLAYLISTS_BYPASS_COLUMN);
+            PlaylistDisplayColumns.createColumnSet(PlaylistDisplayColumns.ColumnSet.TRACK_PLAYLISTS, 
+                    trackPlaylistsTableView);
         }
 
         /*
          * Add widget texts.
          */
-        if (queryType == QueryType.NONE)
+        if (queryType == ListQueryType.Type.NONE)
         {
-            findDuplicatesButton.setButtonData(StringConstants.FIND_DUPLICATES_SHOW);
+            findDuplicatesButton.setButtonData(StringConstants.TRACK_SHOW_DUPLICATES);
+            findDuplicatesButton.setTooltipText(StringConstants.TRACK_SHOW_DUPLICATES_TIP);
+            findDuplicatesButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         }
         tracksDoneButton.setButtonData(StringConstants.DONE);
 
@@ -397,7 +351,7 @@ public class TracksWindow
         /*
          * Get the track name and log it.
          */
-        String trackName = trackRowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+        String trackName = trackRowData.get(TrackDisplayColumns.ColumnNames.NAME.getNameValue());
         logger.info("right clicked on track '" + trackName + "'");
 
         /*
@@ -453,8 +407,6 @@ public class TracksWindow
     @SuppressWarnings("unchecked")
     public List<HashMap<String, String>> getFilteredTrackData()
     {
-        logger.trace("getFilteredTrackData: " + this.hashCode());
-
         return (List<HashMap<String, String>>) tracksTableView.getTableData();
     }
 
@@ -471,7 +423,7 @@ public class TracksWindow
          * Listener to handle the find duplicates button press. This is only
          * enabled when all tracks are displayed, not for filtered results.
          */
-        if (queryType == QueryType.NONE)
+        if (queryType == ListQueryType.Type.NONE)
         {
             findDuplicatesButton.getButtonPressListeners().add(new ButtonPressListener()
             {
@@ -521,7 +473,7 @@ public class TracksWindow
         /*
          * Listener to handle track selection in a filtered view.
          */
-        if (queryType != QueryType.NONE)
+        if (queryType != ListQueryType.Type.NONE)
         {
 
             /*
@@ -549,8 +501,8 @@ public class TracksWindow
                     /*
                      * Get the selected row and log the track name.
                      */
-                    @SuppressWarnings("unchecked") HashMap<String, String> rowData = (HashMap<String, String>) tableView
-                            .getSelectedRow();
+                    @SuppressWarnings("unchecked") 
+                    HashMap<String, String> rowData = (HashMap<String, String>) tableView.getSelectedRow();
 
                     /*
                      * We may get called for an actual selected row, or for
@@ -560,20 +512,27 @@ public class TracksWindow
                      */
                     if (rowData != null)
                     {
-                        String trackName = rowData.get(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+                        String trackName = rowData.get(TrackDisplayColumns.ColumnNames.NAME.getNameValue());
                         logger.debug("track '" + trackName + "' selected");
 
                         /*
-                         * Get the playlists and bypassed indicator for the
+                         * Get the playlists and corresponding bypassed indicators for the
                          * selected track.
                          */
-                        String[] playlists = rowData.get(Track.MAP_PLAYLISTS).split(",");
-                        String[] bypassed = rowData.get(Track.MAP_BYPASSED).split(",");
+                        String[] playlists = 
+                                rowData.get(PlaylistDisplayColumns.ColumnNames.
+                                        PLAYLIST_NAMES.getNameValue()).
+                                            split(InternalConstants.LIST_ITEM_SEPARATOR);
+                        String[] bypassed = 
+                                rowData.get(PlaylistDisplayColumns.ColumnNames.
+                                        BYPASSED.getNameValue()).
+                                            split(InternalConstants.LIST_ITEM_SEPARATOR);
 
                         for (int i = 0; i < playlists.length; i++)
                         {
                             HashMap<String, String> playlistStr = new HashMap<String, String>();
-                            playlistStr.put("name", playlists[i]);
+                            playlistStr.put(PlaylistDisplayColumns.ColumnNames.PLAYLIST_NAMES.getNameValue(), 
+                                    playlists[i]);
 
                             /*
                              * I find it more aesthetically pleasing to only
@@ -582,11 +541,12 @@ public class TracksWindow
                              */
                             if (bypassed[i].equals("Y"))
                             {
-                                playlistStr.put("bypass", bypassed[i]);
+                                playlistStr.put(PlaylistDisplayColumns.ColumnNames.BYPASSED.getNameValue(), 
+                                        bypassed[i]);
                             }
                             else
                             {
-                                playlistStr.put("bypass", "");
+                                playlistStr.put(PlaylistDisplayColumns.ColumnNames.BYPASSED.getNameValue(), "");
                                 selectedPlaylists.add(playlistStr);
                             }
 
@@ -640,8 +600,9 @@ public class TracksWindow
                     /*
                      * Get the data for the selected row.
                      */
-                    @SuppressWarnings("unchecked") HashMap<String, String> selectedTrackRowData = (HashMap<String, String>) table
-                            .getSelectedRow();
+                    @SuppressWarnings("unchecked") 
+                    HashMap<String, String> selectedTrackRowData = 
+                            (HashMap<String, String>) table.getSelectedRow();
 
                     /*
                      * Create and open the track details popup dialog.
@@ -679,16 +640,19 @@ public class TracksWindow
         {
 
             /*
-             * Get the column name, which is the name of the corresponding track
-             * datum.
+             * Get the column header and name, which identify the corresponding track datum.
              */
-            String columnName = columns.getDisplayValue();
+            String columnHeader = columns.getHeaderValue();
+            String columnName = columns.getNameValue();
 
             /*
-             * Since NUMBER is a generated value that is not part of the track
-             * data, skip it here.
+             * Skip the following columns:
+             * 
+             * - NUMBER (this is a generated value that is not part of the track data)
+             * - NUMPLAYLISTS (this is an internal value that is not part of the track data)
              */
-            if (columns == TrackDisplayColumns.ColumnNames.NUMBER)
+            if (columns == TrackDisplayColumns.ColumnNames.NUMBER || 
+                    columns == TrackDisplayColumns.ColumnNames.NUMPLAYLISTS)
             {
                 continue;
             }
@@ -723,7 +687,7 @@ public class TracksWindow
                  * Build a "static" label that contains the column name that
                  * identifies the track value.
                  */
-                Label infoStaticLabel = new Label(columnName);
+                Label infoStaticLabel = new Label(columnHeader);
                 Map<String, Object> infoStaticLabelStyles = new HashMap<String, Object>();
                 Map<String, Object> infoStaticLabelFontStyles = new HashMap<String, Object>();
                 infoStaticLabelFontStyles.put("bold", true);
@@ -772,7 +736,7 @@ public class TracksWindow
      * Initialize tracks window BXML variables and collect the list of
      * components to be skinned.
      */
-    private void initializeWindowBxmlVariables(QueryType queryType, List<Component> components)
+    private void initializeWindowBxmlVariables(ListQueryType.Type queryType, List<Component> components)
             throws IOException, SerializationException
     {
         logger.trace("initializeWindowBxmlVariables: " + this.hashCode());
@@ -781,15 +745,17 @@ public class TracksWindow
 
         boolean showFileSave;
 
-        if (queryType != QueryType.NONE)
+        if (queryType != ListQueryType.Type.NONE)
         {
             showFileSave = true;
-            tracksWindow = (Window) windowSerializer.readObject(getClass().getResource("filteredTracksWindow.bxml"));
+            tracksWindow = (Window) windowSerializer.
+                    readObject(getClass().getResource("filteredTracksWindow.bxml"));
         }
         else
         {
             showFileSave = false;
-            tracksWindow = (Window) windowSerializer.readObject(getClass().getResource("tracksWindow.bxml"));
+            tracksWindow = (Window) windowSerializer.
+                    readObject(getClass().getResource("tracksWindow.bxml"));
         }
 
         /*
@@ -798,48 +764,50 @@ public class TracksWindow
         MenuBars menuBar = (MenuBars) tracksWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, showFileSave);
 
-        infoBorder = (Border) windowSerializer.getNamespace().get("infoBorder");
+        infoBorder = 
+                (Border) windowSerializer.getNamespace().get("infoBorder");
         components.add(infoBorder);
-        infoFillPane = (FillPane) windowSerializer.getNamespace().get("infoFillPane");
+        infoFillPane = 
+                (FillPane) windowSerializer.getNamespace().get("infoFillPane");
         components.add(infoFillPane);
-        numTracksLabel = (Label) windowSerializer.getNamespace().get("numTracksLabel");
+        numTracksLabel = 
+                (Label) windowSerializer.getNamespace().get("numTracksLabel");
         components.add(numTracksLabel);
-        tracksBorder = (Border) windowSerializer.getNamespace().get("tracksBorder");
+        tracksBorder = 
+                (Border) windowSerializer.getNamespace().get("tracksBorder");
         components.add(tracksBorder);
-        tracksTableView = (TableView) windowSerializer.getNamespace().get("tracksTableView");
+        tracksTableView = 
+                (TableView) windowSerializer.getNamespace().get("tracksTableView");
         components.add(tracksTableView);
-        tracksTableViewHeader = (TableViewHeader) windowSerializer.getNamespace().get("tracksTableViewHeader");
+        tracksTableViewHeader = 
+                (TableViewHeader) windowSerializer.getNamespace().get("tracksTableViewHeader");
         components.add(tracksTableViewHeader);
-        actionBorder = (Border) windowSerializer.getNamespace().get("actionBorder");
+        actionBorder = 
+                (Border) windowSerializer.getNamespace().get("actionBorder");
         components.add(actionBorder);
-        actionBoxPane = (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
+        actionBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
         components.add(actionBoxPane);
 
-        if (queryType == QueryType.NONE)
+        if (queryType == ListQueryType.Type.NONE)
         {
-            findDuplicatesButton = (PushButton) windowSerializer.getNamespace().get("findDuplicatesButton");
+            findDuplicatesButton = 
+                    (PushButton) windowSerializer.getNamespace().get("findDuplicatesButton");
             components.add(findDuplicatesButton);
         }
 
-        tracksDoneButton = (PushButton) windowSerializer.getNamespace().get("tracksDoneButton");
+        tracksDoneButton = 
+                (PushButton) windowSerializer.getNamespace().get("tracksDoneButton");
         components.add(tracksDoneButton);
 
-        if (queryType != QueryType.NONE)
+        if (queryType != ListQueryType.Type.NONE)
         {
-            trackPlaylistsTableView = (TableView) windowSerializer.getNamespace().get("trackPlaylistsTableView");
+            trackPlaylistsTableView = 
+                    (TableView) windowSerializer.getNamespace().get("trackPlaylistsTableView");
             components.add(trackPlaylistsTableView);
-            trackPlaylistsTableViewHeader = (TableViewHeader) windowSerializer.getNamespace()
-                    .get("trackPlaylistsTableViewHeader");
+            trackPlaylistsTableViewHeader = 
+                    (TableViewHeader) windowSerializer.getNamespace().get("trackPlaylistsTableViewHeader");
             components.add(trackPlaylistsTableViewHeader);
-
-            /*
-             * These don't need to be added to the components list because
-             * they're subcomponents of TableView.
-             */
-            trackPlaylistsTableViewNameColumn = (TableView.Column) windowSerializer.getNamespace()
-                    .get("trackPlaylistsTableViewNameColumn");
-            trackPlaylistsTableViewBypassColumn = (TableView.Column) windowSerializer.getNamespace()
-                    .get("trackPlaylistsTableViewBypassColumn");
         }
     }
 
@@ -854,11 +822,14 @@ public class TracksWindow
 
         BXMLSerializer dialogSerializer = new BXMLSerializer();
 
-        trackInfoDialog = (Dialog) dialogSerializer.readObject(getClass().getResource("trackInfoWindow.bxml"));
+        trackInfoDialog = 
+                (Dialog) dialogSerializer.readObject(getClass().getResource("trackInfoDialog.bxml"));
 
-        detailsPrimaryBorder = (Border) dialogSerializer.getNamespace().get("detailsPrimaryBorder");
+        detailsPrimaryBorder = 
+                (Border) dialogSerializer.getNamespace().get("detailsPrimaryBorder");
         components.add(detailsPrimaryBorder);
-        detailsTablePane = (TablePane) dialogSerializer.getNamespace().get("detailsTablePane");
+        detailsTablePane = 
+                (TablePane) dialogSerializer.getNamespace().get("detailsTablePane");
         components.add(detailsTablePane);
     }
 }

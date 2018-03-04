@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Sheet maximized="true" styles="{backgroundColor:'white', stateTransitionDuration:1}"
+<Sheet maximized="true" 
+    styles="{padding:{top:5, left:5, bottom:5, right:5}, stateTransitionDuration:1, backgroundColor:'white'}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns:content="org.apache.pivot.wtk.content"
     xmlns="org.apache.pivot.wtk">
@@ -34,9 +35,9 @@
                					<Border bxml:id="bypassPrefsBorder">
                    		 			<BoxPane bxml:id="bypassPrefsBoxPane" orientation="vertical">
            								<Label bxml:id="bypassPrefsBorderLabel"
-           									styles="{font:{bold:true}, padding:5}"/>
+           									styles="{font:{bold:true}, padding:10}"/>
                        					<TablePane bxml:id="bypassPrefsTablePane"
-                       						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
+                       						styles="{verticalSpacing:10, horizontalSpacing:10, padding:10}">
            									<columns>
                									<TablePane.Column width="1*"/>
                									<TablePane.Column width="6*"/>
@@ -59,7 +60,7 @@
            								<Label bxml:id="ignoredPrefsBorderLabel" 
            									styles="{font:{bold:true}, padding:5}"/>
                        					<TablePane bxml:id="ignoredPrefsTablePane"
-                       						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
+                       						styles="{verticalSpacing:10, horizontalSpacing:10, padding:10}">
            									<columns>
                									<TablePane.Column width="1*"/>
                									<TablePane.Column width="6*"/>	
@@ -76,7 +77,7 @@
            				<TablePane.Row height="1*">
                				<Border bxml:id="tab1ResetBorder">
                 				<BoxPane bxml:id="tab1ResetBoxPane" orientation="horizontal"
-                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                    				styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            	        				<PushButton bxml:id="tab1ResetButton"/>
                 				</BoxPane>
                 			</Border>
@@ -97,13 +98,13 @@
            				</columns>
             
            				<!-- Track column preferences row. -->
-           				<TablePane.Row height="11*">
+           				<TablePane.Row height="21*">
            					<BoxPane orientation="vertical">
            						<Label bxml:id="columnPrefsBorderLabel"
            						styles="{font:{bold:true}, padding:5}"/>
                					<Border bxml:id="columnPrefsBorder">
                    					<TablePane bxml:id="columnPrefsTablePane"
-                   						styles="{verticalSpacing:10, horizontalSpacing:10, padding:5}">
+                   						styles="{verticalSpacing:10, horizontalSpacing:10}">
            								<columns>
                								<TablePane.Column width="3*"/>
                								<TablePane.Column width="1*"/>
@@ -122,7 +123,7 @@
                    								orientation="horizontal"
                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            										<Label bxml:id="fullColumnPrefsLabel" 
-           											styles="{font:{bold:true}, padding:5}"/>
+           											styles="{font:{bold:true}}"/>
            										<Checkbox bxml:id="fullNumberCheckbox"/>
            										<Checkbox bxml:id="fullNameCheckbox"/>
            										<Checkbox bxml:id="fullArtistCheckbox"/>
@@ -141,7 +142,7 @@
                    								orientation="horizontal"
                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            										<Label bxml:id="duplicatesColumnPrefsLabel" 
-           											styles="{font:{bold:true}, padding:5}"/>
+           											styles="{font:{bold:true}}"/>
            										<Checkbox bxml:id="duplicatesNumberCheckbox"/>
            										<Checkbox bxml:id="duplicatesNameCheckbox"/>
            										<Checkbox bxml:id="duplicatesArtistCheckbox"/>
@@ -160,7 +161,7 @@
                    								orientation="horizontal"
                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            										<Label bxml:id="filteredColumnPrefsLabel" 
-           											styles="{font:{bold:true}, padding:5}"/>
+           											styles="{font:{bold:true}}"/>
            										<Checkbox bxml:id="filteredNumberCheckbox"/>
            										<Checkbox bxml:id="filteredNameCheckbox"/>
            										<Checkbox bxml:id="filteredArtistCheckbox"/>
@@ -179,7 +180,7 @@
                    								orientation="horizontal"
                        							styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            										<Label bxml:id="playlistColumnPrefsLabel" 
-           											styles="{font:{bold:true}, padding:5}"/>
+           											styles="{font:{bold:true}}"/>
            										<Checkbox bxml:id="playlistNumberCheckbox"/>
            										<Checkbox bxml:id="playlistNameCheckbox"/>
            										<Checkbox bxml:id="playlistArtistCheckbox"/>
@@ -198,22 +199,22 @@
            				</TablePane.Row>
             
 			            <!-- Show remote tracks row. -->
-           				<TablePane.Row height="2*">
+           				<TablePane.Row height="4*">
                				<Border bxml:id="remoteTracksBorder">
                 				<BoxPane bxml:id="remoteTracksBoxPane" orientation="horizontal"
-                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                    				styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            							<Label bxml:id="remoteTracksLabel" 
-           								styles="{font:{bold:true}, padding:5}"/>
+           								styles="{font:{bold:true}}"/>
            	        				<Checkbox bxml:id="remoteTracksCheckbox"/>
                 				</BoxPane>
                 			</Border>
            				</TablePane.Row>
             
 			            <!-- Reset to defaults row. -->
-           				<TablePane.Row height="2*">
+           				<TablePane.Row height="4*">
                				<Border bxml:id="tab2ResetBorder">
                 				<BoxPane bxml:id="tab2ResetBoxPane" orientation="horizontal"
-                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                    				styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            	        				<PushButton bxml:id="tab2ResetButton"/>
                 				</BoxPane>
                 			</Border>
@@ -241,7 +242,7 @@
            								styles="{font:{bold:true}, padding:5}"/>
                						<Border bxml:id="skinPrefsBorder">
                    						<BoxPane bxml:id="skinPrefsBoxPane" orientation="horizontal"
-                       						styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                       						styles="{spacing:5, padding:10, verticalAlignment:'center'}">
                								<Spinner bxml:id="skinPrefsSpinner"/>
                								<PushButton bxml:id="skinPrefsButton"/>
                    						</BoxPane>
@@ -252,7 +253,7 @@
            								styles="{font:{bold:true}, padding:5}"/>
                						<Border bxml:id="saveDirectoryBorder">
                    						<BoxPane bxml:id="saveDirectoryBoxPane" orientation="horizontal"
-                       						styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                       						styles="{spacing:5, padding:10, verticalAlignment:'center'}">
                								<TextInput bxml:id="saveDirectoryTextInput"/>
                    						</BoxPane>
                						</Border>
@@ -262,7 +263,7 @@
            								styles="{font:{bold:true}, padding:5}"/>
                						<Border bxml:id="logHistoryPrefsBorder">
                    						<BoxPane bxml:id="logHistoryPrefsBoxPane" orientation="horizontal"
-                       						styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                       						styles="{spacing:5, padding:10, verticalAlignment:'center'}">
                								<TextInput bxml:id="logHistoryPrefsTextInput"/>
                    						</BoxPane>
                						</Border>
@@ -271,7 +272,7 @@
            				</TablePane.Row>
             
            				<!-- Log level preferences row. -->
-           				<TablePane.Row height="11*">
+           				<TablePane.Row height="12*">
            					<BoxPane orientation="vertical">
            						<Label bxml:id="logLevelPrefsBorderLabel"
            							styles="{font:{bold:true}, padding:5}"/>
@@ -285,7 +286,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="logLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{spacing:5, padding:3, verticalAlignment:'center'}">
+                       							styles="{spacing:5, padding:5, verticalAlignment:'center'}">
                									<Spinner bxml:id="logLevelPrefsSpinner"/>
                									<Checkbox bxml:id="logLevelPrefsCheckbox"/>
                    							</BoxPane>
@@ -294,7 +295,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="uiLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:3, verticalAlignment:'center'}">
+                       							styles="{verticalAlignment:'center'}">
            										<Label bxml:id="uiLogLevelPrefsLabel"
            											styles="{font:{bold:true}, padding:5}"/>
                									<Spinner bxml:id="uiLogLevelPrefsSpinner"/>
@@ -304,7 +305,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="xmlLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:3, verticalAlignment:'center'}">
+                       							styles="{verticalAlignment:'center'}">
            										<Label bxml:id="xmlLogLevelPrefsLabel" 
            											styles="{font:{bold:true}, padding:5}"/>
                									<Spinner bxml:id="xmlLogLevelPrefsSpinner"/>
@@ -314,7 +315,7 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="trackLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:3, verticalAlignment:'center'}">
+                       							styles="{verticalAlignment:'center'}">
            										<Label bxml:id="trackLogLevelPrefsLabel" 
            											styles="{font:{bold:true}, padding:5}"/>
                									<Spinner bxml:id="trackLogLevelPrefsSpinner"/>
@@ -324,17 +325,27 @@
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="playlistLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:3, verticalAlignment:'center'}">
+                       							styles="{verticalAlignment:'center'}">
            										<Label bxml:id="playlistLogLevelPrefsLabel" 
            											styles="{font:{bold:true}, padding:5}"/>
                									<Spinner bxml:id="playlistLogLevelPrefsSpinner"/>
                    							</BoxPane>
            								</TablePane.Row>
+                        
+                                        <TablePane.Row height="1*">
+                                            <BoxPane bxml:id="artistLogLevelPrefsBoxPane" 
+                                                orientation="horizontal"
+                                                styles="{verticalAlignment:'center'}">
+                                                <Label bxml:id="artistLogLevelPrefsLabel" 
+                                                    styles="{font:{bold:true}, padding:5}"/>
+                                                <Spinner bxml:id="artistLogLevelPrefsSpinner"/>
+                                            </BoxPane>
+                                        </TablePane.Row>
             			
            								<TablePane.Row height="1*">
                    							<BoxPane bxml:id="filterLogLevelPrefsBoxPane" 
                    								orientation="horizontal"
-                       							styles="{padding:3, verticalAlignment:'center'}">
+                       							styles="{verticalAlignment:'center'}">
            										<Label bxml:id="filterLogLevelPrefsLabel" 
            											styles="{font:{bold:true}, padding:5}"/>
                									<Spinner bxml:id="filterLogLevelPrefsSpinner"/>
@@ -349,7 +360,7 @@
            				<TablePane.Row height="2*">
                				<Border bxml:id="tab3ResetBorder">
                 				<BoxPane bxml:id="tab3ResetBoxPane" orientation="horizontal"
-                    				styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                    				styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            	        				<PushButton bxml:id="tab3ResetButton"/>
                 				</BoxPane>
                 			</Border>
@@ -363,7 +374,7 @@
         <TablePane.Row height="1*">
             <Border bxml:id="actionBorder">
                 <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
-                    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            	        <PushButton bxml:id="preferencesDoneButton"/>
                 </BoxPane>
             </Border>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <Dialog modal="true"
-	styles="{backgroundColor:5}"
+	styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns="org.apache.pivot.wtk">
         
@@ -16,7 +16,7 @@
        	<TablePane.Row height="4*">
        		<Border bxml:id="duplicatesSpecBorder">
            		<BoxPane bxml:id="duplicatesSpecBoxPane" orientation="vertical"
-           		    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+           		    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            			<Label bxml:id="duplicatesSpecLabel"
                			styles="{font:{bold:true}, padding:5}"/>
                    	<TablePane bxml:id="duplicatesSpecTablePane"
@@ -36,7 +36,7 @@
            				<TablePane.Row height="1*">
                    			<BoxPane bxml:id="duplicatesSpecFuzzyBoxPane" 
                    				orientation="horizontal"
-                       			styles="{spacing:5, padding:3, verticalAlignment:'center'}">
+                       			styles="{spacing:5, padding:5, verticalAlignment:'center'}">
                					<Checkbox bxml:id="duplicatesSpecArtistCheckbox"/>
                					<Checkbox bxml:id="duplicatesSpecNotArtistCheckbox"/>
                					<Checkbox bxml:id="duplicatesSpecAlbumCheckbox"/>
@@ -55,7 +55,7 @@
        	<TablePane.Row height="1*">
        		<Border bxml:id="duplicatesButtonBorder">
            		<BoxPane bxml:id="duplicatesButtonBoxPane" orientation="horizontal"
-       		   	    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+       		   	    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            		   	<PushButton bxml:id="duplicatesDoneButton"/>
            		</BoxPane>
            	</Border>

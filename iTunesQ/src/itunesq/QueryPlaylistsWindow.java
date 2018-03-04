@@ -6,6 +6,7 @@ import java.util.Comparator;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
+import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.HashSet;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
@@ -16,14 +17,20 @@ import org.apache.pivot.wtk.Border;
 import org.apache.pivot.wtk.BoxPane;
 import org.apache.pivot.wtk.Button;
 import org.apache.pivot.wtk.ButtonPressListener;
+import org.apache.pivot.wtk.Checkbox;
 import org.apache.pivot.wtk.Component;
 import org.apache.pivot.wtk.ComponentMouseButtonListener;
 import org.apache.pivot.wtk.Display;
+import org.apache.pivot.wtk.FillPane;
 import org.apache.pivot.wtk.Label;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.Mouse;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.TablePane;
+import org.apache.pivot.wtk.TableView;
+import org.apache.pivot.wtk.TableViewHeader;
+import org.apache.pivot.wtk.TableViewSelectionListener;
+import org.apache.pivot.wtk.TableViewSortListener;
 import org.apache.pivot.wtk.TextInput;
 import org.apache.pivot.wtk.TextInputContentListener;
 import org.apache.pivot.wtk.Window;
@@ -45,6 +52,7 @@ public class QueryPlaylistsWindow
     // ---------------- Private variables -----------------------------------
 
     private Window queryPlaylistsWindow = null;
+    private Window familyPlaylistsWindow = null;
     private Skins skins = null;
     private int plusButtonYCoordinate = -1;
     private int minusButtonYCoordinate = -1;
@@ -58,18 +66,48 @@ public class QueryPlaylistsWindow
     private Set<PlaylistComparisonTrack> oneIDs;
 
     /*
-     * BXML variables.
+     * BXML variables ...
+     */
+    
+    /*
+     * ... query playlists window.
      */
     @BXML private Border compareBorder = null;
+    @BXML private BoxPane compareHolderBoxPane = null;
     @BXML private BoxPane compareBoxPane = null;
-    @BXML private Label compareBorderLabel = null;
+    @BXML private Label compareLabel = null;
     @BXML private TablePane compareTablePane = null;
-    @BXML private Border actionBorder = null;
-    @BXML private BoxPane actionBoxPane = null;
+    @BXML private BoxPane compareButtonsBoxPane = null;
     @BXML private PushButton showAllButton = null;
     @BXML private PushButton showSomeButton = null;
     @BXML private PushButton showOneButton = null;
+    @BXML private Border familyBorder = null;
+    @BXML private FillPane familyFillPane = null;
+    @BXML private BoxPane familyBoxPane = null;
+    @BXML private Label familyLabel = null;
+    @BXML private TextInput familyTextInput = null;
+    @BXML private BoxPane familyButtonsBoxPane = null;
+    @BXML private PushButton familyPlaylistsButton = null;
+    @BXML private Checkbox familyExcludeBypassedCheckbox = null;
+    @BXML private PushButton familyTracksButton = null;
+    @BXML private Border actionBorder = null;
+    @BXML private BoxPane actionBoxPane = null;
     @BXML private PushButton queryDoneButton = null;
+
+    /*
+     * ... family expansion playlists window.
+     */
+    @BXML private Border infoBorder = null;
+    @BXML private FillPane infoFillPane = null;
+    @BXML private Label numPlaylistsLabel = null;
+    @BXML private Border playlistsBorder = null;
+    @BXML private TableView playlistsTableView = null;
+    @BXML private TableViewHeader playlistsTableViewHeader = null;
+    @BXML private TableView playlistTracksTableView = null;
+    @BXML private TableViewHeader playlistTracksTableViewHeader = null;
+    @BXML private Border familyActionBorder = null;
+    @BXML private BoxPane familyActionBoxPane = null;
+    @BXML private PushButton playlistsDoneButton = null;
 
     /*
      * Type of playlist comparison.
@@ -125,7 +163,8 @@ public class QueryPlaylistsWindow
      * @throws SerializationException If an error occurs trying to deserialize
      * the BXML file.
      */
-    public void displayQueryPlaylists(Display display) throws IOException, SerializationException
+    public void displayQueryPlaylists(Display display) 
+            throws IOException, SerializationException
     {
         uiLogger.trace("displayQueryPlaylists: " + this.hashCode());
 
@@ -177,13 +216,26 @@ public class QueryPlaylistsWindow
         /*
          * Add widget texts.
          */
-        compareBorderLabel.setText(StringConstants.QUERY_PLAYLIST_COMPARE_BORDER);
+        compareLabel.setText(StringConstants.QUERY_PLAYLIST_COMPARE_BORDER);
+        familyLabel.setText(StringConstants.QUERY_PLAYLIST_FAMILY);
         showAllButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_ALL_BUTTON);
         showAllButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_ALL_BUTTON_TIP);
+        showAllButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         showSomeButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_SOME_BUTTON);
         showSomeButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_SOME_BUTTON_TIP);
+        showSomeButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         showOneButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_ONE_BUTTON);
         showOneButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_ONE_BUTTON_TIP);
+        showOneButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        familyPlaylistsButton.setButtonData(StringConstants.QUERY_PLAYLIST_FAMILY_PLAYLISTS);
+        familyPlaylistsButton.setTooltipText(StringConstants.QUERY_PLAYLIST_FAMILY_PLAYLISTS_TIP);
+        familyPlaylistsButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        familyExcludeBypassedCheckbox.setButtonData(StringConstants.QUERY_PLAYLIST_FAMILY_BYPASS);
+        familyExcludeBypassedCheckbox.setTooltipText(StringConstants.QUERY_PLAYLIST_FAMILY_BYPASS_TIP);
+        familyExcludeBypassedCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        familyTracksButton.setButtonData(StringConstants.QUERY_PLAYLIST_FAMILY_TRACKS);
+        familyTracksButton.setTooltipText(StringConstants.QUERY_PLAYLIST_FAMILY_TRACKS_TIP);
+        familyTracksButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         queryDoneButton.setButtonData(StringConstants.DONE);
 
         /*
@@ -221,10 +273,21 @@ public class QueryPlaylistsWindow
         compareTablePane.requestFocus();
     }
 
+    /**
+     * Gets the list of playlists table data for a family playlist display.
+     * 
+     * @return list of playlists table data
+     */
+    @SuppressWarnings("unchecked")
+    public List<HashMap<String, String>> getFamilyPlaylistData()
+    {
+        return (List<HashMap<String, String>>) playlistsTableView.getTableData();
+    }
+
     // ---------------- Private methods -------------------------------------
 
     /*
-     * Set up the various event handlers.
+     * Set up the various event handlers for the query playlists window.
      */
     private void createEventHandlers()
     {
@@ -348,6 +411,95 @@ public class QueryPlaylistsWindow
         });
 
         /*
+         * Listener to handle the family expansion to playlists button press.
+         */
+        familyPlaylistsButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                uiLogger.info("expand family to playlists button pressed");
+
+                Display display = button.getDisplay();
+
+                /*
+                 * Get the entered playlist name.
+                 */
+                String playlistName = familyTextInput.getText();
+                
+                /*
+                 * Verify a playlist has been entered.
+                 */
+                if (playlistName != null && !playlistName.isEmpty())
+                {
+
+                    /*
+                     * Expand the playlist family into a playlists display.
+                     */
+                    try
+                    {
+                        generateFamilyPlaylistResults(display, playlistName, 
+                                familyExcludeBypassedCheckbox.isSelected());
+                    }
+                    catch (IOException | SerializationException e)
+                    {
+                        MainWindow.logException(uiLogger, e);
+                        throw new InternalErrorException(true, e.getMessage());
+                    }
+                }
+                else
+                {
+                    Alert.alert(MessageType.ERROR, StringConstants.ALERT_NO_FAMILY_PLAYLIST,
+                            queryPlaylistsWindow);
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the family expansion to tracks button press.
+         */
+        familyTracksButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                uiLogger.info("expand family to tracks button pressed");
+
+                Display display = button.getDisplay();
+
+                /*
+                 * Get the entered playlist name.
+                 */
+                String playlistName = familyTextInput.getText();
+                
+                /*
+                 * Verify a playlist has been entered.
+                 */
+                if (playlistName != null && !playlistName.isEmpty())
+                {
+
+                    /*
+                     * Expand the playlist family into a tracks display.
+                     */
+                    try
+                    {
+                        generateFamilyTrackResults(display, playlistName);
+                    }
+                    catch (IOException | SerializationException e)
+                    {
+                        MainWindow.logException(uiLogger, e);
+                        throw new InternalErrorException(true, e.getMessage());
+                    }
+                }
+                else
+                {
+                    Alert.alert(MessageType.ERROR, StringConstants.ALERT_NO_FAMILY_PLAYLIST,
+                            queryPlaylistsWindow);
+                }
+            }
+        });
+
+        /*
          * Listener to handle the done button press.
          */
         queryDoneButton.getButtonPressListeners().add(new ButtonPressListener()
@@ -366,6 +518,20 @@ public class QueryPlaylistsWindow
                  * Pop the window off the skins window stack.
                  */
                 skins.popSkinnedWindow();
+            }
+        });
+
+        /*
+         * Add a text input listener to the family playlist text box so we can call the typing assistant
+         * to fill in the playlist name as soon as enough characters are entered.
+         */
+        familyTextInput.getTextInputContentListeners().add(new TextInputContentListener.Adapter()
+        {
+            @Override
+            public void textInserted(TextInput textInput, int index, int count)
+            {
+                Utilities.typingAssistant(textInput, XMLHandler.getPlaylistNames(), textInput.getText(),
+                        Filter.Operator.IS);
             }
         });
     }
@@ -435,10 +601,12 @@ public class QueryPlaylistsWindow
         PushButton plusButton = new PushButton();
         plusButton.setButtonData("+");
         plusButton.setTooltipText(StringConstants.QUERY_PLAYLIST_PLUS_BUTTON);
+        plusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         PushButton minusButton = new PushButton();
         minusButton.setButtonData("-");
         minusButton.setTooltipText(StringConstants.QUERY_PLAYLIST_MINUS_BUTTON);
+        minusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * We need the ability to insert and remove playlist rows based on the
@@ -501,7 +669,7 @@ public class QueryPlaylistsWindow
                     Map<Skins.Element, List<Component>> windowElements = skins
                             .mapComponentsToSkinElements(rowComponents);
                     skins.registerDynamicWindowElements(Skins.Window.QUERYPLAYLISTS, windowElements);
-                    skins.skinMe(Skins.Window.QUERYPLAYLISTS);
+                    skins.skinMe(Skins.Window.QUERYPLAYLISTS, windowElements);
 
                     /*
                      * Enable or disable the 'some' button based on the current
@@ -924,8 +1092,8 @@ public class QueryPlaylistsWindow
          * Now display the list of tracks.
          */
         TracksWindow tracksWindowHandler = new TracksWindow();
-        tracksWindowHandler.saveWindowAttributes(TracksWindow.QueryType.PLAYLISTS,
-                TracksWindow.QueryType.PLAYLISTS.getDisplayValue() + " " + compareStr + ": " + queryStr,
+        tracksWindowHandler.saveWindowAttributes(ListQueryType.Type.TRACK_COMPARE,
+                ListQueryType.Type.TRACK_COMPARE.getDisplayValue() + " " + compareStr + ": " + queryStr,
                 TrackDisplayColumns.ColumnSet.FILTERED_VIEW.getNamesList());
         tracksWindowHandler.displayTracks(display, displayableTracks, null);
     }
@@ -958,19 +1126,431 @@ public class QueryPlaylistsWindow
 
         return target;
     }
+    
+    /*
+     * Set up the various event handlers for the family playlists window.
+     */
+    private void createFamilyPlaylistsEventHandlers()
+    {
+        uiLogger.trace("createFamilyPlaylistsEventHandlers: " + this.hashCode());
+
+        /*
+         * Listener to handle the done button press.
+         */
+        playlistsDoneButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                uiLogger.info("family playlists done button pressed");
+
+                /*
+                 * Close the window.
+                 */
+                familyPlaylistsWindow.close();
+
+                /*
+                 * Pop the window off the skins window stack.
+                 */
+                skins.popSkinnedWindow();
+            }
+        });
+
+        /*
+         * Listener to handle playlist selection. This gets control when a playlist is selected in 
+         * the filtered tree.
+         */
+        playlistsTableView.getTableViewSelectionListeners().add(new TableViewSelectionListener.Adapter()
+        {
+            @Override
+            public void selectedRowChanged(TableView tableView, Object previousSelectedRow)
+            {
+
+                /*
+                 * Create a list suitable for the setTableData() method.
+                 */
+                List<HashMap<String, String>> displayTracks = new ArrayList<HashMap<String, String>>();
+
+                /*
+                 * Get the selected row.
+                 */
+                @SuppressWarnings("unchecked") 
+                HashMap<String, String> rowData = (HashMap<String, String>) tableView.getSelectedRow();
+
+                /*
+                 * We may get called for an actual selected row, or for other reasons such as a sort 
+                 * by column. No need to build a list of track information unless we actually have a
+                 * selected row.
+                 */
+                if (rowData != null)
+                {
+                    String playlistName = 
+                            rowData.get(PlaylistDisplayColumns.ColumnNames.PLAYLIST_NAME.getNameValue());
+                    uiLogger.debug("playlist '" + playlistName + "' selected");
+
+                    /*
+                     * Get the tracks for the selected playlist.
+                     */
+                    String[] tracks = rowData.get(PlaylistDisplayColumns.ColumnNames.
+                            TRACK_NAMES.getNameValue()).split(InternalConstants.LIST_ITEM_SEPARATOR);
+
+                    for (int i = 0; i < tracks.length; i++)
+                    {
+                        HashMap<String, String> trackStr = new HashMap<String, String>();
+                        trackStr.put(PlaylistDisplayColumns.ColumnNames.TRACK_NAMES.getNameValue(), 
+                                tracks[i]);
+
+                        displayTracks.add(trackStr);
+                    }
+                }
+
+                filterLogger.info("found " + displayTracks.getLength() + " tracks for display");
+
+                /*
+                 * Fill in the table of tracks. If a row is not selected (for example the columns were 
+                 * just sorted), this clears any track information that was already displayed from
+                 * a previously selected row.
+                 */
+                playlistTracksTableView.setTableData(displayTracks);
+            }
+        });
+    }
+    
+    /*
+     * Generate and display the set of tracks from the family expansion playlist.
+     */
+    private void generateFamilyTrackResults (Display display, String playlistName)
+            throws IOException, SerializationException
+    {
+        filterLogger.trace("generateFamilyTrackResults: " + this.hashCode());
+
+        /*
+         * Initialize a list of track objects, and sort it by name.
+         */
+        List<Track> displayableTracks = new ArrayList<Track>();
+        displayableTracks.setComparator(new Comparator<Track>()
+        {
+            @Override
+            public int compare(Track t1, Track t2)
+            {
+                return t1.compareTo(t2);
+            }
+        });
+
+        /*
+         * Get the input playlist object.
+         */
+        Playlist playlist = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
+
+        /*
+         * Get the track IDs for the input playlist into a set.
+         */
+        List<Integer> trackIDs = playlist.getTracks();
+
+        /*
+         * Walk the list of track IDs for the selected playlist.
+         */
+        if (trackIDs != null)
+        {
+            for (Integer trackID : trackIDs)
+            {
+
+                /*
+                 * Get the track for this track ID.
+                 */
+                Track track = XMLHandler.getTracks().get(XMLHandler.getTracksMap().get(trackID));
+
+                /*
+                 * Add the track.
+                 */
+                displayableTracks.add(track);
+            }
+
+            filterLogger.info("found " + displayableTracks.getLength() + " tracks for display");
+
+            /*
+             * Now display the list of tracks.
+             */
+            TracksWindow tracksWindowHandler = new TracksWindow();
+            tracksWindowHandler.saveWindowAttributes(ListQueryType.Type.TRACK_FAMILY,
+                    ListQueryType.Type.TRACK_FAMILY.getDisplayValue() + ": " + playlistName,
+                    TrackDisplayColumns.ColumnSet.FAMILY_VIEW.getNamesList());
+            tracksWindowHandler.displayTracks(display, displayableTracks, null);
+        }
+
+    }
+    
+    /*
+     * Generate the set of playlists from the family expansion playlist.
+     */
+    private void generateFamilyPlaylistResults (Display display, String playlistName, boolean excludeBypassed)
+            throws IOException, SerializationException
+    {
+        filterLogger.trace("generateFamilyPlaylistResults: " + this.hashCode());
+
+        /*
+         * Create a set of playlist names, so we can determine whether we've already found a 
+         * playlist or not.
+         */
+        Set<String> playlistSet = new HashSet<String>();
+        
+        /*
+         * Create a map of the playlist name to its track list. This will drive the display of
+         * the results.
+         */
+        Map<String, List<String>> playlistMap = new HashMap<String, List<String>>();
+        playlistMap.setComparator(String.CASE_INSENSITIVE_ORDER);
+
+        /*
+         * Get the input playlist object.
+         */
+        Playlist inputPlaylistObj = 
+                XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
+
+        /*
+         * Get the track IDs for the input playlist into a list.
+         */
+        List<Integer> trackIDs = inputPlaylistObj.getTracks();
+
+        /*
+         * Walk the list of track IDs for the selected playlist, if we have any.
+         */
+        if (trackIDs != null)
+        {
+            for (Integer trackID : trackIDs)
+            {
+
+                /*
+                 * Get the track for this track ID.
+                 */
+                Track track = XMLHandler.getTracks().get(XMLHandler.getTracksMap().get(trackID));
+                
+                /*
+                 * Get the list of playlist info objects for this track.
+                 */
+                List<TrackPlaylistInfo> trackPlaylists = track.getPlaylists();
+                
+                /*
+                 * Walk the playlist info list.
+                 */
+                for (TrackPlaylistInfo playlistInfo : trackPlaylists)
+                {
+                    String playlist = playlistInfo.getPlaylistName();
+                    
+                    /*
+                     * Skip the input playlist - we're only interested in other playlists used
+                     * by the tracks.
+                     */
+                    if (playlist.equals(playlistName))
+                    {
+                        continue;
+                    }
+                    
+                    /*
+                     * Skip bypassed playlists if so directed.
+                     */
+                    if (excludeBypassed == true && playlistInfo.getBypassed() == true)
+                    {
+                        continue;
+                    }
+                    
+                    /*
+                     * Skip children of the input playlist.
+                     */
+                    Playlist playlistObj = 
+                            XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlist));
+                    
+                    if (playlistObj.getParentPersistentID().equals(inputPlaylistObj.getPersistentID()))
+                    {
+                        continue;
+                    }
+                    
+                    /*
+                     * For a new playlist, initialize the track count to 1 in the playlist map. Otherwise,
+                     * bump the track count.
+                     */
+                    if (playlistSet.add(playlist) == true)
+                    {
+                        List<String> tracks = new ArrayList<String>(track.getName());
+                        tracks.setComparator(String.CASE_INSENSITIVE_ORDER);
+                        playlistMap.put(playlist, tracks);
+                    }
+                    else
+                    {
+                        List<String> tracks = playlistMap.get(playlist);
+                        tracks.add(track.getName());
+                        playlistMap.put(playlist, tracks);
+                    }
+                }
+            }
+            
+            /*
+             * Generate the query string for the File -> Save dialog.
+             */
+            String queryStr = ListQueryType.Type.PLAYLIST_FAMILY.getDisplayValue() + ": " + playlistName;
+            
+            /*
+             * Display the generated results.
+             */
+            displayFamilyPlaylists(display, playlistMap, queryStr);
+        }
+    }
+    
+    /*
+     * Display the set of playlists from the family expansion playlist.
+     */
+    private void displayFamilyPlaylists(Display display, Map<String, List<String>> playlistMap, String queryStr)
+            throws IOException, SerializationException
+    {
+        uiLogger.trace("displayFamilyPlaylists: " + this.hashCode());
+
+        /*
+         * Get the BXML information for the playlists window, and generate the list
+         * of components to be skinned.
+         */
+        List<Component> components = new ArrayList<Component>();
+        initializeFamilyPlaylistBxmlVariables(components);
+
+        /*
+         * Set this object as the handler attribute on the playlists window. Also set other needed 
+         * attributes. The attributes are used for the File -> Save menu on queried results.
+         */
+        familyPlaylistsWindow.setAttribute(MenuBars.WindowAttributes.HANDLER, this);
+        familyPlaylistsWindow.setAttribute(MenuBars.WindowAttributes.QUERY_TYPE, 
+                ListQueryType.Type.PLAYLIST_FAMILY);
+        familyPlaylistsWindow.setAttribute(MenuBars.WindowAttributes.QUERY_STRING, queryStr);
+        familyPlaylistsWindow.setAttribute(MenuBars.WindowAttributes.COLUMN_NAMES, 
+                PlaylistDisplayColumns.ColumnSet.FAMILY_PLAYLISTS.getNamesList());
+        
+        /*
+         * Set up the various event handlers.
+         */
+        createFamilyPlaylistsEventHandlers();
+        
+        /*
+         * Set the number of playlists label.
+         */
+        numPlaylistsLabel.setText(StringConstants.PLAYLIST_NUMBER + playlistMap.getCount());
+
+        /*
+         * Create a list suitable for the setTableData() method.
+         */
+        List<HashMap<String, String>> displayPlaylists = new ArrayList<HashMap<String, String>>();
+
+        /*
+         * Create the family playlists column set.
+         */
+        PlaylistDisplayColumns.createColumnSet(PlaylistDisplayColumns.ColumnSet.FAMILY_PLAYLISTS, 
+                playlistsTableView);
+
+        /*
+         * Now walk the set, and add all playlists to the list.
+         */
+        for (String playlist : playlistMap)
+        {
+            HashMap<String, String> playlistAttrs = new HashMap<String, String>();
+            List<String> tracks = playlistMap.get(playlist);
+            
+            playlistAttrs.put(PlaylistDisplayColumns.ColumnNames.PLAYLIST_NAME.getNameValue(), 
+                    playlist);
+            playlistAttrs.put(PlaylistDisplayColumns.ColumnNames.NUM_TRACKS.getNameValue(), 
+                    Integer.toString(tracks.getLength()));
+            
+            /*
+             * Create the string of track names.
+             */
+            StringBuilder tracksStr = new StringBuilder();
+            
+            for (String track : tracks)
+            {   
+                if (tracksStr.length() > 0)
+                {
+                    tracksStr.append(InternalConstants.LIST_ITEM_SEPARATOR);
+                }
+                
+                tracksStr.append(track);
+            }
+            
+            playlistAttrs.put(PlaylistDisplayColumns.ColumnNames.TRACK_NAMES.getNameValue(), 
+                    tracksStr.toString());
+            
+            displayPlaylists.add(playlistAttrs);
+        }
+
+        filterLogger.info("found " + displayPlaylists.getLength() + " playlists for display");
+
+        /*
+         * Add the playlists to the window table view.
+         */
+        playlistsTableView.setTableData(displayPlaylists);
+
+        /*
+         * Add a sort listener to allow column sorting.
+         */
+        playlistsTableView.getTableViewSortListeners().add(new TableViewSortListener.Adapter()
+        {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void sortChanged(TableView tableView)
+            {
+                List<Object> tableDataOfTableView = (List<Object>) tableView.getTableData();
+                tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView, uiLogger));
+            }
+        });
+
+        /*
+         * Create the playlist tracks column set.
+         */
+        PlaylistDisplayColumns.createColumnSet(PlaylistDisplayColumns.ColumnSet.PLAYLIST_TRACKS, 
+                playlistTracksTableView);
+
+        /*
+         * Add widget texts.
+         */
+        playlistsDoneButton.setButtonData(StringConstants.DONE);
+
+        /*
+         * Set the window title.
+         */
+        familyPlaylistsWindow.setTitle(Skins.Window.FAMILYPLAYLISTS.getDisplayValue());
+
+        /*
+         * Register the family playlists window skin elements.
+         */
+        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
+        skins.registerWindowElements(Skins.Window.FAMILYPLAYLISTS, windowElements);
+
+        /*
+         * Skin the family playlists window.
+         */
+        skins.skinMe(Skins.Window.FAMILYPLAYLISTS);
+
+        /*
+         * Push the skinned window onto the skins window stack. It gets popped
+         * from our done button press handler.
+         */
+        skins.pushSkinnedWindow(Skins.Window.FAMILYPLAYLISTS);
+        
+        /*
+         * Open the family playlists window.
+         */
+        uiLogger.info("opening family playlists window");
+        familyPlaylistsWindow.open(display);
+    }
 
     /*
      * Initialize BXML variables and collect the list of components to be
      * skinned.
      */
-    private void initializeBxmlVariables(List<Component> components) throws IOException, SerializationException
+    private void initializeBxmlVariables(List<Component> components) 
+            throws IOException, SerializationException
     {
         uiLogger.trace("initializeBxmlVariables: " + this.hashCode());
 
         BXMLSerializer windowSerializer = new BXMLSerializer();
 
-        queryPlaylistsWindow = (Window) windowSerializer
-                .readObject(getClass().getResource("queryPlaylistsWindow.bxml"));
+        queryPlaylistsWindow = 
+                (Window) windowSerializer.readObject(getClass().getResource("queryPlaylistsWindow.bxml"));
 
         /*
          * Initialize the menu bar.
@@ -978,25 +1558,123 @@ public class QueryPlaylistsWindow
         MenuBars menuBar = (MenuBars) queryPlaylistsWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        compareBorder = (Border) windowSerializer.getNamespace().get("compareBorder");
+        compareBorder = 
+                (Border) windowSerializer.getNamespace().get("compareBorder");
         components.add(compareBorder);
-        compareBoxPane = (BoxPane) windowSerializer.getNamespace().get("compareBoxPane");
+        compareHolderBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("compareHolderBoxPane");
+        components.add(compareHolderBoxPane);
+        compareBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("compareBoxPane");
         components.add(compareBoxPane);
-        compareBorderLabel = (Label) windowSerializer.getNamespace().get("compareBorderLabel");
-        components.add(compareBorderLabel);
-        compareTablePane = (TablePane) windowSerializer.getNamespace().get("compareTablePane");
+        compareLabel = 
+                (Label) windowSerializer.getNamespace().get("compareLabel");
+        components.add(compareLabel);
+        compareTablePane = 
+                (TablePane) windowSerializer.getNamespace().get("compareTablePane");
         components.add(compareTablePane);
-        actionBorder = (Border) windowSerializer.getNamespace().get("actionBorder");
-        components.add(actionBorder);
-        actionBoxPane = (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
-        components.add(actionBoxPane);
-        showAllButton = (PushButton) windowSerializer.getNamespace().get("showAllButton");
+        compareButtonsBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("compareButtonsBoxPane");
+        components.add(compareButtonsBoxPane);
+        showAllButton = 
+                (PushButton) windowSerializer.getNamespace().get("showAllButton");
         components.add(showAllButton);
-        showSomeButton = (PushButton) windowSerializer.getNamespace().get("showSomeButton");
+        showSomeButton = 
+                (PushButton) windowSerializer.getNamespace().get("showSomeButton");
         components.add(showSomeButton);
-        showOneButton = (PushButton) windowSerializer.getNamespace().get("showOneButton");
+        showOneButton = 
+                (PushButton) windowSerializer.getNamespace().get("showOneButton");
         components.add(showOneButton);
-        queryDoneButton = (PushButton) windowSerializer.getNamespace().get("queryDoneButton");
+        familyBorder = 
+                (Border) windowSerializer.getNamespace().get("familyBorder");
+        components.add(familyBorder);
+        familyFillPane = 
+                (FillPane) windowSerializer.getNamespace().get("familyFillPane");
+        components.add(familyFillPane);
+        familyBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("familyBoxPane");
+        components.add(familyBoxPane);
+        familyLabel = 
+                (Label) windowSerializer.getNamespace().get("familyLabel");
+        components.add(familyLabel);
+        familyTextInput = 
+                (TextInput) windowSerializer.getNamespace().get("familyTextInput");
+        components.add(familyTextInput);
+        familyButtonsBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("familyButtonsBoxPane");
+        components.add(familyButtonsBoxPane);
+        familyPlaylistsButton = 
+                (PushButton) windowSerializer.getNamespace().get("familyPlaylistsButton");
+        components.add(familyPlaylistsButton);
+        familyExcludeBypassedCheckbox = 
+                (Checkbox) windowSerializer.getNamespace().get("familyExcludeBypassedCheckbox");
+        components.add(familyExcludeBypassedCheckbox);
+        familyTracksButton = 
+                (PushButton) windowSerializer.getNamespace().get("familyTracksButton");
+        components.add(familyTracksButton);
+        actionBorder = 
+                (Border) windowSerializer.getNamespace().get("actionBorder");
+        components.add(actionBorder);
+        actionBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
+        components.add(actionBoxPane);
+        queryDoneButton = 
+                (PushButton) windowSerializer.getNamespace().get("queryDoneButton");
         components.add(queryDoneButton);
+    }
+
+    /*
+     * Initialize tracks window BXML variables and collect the list of
+     * components to be skinned.
+     */
+    private void initializeFamilyPlaylistBxmlVariables(List<Component> components)
+            throws IOException, SerializationException
+    {
+        uiLogger.trace("initializeFamilyPlaylistBxmlVariables: " + this.hashCode());
+
+        BXMLSerializer windowSerializer = new BXMLSerializer();
+
+        familyPlaylistsWindow = 
+                (Window) windowSerializer.readObject(getClass().getResource("filteredPlaylistsWindow.bxml"));
+
+        /*
+         * Initialize the menu bar.
+         */
+        MenuBars menuBar = (MenuBars) familyPlaylistsWindow;
+        menuBar.initializeMenuBxmlVariables(windowSerializer, components, true);
+
+        infoBorder = 
+                (Border) windowSerializer.getNamespace().get("infoBorder");
+        components.add(infoBorder);
+        infoFillPane = 
+                (FillPane) windowSerializer.getNamespace().get("infoFillPane");
+        components.add(infoFillPane);
+        numPlaylistsLabel = 
+                (Label) windowSerializer.getNamespace().get("numPlaylistsLabel");
+        components.add(numPlaylistsLabel);
+        playlistsBorder = 
+                (Border) windowSerializer.getNamespace().get("playlistsBorder");
+        components.add(playlistsBorder);
+        playlistsTableView = 
+                (TableView) windowSerializer.getNamespace().get("playlistsTableView");
+        components.add(playlistsTableView);
+        playlistsTableViewHeader = 
+                (TableViewHeader) windowSerializer.getNamespace().get("playlistsTableViewHeader");
+        components.add(playlistsTableViewHeader);
+        playlistTracksTableView = 
+                (TableView) windowSerializer.getNamespace().get("playlistTracksTableView");
+        components.add(playlistTracksTableView);
+        playlistTracksTableViewHeader = 
+                (TableViewHeader) windowSerializer.getNamespace().get("playlistTracksTableViewHeader");
+        components.add(playlistTracksTableViewHeader);
+        familyActionBorder = 
+                (Border) windowSerializer.getNamespace().get("familyActionBorder");
+        components.add(familyActionBorder);
+        familyActionBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("familyActionBoxPane");
+        components.add(familyActionBoxPane);
+        playlistsDoneButton = 
+                (PushButton) windowSerializer.getNamespace().get("playlistsDoneButton");
+        components.add(playlistsDoneButton);
     }
 }

@@ -46,7 +46,6 @@ import org.apache.pivot.wtk.TextInput;
 import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
-import itunesq.TracksWindow.QueryType;
 
 /**
  * Class that handles the file save dialog. This dialog is available from the
@@ -63,12 +62,14 @@ public class FileSaveDialog
     // ---------------- Private variables -----------------------------------
 
     private static final int OUTPUT_WIDTH = 120;
+    private static final String LINE_SEPARATOR = System.lineSeparator();
 
     private Dialog fileSaveDialog = null;
     private MenuBars owningWindow = null;
     private String saveFileName = null;
     private boolean limitPlaylists = false;
     private boolean printResults = false;
+    private boolean doneHandlerExecuted = false;
 
     private Logger logger = null;
 
@@ -76,7 +77,8 @@ public class FileSaveDialog
      * Window attributes.
      */
     private TracksWindow tracksWindowHandler = null;
-    private TracksWindow.QueryType queryType = null;
+    private QueryPlaylistsWindow playlistsWindowHandler = null;
+    private ListQueryType.Type queryType = null;
     private String queryStr = null;
     private List<String> columnNames = null;
 
@@ -98,7 +100,7 @@ public class FileSaveDialog
     @BXML private PushButton fileSaveDoneButton = null;
 
     /**
-     * Class constructor specifying the owning window.
+     * Class constructor.
      * 
      * @param owner owning window. This dialog is modal over the window.
      */
@@ -127,10 +129,24 @@ public class FileSaveDialog
          */
         owningWindow = owner;
 
-        tracksWindowHandler = (TracksWindow) owningWindow.getAttribute(MenuBars.WindowAttributes.HANDLER);
-        queryType = (QueryType) owningWindow.getAttribute(MenuBars.WindowAttributes.QUERY_TYPE);
+        /*
+         * Get the window attributes. The handler is an instance of either the TracksWindow or
+         * QueryPlaylistsWindow, based on the query type.
+         */
+        queryType = (ListQueryType.Type) owningWindow.getAttribute(MenuBars.WindowAttributes.QUERY_TYPE);
         queryStr = (String) owningWindow.getAttribute(MenuBars.WindowAttributes.QUERY_STRING);
         columnNames = (List<String>) owningWindow.getAttribute(MenuBars.WindowAttributes.COLUMN_NAMES);
+        
+        if (queryType == ListQueryType.Type.PLAYLIST_FAMILY)
+        {
+            playlistsWindowHandler = 
+                    (QueryPlaylistsWindow) owningWindow.getAttribute(MenuBars.WindowAttributes.HANDLER);
+        }
+        else
+        {
+            tracksWindowHandler = 
+                    (TracksWindow) owningWindow.getAttribute(MenuBars.WindowAttributes.HANDLER);
+        }
 
         logger.trace("FileSaveDialog constructor: " + this.hashCode());
     }
@@ -145,7 +161,8 @@ public class FileSaveDialog
      * @throws SerializationException If an error occurs trying to deserialize
      * the BXML file.
      */
-    public void displayFileSaveDialog(Display display) throws IOException, SerializationException
+    public void displayFileSaveDialog(Display display) 
+            throws IOException, SerializationException
     {
         logger.trace("displayFileSaveDialog: " + this.hashCode());
 
@@ -179,20 +196,45 @@ public class FileSaveDialog
                 else
                 {
                     saveFileName = fileSaveDetailsTextInput.getText();
-
+                    
                     /*
-                     * Remove trailing slash if present.
+                     * Yell if the file is a directory or is not writable.
                      */
-                    if (saveFileName != null && saveFileName.endsWith("/"))
+                    Path saveFilePath = Paths.get(saveFileName);
+                    if (Files.isDirectory(saveFilePath))
                     {
-                        String correctedDirectory = saveFileName.substring(0, saveFileName.length() - 2);
-                        saveFileName = correctedDirectory;
+                        Alert.alert(MessageType.INFO, StringConstants.ALERT_FILE_IS_DIRECTORY, owningWindow);
+                    }
+                    else if (Files.exists(saveFilePath) && !Files.isWritable(saveFilePath))
+                    {
+                        Alert.alert(MessageType.INFO, StringConstants.ALERT_FILE_NOT_WRITABLE, owningWindow);
+                    }
+                    else
+                    {
+
+                        /*
+                         * Remove trailing slash if present.
+                         */
+                        if (saveFileName != null && saveFileName.endsWith("/"))
+                        {
+                            String correctedDirectory = saveFileName.substring(0, saveFileName.length() - 2);
+                            saveFileName = correctedDirectory;
+                        }
+
+                        /*
+                         * Get the limit flag.
+                         */
+                        limitPlaylists = fileSaveDetailsLimitCheckbox.isSelected();
+                        
+                        /*
+                         * Indicate that this handler has executed. This prevents the close listener
+                         * from doing anything if the user closes the dialog using the host controls.
+                         */
+                        doneHandlerExecuted = true;
+
+                        fileSaveDialog.close();
                     }
                 }
-
-                limitPlaylists = fileSaveDetailsLimitCheckbox.isSelected();
-
-                fileSaveDialog.close();
             }
         });
 
@@ -201,15 +243,23 @@ public class FileSaveDialog
          */
         switch (queryType)
         {
-        case TRACKS:
-        case DUPLICATES:
+        case TRACK_QUERY:
+        case TRACK_DUPLICATES:
+        case TRACK_FAMILY:
             fileSaveDetailsLimitCheckbox.setButtonData(StringConstants.FILESAVE_TRACKS_LIMIT);
             fileSaveDetailsLimitCheckbox.setTooltipText(StringConstants.FILESAVE_TRACKS_LIMIT_TIP);
+            fileSaveDetailsLimitCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
             break;
 
-        case PLAYLISTS:
+        case TRACK_COMPARE:
             fileSaveDetailsLimitCheckbox.setButtonData(StringConstants.FILESAVE_PLAYLISTS_LIMIT);
             fileSaveDetailsLimitCheckbox.setTooltipText(StringConstants.FILESAVE_PLAYLISTS_LIMIT_TIP);
+            fileSaveDetailsLimitCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+            break;
+            
+        case PLAYLIST_FAMILY:
+            fileSaveDetailsOptionsSeparator.setVisible(false);
+            fileSaveDetailsLimitCheckbox.setVisible(false);
             break;
 
         default:
@@ -238,9 +288,12 @@ public class FileSaveDialog
          */
         fileSaveDetailsFileSeparator.setHeading(StringConstants.FILESAVE_SAVE_TO_FILE);
         fileSaveDetailsLabel.setTooltipText(StringConstants.FILESAVE_NAME_TIP);
+        fileSaveDetailsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         fileSaveDetailsTextInput.setTooltipText(StringConstants.FILESAVE_NAME_TIP);
+        fileSaveDetailsTextInput.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         fileSaveDetailsPrintSeparator.setHeading(StringConstants.FILESAVE_SAVE_TO_PRINTER);
         fileSaveDetailsPrintCheckbox.setTooltipText(StringConstants.FILESAVE_PRINT_TIP);
+        fileSaveDetailsPrintCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         fileSaveDetailsLabel.setText(StringConstants.FILESAVE_ENTER_FILE_NAME);
         fileSaveDetailsPrintCheckbox.setButtonData(StringConstants.FILESAVE_SAVE_TO_PRINTER);
         fileSaveDetailsOptionsSeparator.setHeading(StringConstants.FILESAVE_OPTIONS);
@@ -285,12 +338,11 @@ public class FileSaveDialog
     /*
      * Generate the track list as a string.
      */
-    private String generateOutput()
+    private String generateTracksOutput()
     {
-        logger.trace("generateOutput: " + this.hashCode());
+        logger.trace("generateTracksOutput: " + this.hashCode());
 
         StringBuilder output = new StringBuilder();
-        final String lineSeparator = System.lineSeparator();
 
         /*
          * Get the list of tracks resulting from the query.
@@ -311,7 +363,7 @@ public class FileSaveDialog
          */
         String timeStamp = new SimpleDateFormat("EEE, MMM dd yyyy, hh:mm:ss a").format(new Date());
         output.append(timeStamp);
-        output.append(lineSeparator);
+        output.append(LINE_SEPARATOR);
 
         /*
          * ... query string.
@@ -322,9 +374,9 @@ public class FileSaveDialog
          * ... separator and spacer lines.
          */
         String line = new String(new char[OUTPUT_WIDTH]).replace("\0", "-");
-        String separator = lineSeparator + lineSeparator + line;
+        String separator = LINE_SEPARATOR + LINE_SEPARATOR + line;
         output.append(separator);
-        output.append(lineSeparator + lineSeparator);
+        output.append(LINE_SEPARATOR + LINE_SEPARATOR);
 
         /*
          * Write all the track data.
@@ -338,7 +390,7 @@ public class FileSaveDialog
              */
             if (trackNum != 0)
             {
-                output.append(lineSeparator);
+                output.append(LINE_SEPARATOR);
             }
 
             StringBuilder trackStr = new StringBuilder();
@@ -352,14 +404,16 @@ public class FileSaveDialog
              * Track attributes, according to the list of column names.
              */
             int columnNamesLen = columnNames.getLength();
+            
             for (int i = 0; i < columnNamesLen; i++)
             {
                 String columnName = columnNames.get(i);
+                String columnHeader = TrackDisplayColumns.ColumnNames.getEnum(columnName).getHeaderValue();
 
                 /*
-                 * Append the column name and associated track data.
+                 * Append the column header and associated track data.
                  */
-                trackStr.append(columnName + "=");
+                trackStr.append(columnHeader + "=");
                 trackStr.append(trackData.get(columnName));
 
                 /*
@@ -372,20 +426,21 @@ public class FileSaveDialog
                 }
                 else
                 {
-                    trackStr.append(lineSeparator + "      ");
+                    trackStr.append(LINE_SEPARATOR + "      ");
                 }
             }
 
             /*
              * Playlists, on a separate line.
              */
-            trackStr.append(Track.MAP_PLAYLISTS + "=");
+            trackStr.append(PlaylistDisplayColumns.ColumnNames.PLAYLIST_NAMES.getHeaderValue() + "=");
 
             /*
              * Walk through all playlists.
              */
-            String playlistNames = trackData.get(Track.MAP_PLAYLISTS);
-            String[] playlists = playlistNames.split(",");
+            String playlistNames = 
+                    trackData.get(PlaylistDisplayColumns.ColumnNames.PLAYLIST_NAMES.getNameValue());
+            String[] playlists = playlistNames.split(InternalConstants.LIST_ITEM_SEPARATOR);
             boolean appendedPlaylist = false;
 
             for (int i = 0; i < playlists.length; i++)
@@ -410,9 +465,134 @@ public class FileSaveDialog
     }
 
     /*
+     * Generate the playlist list as a string.
+     */
+    private String generatePlaylistsOutput()
+    {
+        logger.trace("generatePlaylistsOutput: " + this.hashCode());
+
+        StringBuilder output = new StringBuilder();
+
+        /*
+         * Get the list of playlists resulting from the family expansion.
+         */
+        List<HashMap<String, String>> playlists = playlistsWindowHandler.getFamilyPlaylistData();
+
+        /*
+         * Generate the file prolog ...
+         */
+
+        /*
+         * ... header line.
+         */
+        output.append(StringConstants.FILESAVE_HEADER);
+
+        /*
+         * ... time stamp.
+         */
+        String timeStamp = new SimpleDateFormat("EEE, MMM dd yyyy, hh:mm:ss a").format(new Date());
+        output.append(timeStamp);
+        output.append(LINE_SEPARATOR);
+
+        /*
+         * ... query string.
+         */
+        output.append(queryStr);
+
+        /*
+         * ... separator and spacer lines.
+         */
+        String line = new String(new char[OUTPUT_WIDTH]).replace("\0", "-");
+        String separator = LINE_SEPARATOR + LINE_SEPARATOR + line;
+        output.append(separator);
+        output.append(LINE_SEPARATOR + LINE_SEPARATOR);
+
+        /*
+         * Write all the playlist data.
+         */
+        int playlistNum = 0;
+        for (HashMap<String, String> playlistData : playlists)
+        {
+
+            /*
+             * Spacer line between playlists.
+             */
+            if (playlistNum != 0)
+            {
+                output.append(LINE_SEPARATOR);
+            }
+
+            StringBuilder playlistStr = new StringBuilder();
+
+            /*
+             * 4 digit line number for each playlist.
+             */
+            playlistStr.append(String.format("%4d", ++playlistNum) + ") ");
+
+            /*
+             * Playlist attributes, according to the list of column names.
+             */
+            int columnNamesLen = columnNames.getLength();
+            
+            for (int i = 0; i < columnNamesLen; i++)
+            {
+                String columnName = columnNames.get(i);
+                String columnHeader = PlaylistDisplayColumns.ColumnNames.getEnum(columnName).getHeaderValue();
+
+                /*
+                 * Append the column header and associated playlist data.
+                 */
+                playlistStr.append(columnHeader + "=");
+                playlistStr.append(playlistData.get(columnName));
+
+                /*
+                 * Append a separator between fields, or a line separator for
+                 * the last field.
+                 */
+                if (i < columnNamesLen - 1)
+                {
+                    playlistStr.append(", ");
+                }
+                else
+                {
+                    playlistStr.append(LINE_SEPARATOR + "      ");
+                }
+            }
+
+            /*
+             * Tracks, on a separate line.
+             */
+            playlistStr.append(PlaylistDisplayColumns.ColumnNames.TRACK_NAMES.getHeaderValue() + "=");
+
+            /*
+             * Walk through all tracks.
+             */
+            String trackNames = 
+                    playlistData.get(PlaylistDisplayColumns.ColumnNames.TRACK_NAMES.getNameValue());
+            String[] tracks = trackNames.split(InternalConstants.LIST_ITEM_SEPARATOR);
+            boolean appendedTrack = false;
+
+            for (int i = 0; i < tracks.length; i++)
+            {
+                if (appendedTrack == true)
+                {
+                    playlistStr.append(", ");
+                }
+                playlistStr.append(tracks[i]);
+                appendedTrack = true;
+            }
+
+            output.append(playlistStr.toString());
+        }
+
+        return output.toString();
+    }
+
+    /*
      * Save the generated track list output to a file or printer.
      */
-    private void saveOutput(String output) throws IOException
+    private void saveOutput(String output) 
+            throws IOException
     {
         logger.trace("saveOutput: " + this.hashCode());
 
@@ -433,7 +613,8 @@ public class FileSaveDialog
     /*
      * Write the track list as a text file.
      */
-    private void writeTextFile(String filename, String output) throws IOException
+    private void writeTextFile(String filename, String output) 
+            throws IOException
     {
         logger.trace("writeTextFile: " + this.hashCode());
 
@@ -554,8 +735,6 @@ public class FileSaveDialog
      */
     private boolean limitPlaylist(String playlistName)
     {
-        logger.trace("limitPlaylist: " + this.hashCode());
-
         boolean result = false;
 
         switch (queryType)
@@ -565,8 +744,9 @@ public class FileSaveDialog
          * For a tracks query, the question is whether or not the input playlist
          * is bypassed. So get the playlist object and ask it.
          */
-        case TRACKS:
-        case DUPLICATES:
+        case TRACK_QUERY:
+        case TRACK_DUPLICATES:
+        case TRACK_FAMILY:
             String playlistID = XMLHandler.getPlaylistsMap().get(playlistName);
             Playlist playlist = XMLHandler.getPlaylists().get(playlistID);
             result = playlist.getBypassed();
@@ -576,7 +756,7 @@ public class FileSaveDialog
          * For a playlists query, the question is whether or not the input
          * playlist is contained in the query string.
          */
-        case PLAYLISTS:
+        case TRACK_COMPARE:
             result = !queryStr.contains(playlistName);
             break;
 
@@ -591,46 +771,59 @@ public class FileSaveDialog
      * Initialize BXML variables and collect the list of components to be
      * skinned.
      */
-    private void initializeBxmlVariables(List<Component> components) throws IOException, SerializationException
+    private void initializeBxmlVariables(List<Component> components) 
+            throws IOException, SerializationException
     {
         logger.trace("initializeBxmlVariables: " + this.hashCode());
 
         BXMLSerializer dialogSerializer = new BXMLSerializer();
 
-        fileSaveDialog = (Dialog) dialogSerializer.readObject(getClass().getResource("fileSaveDialog.bxml"));
+        fileSaveDialog = 
+                (Dialog) dialogSerializer.readObject(getClass().getResource("fileSaveDialog.bxml"));
 
         /*
          * This doesn't need to be added to the components; it's the overall,
          * invisible, table pane. We just need it to control the width of the
          * file save dialog.
          */
-        fileSaveTablePane = (TablePane) dialogSerializer.getNamespace().get("fileSaveTablePane");
+        fileSaveTablePane = 
+                (TablePane) dialogSerializer.getNamespace().get("fileSaveTablePane");
 
-        fileSaveDetailsBorder = (Border) dialogSerializer.getNamespace().get("fileSaveDetailsBorder");
+        fileSaveDetailsBorder = 
+                (Border) dialogSerializer.getNamespace().get("fileSaveDetailsBorder");
         components.add(fileSaveDetailsBorder);
-        fileSaveDetailsBoxPane = (BoxPane) dialogSerializer.getNamespace().get("fileSaveDetailsBoxPane");
+        fileSaveDetailsBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("fileSaveDetailsBoxPane");
         components.add(fileSaveDetailsBoxPane);
-        fileSaveDetailsFileSeparator = (Separator) dialogSerializer.getNamespace().get("fileSaveDetailsFileSeparator");
+        fileSaveDetailsFileSeparator = 
+                (Separator) dialogSerializer.getNamespace().get("fileSaveDetailsFileSeparator");
         components.add(fileSaveDetailsFileSeparator);
-        fileSaveDetailsLabel = (Label) dialogSerializer.getNamespace().get("fileSaveDetailsLabel");
+        fileSaveDetailsLabel = 
+                (Label) dialogSerializer.getNamespace().get("fileSaveDetailsLabel");
         components.add(fileSaveDetailsLabel);
-        fileSaveDetailsTextInput = (TextInput) dialogSerializer.getNamespace().get("fileSaveDetailsTextInput");
+        fileSaveDetailsTextInput = 
+                (TextInput) dialogSerializer.getNamespace().get("fileSaveDetailsTextInput");
         components.add(fileSaveDetailsTextInput);
-        fileSaveDetailsPrintSeparator = (Separator) dialogSerializer.getNamespace()
-                .get("fileSaveDetailsPrintSeparator");
+        fileSaveDetailsPrintSeparator = 
+                (Separator) dialogSerializer.getNamespace().get("fileSaveDetailsPrintSeparator");
         components.add(fileSaveDetailsPrintSeparator);
-        fileSaveDetailsPrintCheckbox = (Checkbox) dialogSerializer.getNamespace().get("fileSaveDetailsPrintCheckbox");
+        fileSaveDetailsPrintCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("fileSaveDetailsPrintCheckbox");
         components.add(fileSaveDetailsPrintCheckbox);
-        fileSaveDetailsOptionsSeparator = (Separator) dialogSerializer.getNamespace()
-                .get("fileSaveDetailsOptionsSeparator");
+        fileSaveDetailsOptionsSeparator = 
+                (Separator) dialogSerializer.getNamespace().get("fileSaveDetailsOptionsSeparator");
         components.add(fileSaveDetailsOptionsSeparator);
-        fileSaveDetailsLimitCheckbox = (Checkbox) dialogSerializer.getNamespace().get("fileSaveDetailsLimitCheckbox");
+        fileSaveDetailsLimitCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("fileSaveDetailsLimitCheckbox");
         components.add(fileSaveDetailsLimitCheckbox);
-        fileSaveButtonBorder = (Border) dialogSerializer.getNamespace().get("fileSaveButtonBorder");
+        fileSaveButtonBorder = 
+                (Border) dialogSerializer.getNamespace().get("fileSaveButtonBorder");
         components.add(fileSaveButtonBorder);
-        fileSaveButtonBoxPane = (BoxPane) dialogSerializer.getNamespace().get("fileSaveButtonBoxPane");
+        fileSaveButtonBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("fileSaveButtonBoxPane");
         components.add(fileSaveButtonBoxPane);
-        fileSaveDoneButton = (PushButton) dialogSerializer.getNamespace().get("fileSaveDoneButton");
+        fileSaveDoneButton = 
+                (PushButton) dialogSerializer.getNamespace().get("fileSaveDoneButton");
         components.add(fileSaveDoneButton);
     }
 
@@ -647,20 +840,36 @@ public class FileSaveDialog
         public void dialogClosed(Dialog dialog, boolean modal)
         {
             logger.trace("dialogClosed: " + this.hashCode());
-
+            
             /*
-             * Generate and save the query results.
+             * Don't do anything if the user closed the window using the host controls.
              */
-            String output = generateOutput();
+            if (doneHandlerExecuted == true)
+            {
 
-            try
-            {
-                saveOutput(output);
-            }
-            catch (IOException e)
-            {
-                MainWindow.logException(logger, e);
-                throw new InternalErrorException(true, e.getMessage());
+                /*
+                 * Generate and save the query results.
+                 */
+                String output;
+                
+                if (queryType == ListQueryType.Type.PLAYLIST_FAMILY)
+                {
+                    output = generatePlaylistsOutput();
+                }
+                else
+                {
+                    output = generateTracksOutput();
+                }
+
+                try
+                {
+                    saveOutput(output);
+                }
+                catch (IOException e)
+                {
+                    MainWindow.logException(logger, e);
+                    throw new InternalErrorException(true, e.getMessage());
+                }
             }
         }
     }

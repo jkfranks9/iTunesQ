@@ -111,7 +111,8 @@ public class PlaylistsWindow
      * @throws SerializationException If an error occurs trying to deserialize
      * the BXML file.
      */
-    public void displayPlaylists(Display display) throws IOException, SerializationException
+    public void displayPlaylists(Display display) 
+            throws IOException, SerializationException
     {
         uiLogger.trace("displayPlaylists: " + this.hashCode());
 
@@ -135,7 +136,8 @@ public class PlaylistsWindow
         /*
          * Create the playlist column set.
          */
-        TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.PLAYLIST_VIEW, playlistTracksTableView);
+        TrackDisplayColumns.createColumnSet(TrackDisplayColumns.ColumnSet.PLAYLIST_VIEW, 
+                playlistTracksTableView);
 
         /*
          * Set the number of playlists label.
@@ -254,7 +256,7 @@ public class PlaylistsWindow
                 {
 
                     /*
-                     * Get the user preferences.
+                     * Get the show remote tracks preference.
                      */
                     Preferences prefs = Preferences.getInstance();
                     boolean showRemoteTracks = prefs.getShowRemoteTracks();
@@ -321,8 +323,8 @@ public class PlaylistsWindow
                  * Update the number of tracks and total time labels.
                  */
                 numTracksLabel.setText(StringConstants.TRACK_NUMBER + displayTracks.getLength());
-                totalTimeLabel
-                        .setText(StringConstants.PLAYLIST_TOTAL_TIME + Utilities.convertMillisecondTime(totalTime));
+                totalTimeLabel.setText(StringConstants.PLAYLIST_TOTAL_TIME + 
+                        Utilities.convertMillisecondTime(totalTime));
             }
         });
 
@@ -353,8 +355,9 @@ public class PlaylistsWindow
                     /*
                      * Get the data for the selected row.
                      */
-                    @SuppressWarnings("unchecked") HashMap<String, String> selectedTrackRowData = (HashMap<String, String>) table
-                            .getSelectedRow();
+                    @SuppressWarnings("unchecked")
+                    HashMap<String, String> selectedTrackRowData = 
+                            (HashMap<String, String>) table.getSelectedRow();
 
                     /*
                      * Create and open the track details popup dialog.
@@ -362,7 +365,8 @@ public class PlaylistsWindow
                     TracksWindow tracksWindowHandler = new TracksWindow();
                     try
                     {
-                        tracksWindowHandler.handleTrackDetailsPopup(selectedTrackRowData, display, playlistsWindow);
+                        tracksWindowHandler.handleTrackDetailsPopup(selectedTrackRowData, 
+                                display, playlistsWindow);
                     }
                     catch (IOException | SerializationException e)
                     {
@@ -380,13 +384,15 @@ public class PlaylistsWindow
      * Initialize BXML variables and collect the list of components to be
      * skinned.
      */
-    private void initializeBxmlVariables(List<Component> components) throws IOException, SerializationException
+    private void initializeBxmlVariables(List<Component> components) 
+            throws IOException, SerializationException
     {
         uiLogger.trace("initializeBxmlVariables: " + this.hashCode());
 
         BXMLSerializer windowSerializer = new BXMLSerializer();
 
-        playlistsWindow = (Window) windowSerializer.readObject(getClass().getResource("playlistsWindow.bxml"));
+        playlistsWindow = 
+                (Window) windowSerializer.readObject(getClass().getResource("playlistsWindow.bxml"));
 
         /*
          * Initialize the menu bar.
@@ -394,30 +400,41 @@ public class PlaylistsWindow
         MenuBars menuBar = (MenuBars) playlistsWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        infoBorder = (Border) windowSerializer.getNamespace().get("infoBorder");
+        infoBorder = 
+                (Border) windowSerializer.getNamespace().get("infoBorder");
         components.add(infoBorder);
-        infoFillPane = (FillPane) windowSerializer.getNamespace().get("infoFillPane");
+        infoFillPane = 
+                (FillPane) windowSerializer.getNamespace().get("infoFillPane");
         components.add(infoFillPane);
-        numPlaylistsLabel = (Label) windowSerializer.getNamespace().get("numPlaylistsLabel");
+        numPlaylistsLabel = 
+                (Label) windowSerializer.getNamespace().get("numPlaylistsLabel");
         components.add(numPlaylistsLabel);
-        numTracksLabel = (Label) windowSerializer.getNamespace().get("numTracksLabel");
+        numTracksLabel = 
+                (Label) windowSerializer.getNamespace().get("numTracksLabel");
         components.add(numTracksLabel);
-        totalTimeLabel = (Label) windowSerializer.getNamespace().get("totalTimeLabel");
+        totalTimeLabel = 
+                (Label) windowSerializer.getNamespace().get("totalTimeLabel");
         components.add(totalTimeLabel);
-        playlistsBorder = (Border) windowSerializer.getNamespace().get("playlistsBorder");
+        playlistsBorder = 
+                (Border) windowSerializer.getNamespace().get("playlistsBorder");
         components.add(playlistsBorder);
-        playlistsTreeView = (TreeView) windowSerializer.getNamespace().get("playlistsTreeView");
+        playlistsTreeView = 
+                (TreeView) windowSerializer.getNamespace().get("playlistsTreeView");
         components.add(playlistsTreeView);
-        playlistTracksTableView = (TableView) windowSerializer.getNamespace().get("playlistTracksTableView");
+        playlistTracksTableView = 
+                (TableView) windowSerializer.getNamespace().get("playlistTracksTableView");
         components.add(playlistTracksTableView);
-        playlistTracksTableViewHeader = (TableViewHeader) windowSerializer.getNamespace()
-                .get("playlistTracksTableViewHeader");
+        playlistTracksTableViewHeader = 
+                (TableViewHeader) windowSerializer.getNamespace().get("playlistTracksTableViewHeader");
         components.add(playlistTracksTableViewHeader);
-        actionBorder = (Border) windowSerializer.getNamespace().get("actionBorder");
+        actionBorder = 
+                (Border) windowSerializer.getNamespace().get("actionBorder");
         components.add(actionBorder);
-        actionBoxPane = (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
+        actionBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
         components.add(actionBoxPane);
-        playlistsDoneButton = (PushButton) windowSerializer.getNamespace().get("playlistsDoneButton");
+        playlistsDoneButton = 
+                (PushButton) windowSerializer.getNamespace().get("playlistsDoneButton");
         components.add(playlistsDoneButton);
     }
 }

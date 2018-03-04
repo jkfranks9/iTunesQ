@@ -107,7 +107,8 @@ public class FiltersWindow
      * @throws SerializationException If an error occurs trying to deserialize
      * the BXML file.
      */
-    public void displayFilters(Display display) throws IOException, SerializationException
+    public void displayFilters(Display display) 
+            throws IOException, SerializationException
     {
         uiLogger.trace("displayFilters: " + this.hashCode());
 
@@ -140,6 +141,7 @@ public class FiltersWindow
          */
         showResultsButton.setButtonData(StringConstants.FILTER_SHOW_ME_BUTTON);
         showResultsButton.setTooltipText(StringConstants.FILTER_SHOW_ME_BUTTON_TIP);
+        showResultsButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         queryDoneButton.setButtonData(StringConstants.DONE);
 
         /*
@@ -225,7 +227,8 @@ public class FiltersWindow
                         int numTracks = filteredTracks.getLength();
 
                         filterLogger.info((Integer.toString(numTracks)
-                                + ((numTracks == 1) ? " track matches" : " tracks match") + " the set of filters"));
+                                + ((numTracks == 1) ? " track matches" : " tracks match") 
+                                + " the set of filters"));
 
                         /*
                          * If anything is to be displayed, uh, display it.
@@ -234,8 +237,8 @@ public class FiltersWindow
                         {
                             String queryStr = filterCollection.getFiltersAsString();
                             TracksWindow tracksWindowHandler = new TracksWindow();
-                            tracksWindowHandler.saveWindowAttributes(TracksWindow.QueryType.TRACKS,
-                                    TracksWindow.QueryType.TRACKS.getDisplayValue() + ": " + queryStr,
+                            tracksWindowHandler.saveWindowAttributes(ListQueryType.Type.TRACK_QUERY,
+                                    ListQueryType.Type.TRACK_QUERY.getDisplayValue() + ": " + queryStr,
                                     TrackDisplayColumns.ColumnSet.FILTERED_VIEW.getNamesList());
 
                             try
@@ -338,6 +341,7 @@ public class FiltersWindow
         logic.setSpinnerData(Filter.getLogicLabels());
         logic.setSelectedIndex(0);
         logic.setTooltipText(StringConstants.FILTER_LOGIC_TIP);
+        logic.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * Create the 'subject' spinner.
@@ -347,6 +351,7 @@ public class FiltersWindow
         subject.setSpinnerData(Filter.getSubjectLabels());
         subject.setSelectedIndex(0);
         subject.setTooltipText(StringConstants.FILTER_SUBJECT_TIP);
+        subject.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * Create the 'operator' spinner.
@@ -356,12 +361,14 @@ public class FiltersWindow
         operator.setSpinnerData(Filter.getOperatorLabels());
         operator.setSelectedIndex(0);
         operator.setTooltipText(StringConstants.FILTER_OPERATOR_TIP);
+        operator.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * Create the text input box.
          */
         TextInput text = new TextInput();
         text.setTooltipText(StringConstants.FILTER_TEXT_TIP);
+        text.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * Text input listener for the text input. We call the typing assistant
@@ -414,7 +421,21 @@ public class FiltersWindow
                         String operatorValue = (String) operator.getSelectedItem();
                         Filter.Operator operatorEnum = Filter.Operator.getEnum(operatorValue);
 
-                        Utilities.typingAssistant(textInput, XMLHandler.getArtistNames(), textInput.getText(),
+                        /*
+                         * Create an array of artist display names for the typing assistant.
+                         * Unfortunately, we don't have such a list handy.
+                         */
+                        ArrayList<String> artistNames = new ArrayList<String>();
+                        artistNames.setComparator(String.CASE_INSENSITIVE_ORDER);
+
+                        ArrayList<ArtistCorrelator> artistCorrs = XMLHandler.getArtistCorrelators();
+
+                        for (ArtistCorrelator artistCorr : artistCorrs)
+                        {
+                            artistNames.add(artistCorr.getDisplayName());
+                        }
+
+                        Utilities.typingAssistant(textInput, artistNames, textInput.getText(),
                                 operatorEnum);
                     }
                 }
@@ -430,14 +451,17 @@ public class FiltersWindow
         PushButton plusButton = new PushButton();
         plusButton.setButtonData("+");
         plusButton.setTooltipText(StringConstants.FILTER_PLUS_BUTTON_TIP);
+        plusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         PushButton minusButton = new PushButton();
         minusButton.setButtonData("-");
         minusButton.setTooltipText(StringConstants.FILTER_MINUS_BUTTON_TIP);
+        minusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         PushButton complexButton = new PushButton();
         complexButton.setButtonData(StringConstants.FILTER_COMPLEX);
         complexButton.setTooltipText(StringConstants.FILTER_COMPLEX_BUTTON_TIP);
+        complexButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * Mouse click listener for the + button.
@@ -476,10 +500,10 @@ public class FiltersWindow
                     /*
                      * Register the new components and skin them.
                      */
-                    Map<Skins.Element, List<Component>> windowElements = skins
-                            .mapComponentsToSkinElements(rowComponents);
+                    Map<Skins.Element, List<Component>> windowElements =
+                            skins.mapComponentsToSkinElements(rowComponents);
                     skins.registerDynamicWindowElements(Skins.Window.FILTERS, windowElements);
-                    skins.skinMe(Skins.Window.FILTERS);
+                    skins.skinMe(Skins.Window.FILTERS, windowElements);
 
                     filtersWindow.repaint();
                 }
@@ -655,8 +679,8 @@ public class FiltersWindow
                     /*
                      * Register the new components and skin them.
                      */
-                    Map<Skins.Element, List<Component>> windowElements = skins
-                            .mapComponentsToSkinElements(rowComponents);
+                    Map<Skins.Element, List<Component>> windowElements = 
+                            skins.mapComponentsToSkinElements(rowComponents);
                     skins.registerDynamicWindowElements(Skins.Window.FILTERS, windowElements);
                     skins.skinMe(Skins.Window.FILTERS);
 
@@ -787,7 +811,8 @@ public class FiltersWindow
      * Initialize BXML variables and collect the list of components to be
      * skinned.
      */
-    private void initializeBxmlVariables(List<Component> components) throws IOException, SerializationException
+    private void initializeBxmlVariables(List<Component> components)
+            throws IOException, SerializationException
     {
         uiLogger.trace("initializeBxmlVariables: " + this.hashCode());
 
@@ -801,17 +826,23 @@ public class FiltersWindow
         MenuBars menuBar = (MenuBars) filtersWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
-        filtersBorder = (Border) windowSerializer.getNamespace().get("filtersBorder");
+        filtersBorder = 
+                (Border) windowSerializer.getNamespace().get("filtersBorder");
         components.add(filtersBorder);
-        filterTablePane = (TablePane) windowSerializer.getNamespace().get("filterTablePane");
+        filterTablePane = 
+                (TablePane) windowSerializer.getNamespace().get("filterTablePane");
         components.add(filterTablePane);
-        actionBorder = (Border) windowSerializer.getNamespace().get("actionBorder");
+        actionBorder = 
+                (Border) windowSerializer.getNamespace().get("actionBorder");
         components.add(actionBorder);
-        actionBoxPane = (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
+        actionBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
         components.add(actionBoxPane);
-        showResultsButton = (PushButton) windowSerializer.getNamespace().get("showResultsButton");
+        showResultsButton = 
+                (PushButton) windowSerializer.getNamespace().get("showResultsButton");
         components.add(showResultsButton);
-        queryDoneButton = (PushButton) windowSerializer.getNamespace().get("queryDoneButton");
+        queryDoneButton = 
+                (PushButton) windowSerializer.getNamespace().get("queryDoneButton");
         components.add(queryDoneButton);
     }
 }

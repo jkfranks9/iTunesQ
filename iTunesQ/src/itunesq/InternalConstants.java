@@ -9,6 +9,16 @@ package itunesq;
  */
 public class InternalConstants
 {
+    
+    /*
+     * Width and height of the main window activity indicator.
+     */
+    public static final int ACTIVITY_INDICATOR_SIZE = 50;
+    
+    /*
+     * Spacing of the labels for the info elements on the artists window.
+     */
+    public static final int ARTISTS_LABEL_SPACING = 50;
 
 	/*
 	 * Default maximum log history.
@@ -24,6 +34,17 @@ public class InternalConstants
 	 * Width of the file name text input on the file save dialog.
 	 */
 	public static final int FILE_SAVE_FILENAME_TEXT_SIZE = 64;
+	
+	/*
+	 * Separator for list items, for example lists of tracks. We pick something weird that
+	 * should never occur in an actual list item. He says optimistically.
+	 */
+	public static final String LIST_ITEM_SEPARATOR = "<@>";
+    
+    /*
+     * Height of the scrollable area for the artists manual overrides dialogs.
+     */
+    public static final int MANUAL_OVERRIDES_SCROLLPANE_HEIGHT = 170;
 
 	/*
 	 * Width of the column preferences labels.
@@ -55,6 +76,11 @@ public class InternalConstants
 	 */
 	public static final int SKIN_PREVIEW_DIALOG_HEIGHT = 280;
 	public static final int SKIN_PREVIEW_DIALOG_WIDTH  = 350;
+	
+	/*
+	 * Tooltip delay in milliseconds.
+	 */
+	public static final int TOOLTIP_DELAY = 500;
 	
 	/*
 	 * Width of the track details label. This sets the separation between the track variables and

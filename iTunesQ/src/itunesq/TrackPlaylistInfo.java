@@ -64,4 +64,18 @@ public class TrackPlaylistInfo
 	{
 		this.bypassed = bypassed;
 	}
+    
+    //---------------- Public methods --------------------------------------
+
+    /**
+     * Compares a given playlist info to this one, used for sorting.
+     * 
+     * @param c2 playlist info to be compared to this playlist info
+     * @return negative value, zero, or positive value to indicate less than,
+     * equal to, or greater than, respectively
+     */
+    public int compareTo(TrackPlaylistInfo c2)
+    {
+        return this.playlistName.toLowerCase().compareTo(c2.playlistName.toLowerCase());
+    }
 }

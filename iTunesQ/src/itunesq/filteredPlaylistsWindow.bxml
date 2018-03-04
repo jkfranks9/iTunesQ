@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<itq:MenuBars maximized="true"
+    styles="{padding:{top:5, left:5, bottom:5, right:5}, showWindowControls:false, backgroundColor:5}"
+    xmlns:bxml="http://pivot.apache.org/bxml" 
+    xmlns:itq="itunesq" 
+    xmlns="org.apache.pivot.wtk">
+
+    <!-- Define the menu bar. -->
+    <menuBar>
+        <MenuBar bxml:id="menuBarHolder">
+
+            <!-- Create the file browser sheet for file open. -->
+            <bxml:define>
+                <FileBrowserSheet bxml:id="fileBrowserSheet" />
+            </bxml:define>
+
+            <!-- Create the preferences sheet. -->
+            <bxml:define>
+                <Sheet bxml:id="preferencesSheet" />
+            </bxml:define>
+
+            <!-- File menu. -->
+            <MenuBar.Item bxml:id="fileMenu">
+                <Menu bxml:id="fileMenuItems">
+                    <Menu.Section>
+                        <Menu.Item bxml:id="fileMenuOpen" action="fileOpen" />
+                        <Menu.Item bxml:id="fileMenuSave" action="fileSave" />
+                        <Menu.Item bxml:id="fileMenuExit" action="exit" />
+                    </Menu.Section>
+                </Menu>
+            </MenuBar.Item>
+
+            <!-- Edit menu. -->
+            <MenuBar.Item bxml:id="editMenu">
+                <Menu bxml:id="editMenuItems">
+                    <Menu.Section>
+                        <Menu.Item bxml:id="editMenuPreferences" action="preferences" />
+                    </Menu.Section>
+                </Menu>
+            </MenuBar.Item>
+        </MenuBar>
+    </menuBar>
+
+    <!-- Lay out the window elements in a single column table pane. -->
+    <TablePane styles="{verticalSpacing:10, padding:10}">
+        <columns>
+            <TablePane.Column width="1*" />
+        </columns>
+
+        <!-- Informational elements row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="infoBorder">
+                <FillPane bxml:id="infoFillPane" orientation="horizontal" styles="{padding:10}">
+                    <Label bxml:id="numPlaylistsLabel"
+                        styles="{font:{bold:true}, horizontalAlignment:'left', verticalAlignment:'center'}" />
+                </FillPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- Playlist elements row. -->
+        <TablePane.Row height="10*">
+            <Border bxml:id="playlistsBorder">
+
+                <!-- Lay out the contents in a split pane. -->
+                <SplitPane splitRatio="0.7">
+
+                    <!-- The left side is the playlists. -->
+                    <left>
+                        <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+                            verticalScrollBarPolicy="fill_to_capacity">
+                            <TableView bxml:id="playlistsTableView" selectMode="single"
+                                styles="{includeTrailingVerticalGridLine:true}">
+                            </TableView>
+
+                            <columnHeader>
+                                <TableViewHeader bxml:id="playlistsTableViewHeader"
+                                    tableView="$playlistsTableView" sortMode="single_column"
+                                    styles="{includeTrailingVerticalGridLine:true}" />
+                            </columnHeader>
+                        </ScrollPane>
+                    </left>
+
+                    <!-- The right side is the tracks associated with a given playlist. -->
+                    <right>
+                        <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+                            verticalScrollBarPolicy="fill_to_capacity">
+                            <TableView bxml:id="playlistTracksTableView" selectMode="single"
+                                styles="{includeTrailingVerticalGridLine:true}">
+                            </TableView>
+
+                            <columnHeader>
+                                <TableViewHeader bxml:id="playlistTracksTableViewHeader"
+                                    tableView="$playlistTracksTableView" sortMode="single_column"
+                                    styles="{includeTrailingVerticalGridLine:true}" />
+                            </columnHeader>
+                        </ScrollPane>
+                    </right>
+                </SplitPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- Action elements (buttons) row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="familyActionBorder">
+                <BoxPane bxml:id="familyActionBoxPane" orientation="horizontal"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <PushButton bxml:id="playlistsDoneButton" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+    </TablePane>
+</itq:MenuBars>

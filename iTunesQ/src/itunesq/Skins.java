@@ -1,6 +1,7 @@
 package itunesq;
 
 import java.awt.Font;
+
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.ArrayStack;
 import org.apache.pivot.collections.HashMap;
@@ -8,6 +9,7 @@ import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.collections.Sequence;
 import org.apache.pivot.collections.Stack;
+import org.apache.pivot.wtk.ActivityIndicator;
 import org.apache.pivot.wtk.Border;
 import org.apache.pivot.wtk.BoxPane;
 import org.apache.pivot.wtk.Checkbox;
@@ -85,7 +87,7 @@ public class Skins
 	/*
 	 * Default skin.
 	 */
-	private static final String duskyGray = StringConstants.SKIN_NAME_DUSKY;
+	private static final String DUSKY_GRAY_NAME = StringConstants.SKIN_NAME_DUSKY;
 	private static final Map<Element, String> DUSKY_GRAY;	
 	static
 	{
@@ -107,7 +109,7 @@ public class Skins
 	/*
 	 * Alternate skins selectable with a preference.
 	 */
-	private static final String pumpkinPatch = StringConstants.SKIN_NAME_PUMPKIN;
+	private static final String PUMPKIN_PATCH_NAME = StringConstants.SKIN_NAME_PUMPKIN;
 	private static final Map<Element, String> PUMPKIN_PATCH;	
 	static
 	{
@@ -126,7 +128,7 @@ public class Skins
 		PUMPKIN_PATCH = result;
 	}
 	
-	private static final String seasideDaze = StringConstants.SKIN_NAME_SEASIDE;
+	private static final String SEASIDE_DAZE_NAME = StringConstants.SKIN_NAME_SEASIDE;
 	private static final Map<Element, String> SEASIDE_DAZE;	
 	static
 	{
@@ -148,7 +150,7 @@ public class Skins
 	/**
 	 * Default skin name.
 	 */
-	public static final String defaultSkin = duskyGray;
+	public static final String DEFAULT_SKIN = DUSKY_GRAY_NAME;
 	
 	/*
 	 * Name of the current skin.
@@ -326,7 +328,22 @@ public class Skins
 		/**
 		 * artist alternate names window
 		 */
-		ALTNAMES(StringConstants.SKIN_WINDOW_ALTNAMES);
+		ALTNAMES(StringConstants.SKIN_WINDOW_ALTNAMES),
+        
+        /**
+         * artist alternate name selection window
+         */
+        ALTNAMESELECTION(StringConstants.SKIN_WINDOW_ALTNAMESELECTION),
+        
+        /**
+         * artist review manual overrides window
+         */
+        MANUALOVERRIDES(StringConstants.SKIN_WINDOW_MANUALOVERRIDES),
+        
+        /**
+         * family expansion playlists window
+         */
+        FAMILYPLAYLISTS(StringConstants.SKIN_WINDOW_FAMILYPLAYLISTS);
 		
 		private String displayValue;
 		
@@ -396,24 +413,25 @@ public class Skins
 	 * IMPORTANT: The mask number values must match the corresponding values in the constructor
 	 * for each element type.
 	 */
-	private static final int borderMask          =         4 +     16 +                       512;
-	private static final int boxPaneMask         = 1;
-	private static final int checkboxMask        =                 16 +                       512;
-	private static final int fileBrowserMask     = 1;
-	private static final int fillPaneMask        = 1;
-	private static final int labelMask           =                 16 +                       512;
-	private static final int menuBarMask         = 1 +             16 +      64 +             512;
-	private static final int menuMask            = 1 +             16 +      64 +             512;
-	private static final int pushButtonMask      =         4 + 8 +      32 +                  512;
-	private static final int scrollPaneMask      = 1;
-	private static final int separatorMask       =                 16 +                       512;
-	private static final int spinnerMask         = 1 +     4 +     16 +                       512;
-	private static final int tablePaneMask       = 1;
-	private static final int tabPaneMask         =     2 + 4 +     16 +           128 +       512;
-	private static final int tableViewHeaderMask = 1 +     4 +          32 +            256 + 512;
-	private static final int tableViewMask       = 1 + 2 + 4 +     16 +      64 + 128 +       512;
-	private static final int textInputMask       =     2 + 4 +     16 +      64 +             512;
-	private static final int treeViewMask        = 1 +             16 +      64 + 128 +       512;
+    private static final int ACTIVITY_INDICATOR_MASK = 1 +                       64;
+	private static final int BORDER_MASK             =         4 +     16 +                       512;
+	private static final int BOX_PANE_MASK           = 1;
+	private static final int CHECKBOX_MASK           =                 16 +                       512;
+	private static final int FILE_BROWSER_MASK       = 1;
+	private static final int FILL_PANE_MASK          = 1;
+	private static final int LABEL_MASK              =                 16 +                       512;
+	private static final int MENU_BAR_MASK           = 1 +             16 +      64 +             512;
+	private static final int MENU_MASK               = 1 +             16 +      64 +             512;
+	private static final int PUSH_BUTTON_MASK        =         4 + 8 +      32 +                  512;
+	private static final int SCROLL_PANE_MASK        = 1;
+	private static final int SEPARATOR_MASK          =                 16 +                       512;
+	private static final int SPINNER_MASK            = 1 +     4 +     16 +                       512;
+    private static final int TAB_PANE_MASK           =     2 + 4 +     16 +           128 +       512;
+	private static final int TABLE_PANE_MASK         = 1;
+	private static final int TABLE_VIEW_HEADER_MASK  = 1 +     4 +          32 +            256 + 512;
+	private static final int TABLE_VIEW_MASK         = 1 + 2 + 4 +     16 +      64 + 128 +       512;
+	private static final int TEXT_INPUT_MASK         =     2 + 4 +     16 +      64 +             512;
+	private static final int TREE_VIEW_MASK          = 1 +             16 +      64 + 128 +       512;
 	
 	/*
 	 * The window registry is a map of the Window enum to a map of the Element enum to a list
@@ -470,9 +488,9 @@ public class Skins
 		 * Initialize the skin registry.
 		 */
 		skinRegistry = new HashMap<String, Map<Element, String>>();
-		skinRegistry.put(duskyGray, DUSKY_GRAY);
-		skinRegistry.put(pumpkinPatch, PUMPKIN_PATCH);
-		skinRegistry.put(seasideDaze, SEASIDE_DAZE);
+		skinRegistry.put(DUSKY_GRAY_NAME, DUSKY_GRAY);
+		skinRegistry.put(PUMPKIN_PATCH_NAME, PUMPKIN_PATCH);
+		skinRegistry.put(SEASIDE_DAZE_NAME, SEASIDE_DAZE);
 		
 		/*
 		 * Initialize the window stack.
@@ -490,7 +508,7 @@ public class Skins
         String skinName;
         if ((skinName = prefs.getSkinName()) == null)
         {
-        	skinName = defaultSkin;
+        	skinName = DEFAULT_SKIN;
         }
 
         /*
@@ -574,9 +592,6 @@ public class Skins
     	{
     		throw new IllegalArgumentException("elements argument is null");
     	}
-
-    	logger.debug("registering " + elements.getCount() 
-    		+ " elements for window " + window.getDisplayValue());
     	
 		windowRegistry.put(window, elements);
 	}
@@ -605,21 +620,36 @@ public class Skins
     		throw new IllegalArgumentException("elements argument is null");
     	}
     	
+    	/*
+    	 * Remove the elements from the window registry for this window. Pivot's Map doesn't allow
+    	 * modification so we have to remove it then add it back later.
+    	 */
 		Map<Element, List<Component>> windowElements = windowRegistry.remove(window);
+		
+		/*
+		 * Walk through all possible elements. The removed elements might not contain components
+		 * for all element types, but if we walk through the removed elements here, we have to jump
+		 * through hoops to avoid a concurrent modification exception. Instead, we just check
+		 * below to see if the element is used at all.
+		 */
 		for (Element element : Element.values())
 		{
 			List<Component> windowElementComponents = windowElements.remove(element);
-			List<Component> inputComponents = elements.remove(element);
-			for (Component inputComponent : inputComponents)
+			List<Component> inputComponents = elements.get(element);
+			
+			if (inputComponents != null)
 			{
-				windowElementComponents.add(inputComponent);
+			    for (Component inputComponent : inputComponents)
+			    {
+			        windowElementComponents.add(inputComponent);
+			    }
+	            windowElements.put(element, windowElementComponents);
 			}
-			windowElements.put(element, windowElementComponents);
 		}
-
-    	logger.debug("registering " + elements.getCount() 
-    		+ " dynamic elements for window " + window.getDisplayValue());
     	
+		/*
+		 * Replace the elements in the window registry for this window.
+		 */
 		windowRegistry.put(window, windowElements);
 	}
 	
@@ -675,10 +705,21 @@ public class Skins
 	
 	/**
 	 * Applies the skin values to the elements for a specific window.
-	 * 
+     * 
 	 * @param window window for which skin elements should be applied
 	 */
-	public void skinMe (Window window)
+    public void skinMe (Window window)
+    {
+        skinMe(window, windowRegistry.get(window));
+    }
+	
+	/**
+	 * Applies the skin values to the elements for a specific window.
+	 * 
+	 * @param window window for which skin elements should be applied
+	 * @param elements map of elements to lists of components
+	 */
+	public void skinMe (Window window, Map<Element, List<Component>> elements)
 	{
     	logger.trace("skinMe: " + this.hashCode());
     	
@@ -686,30 +727,19 @@ public class Skins
     	{
     		throw new IllegalArgumentException("window argument is null");
     	}
-		
-		/*
-		 * Get the elements map for the input window.
-		 */
-		Map<Element, List<Component>> elements = windowRegistry.get(window);
+    	
+    	logger.debug("skinning window " + window.getDisplayValue());
 		
 		/*
 		 * Walk through all element types.
 		 */
-		for (Element element : Element.values())
+		for (Element element : elements)
 		{
 			
 			/*
 			 * Get the list of components for this element type.
 			 */
 			List<Component> components = elements.get(element);
-			
-			/*
-			 * Iterate if no components exist.
-			 */
-			if (components == null)
-			{
-				continue;
-			}
 			
 			/*
 			 * Walk through all components.
@@ -741,6 +771,25 @@ public class Skins
     		throw new IllegalArgumentException("components argument is null");
     	}
     	
+    	/*
+    	 * Log the input components if the skin logging diag trigger is set.
+    	 */
+        if (MainWindow.getDiagTrigger() == MainWindow.DiagTrigger.SKIN_LOGGING)
+    	{
+            Logger diagLogger = Logging.getInstance().getDiagLogger();
+            diagLogger.info("mapping components:");
+    	    
+            for (Component component : components)
+            {
+                String componentID = component.getName();
+                if (componentID == null)
+                {
+                    componentID = component.getClass().getSimpleName();
+                }
+                diagLogger.info("... " + componentID);
+            }
+    	}
+    	
 		Map<Element, List<Component>> windowElements = new HashMap<Element, List<Component>>();
 		
 		/*
@@ -765,7 +814,13 @@ public class Skins
 				}
 			}
 			
-			windowElements.put(element, elementComponents);
+			/*
+			 * Put this element into the returned map only if at least one component uses it.
+			 */
+			if (elementComponents.getLength() > 0)
+			{
+			    windowElements.put(element, elementComponents);
+			}
 		}
 		
 		return windowElements;
@@ -784,128 +839,135 @@ public class Skins
 		/*
 		 * Brute force checking of the various components against the associated component mask.
 		 */
+        if (component instanceof ActivityIndicator)
+        {
+            if ((element.getMaskValue() & ACTIVITY_INDICATOR_MASK) != 0)
+            {
+                result = true;
+            }
+        }
 		if (component instanceof Border)
 		{
-			if ((element.getMaskValue() & borderMask) != 0)
+			if ((element.getMaskValue() & BORDER_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof BoxPane)
 		{
-			if ((element.getMaskValue() & boxPaneMask) != 0)
+			if ((element.getMaskValue() & BOX_PANE_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof Checkbox)
 		{
-			if ((element.getMaskValue() & checkboxMask) != 0)
+			if ((element.getMaskValue() & CHECKBOX_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof FileBrowser)
 		{
-			if ((element.getMaskValue() & fileBrowserMask) != 0)
+			if ((element.getMaskValue() & FILE_BROWSER_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof FillPane)
 		{
-			if ((element.getMaskValue() & fillPaneMask) != 0)
+			if ((element.getMaskValue() & FILL_PANE_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof Label)
 		{
-			if ((element.getMaskValue() & labelMask) != 0)
+			if ((element.getMaskValue() & LABEL_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof MenuBar)
 		{
-			if ((element.getMaskValue() & menuBarMask) != 0)
+			if ((element.getMaskValue() & MENU_BAR_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof Menu)
 		{
-			if ((element.getMaskValue() & menuMask) != 0)
+			if ((element.getMaskValue() & MENU_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof PushButton)
 		{
-			if ((element.getMaskValue() & pushButtonMask) != 0)
+			if ((element.getMaskValue() & PUSH_BUTTON_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof ScrollPane)
 		{
-			if ((element.getMaskValue() & scrollPaneMask) != 0)
+			if ((element.getMaskValue() & SCROLL_PANE_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof Separator)
 		{
-			if ((element.getMaskValue() & separatorMask) != 0)
+			if ((element.getMaskValue() & SEPARATOR_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof Spinner)
 		{
-			if ((element.getMaskValue() & spinnerMask) != 0)
+			if ((element.getMaskValue() & SPINNER_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof TablePane)
 		{
-			if ((element.getMaskValue() & tablePaneMask) != 0)
+			if ((element.getMaskValue() & TABLE_PANE_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof TableViewHeader)
 		{
-			if ((element.getMaskValue() & tableViewHeaderMask) != 0)
+			if ((element.getMaskValue() & TABLE_VIEW_HEADER_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof TableView)
 		{
-			if ((element.getMaskValue() & tableViewMask) != 0)
+			if ((element.getMaskValue() & TABLE_VIEW_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof TabPane)
 		{
-			if ((element.getMaskValue() & tabPaneMask) != 0)
+			if ((element.getMaskValue() & TAB_PANE_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof TextInput)
 		{
-			if ((element.getMaskValue() & textInputMask) != 0)
+			if ((element.getMaskValue() & TEXT_INPUT_MASK) != 0)
 			{
 				result = true;
 			}
 		}
 		else if (component instanceof TreeView)
 		{
-			if ((element.getMaskValue() & treeViewMask) != 0)
+			if ((element.getMaskValue() & TREE_VIEW_MASK) != 0)
 			{
 				result = true;
 			}
@@ -1025,6 +1087,10 @@ public class Skins
 			{
 				componentSkinValue.put("activeBackgroundColor", element.getElementValue());
 			}
+			else if (component instanceof ActivityIndicator)
+			{
+	            componentSkinValue.put("color", element.getElementValue());
+			}
 			else
 			{
 				componentSkinValue.put("selectionBackgroundColor", element.getElementValue());
@@ -1092,12 +1158,27 @@ public class Skins
 			
 		default :
 		}
-		
-		logger.debug("element " + element.toString() + ", component " + component.getName()
-				+ " styles:");
-		for (String styleName : componentSkinValue)
-		{
-			logger.debug("... style name " + styleName);
-		}
+
+		/*
+		 * Log the picked styles if the skin logging diag trigger is set.
+		 */
+        if (MainWindow.getDiagTrigger() == MainWindow.DiagTrigger.SKIN_LOGGING)
+        {
+            Logger diagLogger = Logging.getInstance().getDiagLogger();
+            if (componentSkinValue.getCount() > 0)
+            {
+                String componentID = component.getName();
+                if (componentID == null)
+                {
+                    componentID = component.getClass().getSimpleName();
+                }
+                diagLogger.info("element " + element.toString() + ", component " + componentID
+                        + " styles:");
+                for (String styleName : componentSkinValue)
+                {
+                    diagLogger.info("... style name " + styleName);
+                }
+            }
+        }
 	}
 }

@@ -19,8 +19,7 @@ public class InternalErrorException extends RuntimeException
 	private static final long serialVersionUID = -1902550162137484780L;
 	
 	/**
-	 * Constructor that specifies an indicator of whether or not the error is 
-	 * fatal, as well as the error message.
+	 * Class constructor.
 	 * 
 	 * @param fatal true if the error should end the application
 	 * @param message error message

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Dialog bxml:id="dialog" modal="false"
+    styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}" 
+    xmlns:bxml="http://pivot.apache.org/bxml"
+    xmlns="org.apache.pivot.wtk">
+
+    <!-- Lay out the window elements in a single column table pane. -->
+    <TablePane styles="{verticalSpacing:10, padding:10}">
+        <columns>
+            <TablePane.Column width="1*" />
+        </columns>
+
+        <!-- Instructions row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="altSelectLabelsBorder">
+                <BoxPane bxml:id="altSelectLabelsBoxPane" orientation="vertical"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <Label bxml:id="altSelectWarningLabel"
+                        styles="{horizontalAlignment:'center', verticalAlignment:'center'}" />
+                    <Label bxml:id="altSelectInstructionsLabel"
+                        styles="{horizontalAlignment:'center', verticalAlignment:'center'}" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- TableView elements row. -->
+        <TablePane.Row height="4*">
+            <Border bxml:id="altSelectTableBorder">
+                <ScrollPane bxml:id="altSelectTableScrollPane" 
+                    horizontalScrollBarPolicy="fill_to_capacity"
+                    verticalScrollBarPolicy="fill_to_capacity">
+                    <TableView bxml:id="altSelectTableView" selectMode="single"
+                        styles="{includeTrailingVerticalGridLine:true}">
+                        <columns>
+                            <TableView.Column bxml:id="altSelectTableColumnArtist" width="1*" />
+                        </columns>
+                    </TableView>
+                </ScrollPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- Button elements row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="altSelectButtonBorder">
+                <BoxPane bxml:id="altSelectButtonBoxPane" orientation="horizontal"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <PushButton bxml:id="altSelectCancelButton" />
+                    <PushButton bxml:id="altSelectProceedButton" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+    </TablePane>
+</Dialog>

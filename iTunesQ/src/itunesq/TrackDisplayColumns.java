@@ -1,6 +1,7 @@
 package itunesq;
 
 import java.io.IOException;
+
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
@@ -17,9 +18,10 @@ import org.apache.pivot.wtk.TableView;
  * <li>Duplicates - list of duplicate tracks</li>
  * <li>Filtered - tracks that are displayed for a given query</li>
  * <li>Playlist - tracks that are displayed for a given playlist</li>
+ * <li>Family - tracks that are displayed for a playlist family expansion</li>
  * </ul>
  * <p>
- * There are default values for each of these column sets, but they can be 
+ * There are default values for each of these column sets, but most can be 
  * changed with user preferences.
  * 
  * @author Jon
@@ -32,131 +34,156 @@ public class TrackDisplayColumns
 	
 	/**
 	 * Definition of all possible track column names. The <code>enum</code> 
-	 * value is the name of the associated column.
+	 * parameters are the header and name of the associated column.
 	 */
 	public enum ColumnNames
 	{
+	    
+	    /*
+	     * NOTE: Columns have both a header value that is displayed, and a name value that is used
+	     * to reference column data. Blanks in the name value cause Pivot to crash. So we initialize
+	     * both values in the definitions. If the header name in StringConstants contains no blanks,
+	     * we use that value for both initializers. If it contains blanks, we use a hardcoded string
+	     * as the initializer.
+	     */
 		
 		/**
 		 * relative track number within a list
 		 */
-		NUMBER(StringConstants.TRACK_COLUMN_NUMBER),
+		NUMBER(StringConstants.TRACK_COLUMN_NUMBER, StringConstants.TRACK_COLUMN_NUMBER),
 		
 		/**
 		 * track ID
 		 */
-		ID(StringConstants.TRACK_COLUMN_ID),
+		ID(StringConstants.TRACK_COLUMN_ID, StringConstants.TRACK_COLUMN_ID),
 		
 		/**
 		 * track name
 		 */
-		NAME(StringConstants.TRACK_COLUMN_NAME),
+		NAME(StringConstants.TRACK_COLUMN_NAME, StringConstants.TRACK_COLUMN_NAME),
 		
 		/**
 		 * artist name
 		 */
-		ARTIST(StringConstants.TRACK_COLUMN_ARTIST),
+		ARTIST(StringConstants.TRACK_COLUMN_ARTIST, StringConstants.TRACK_COLUMN_ARTIST),
 		
 		/**
 		 * composer name
 		 */
-		COMPOSER(StringConstants.TRACK_COLUMN_COMPOSER),
+		COMPOSER(StringConstants.TRACK_COLUMN_COMPOSER, StringConstants.TRACK_COLUMN_COMPOSER),
 		
 		/**
 		 * album name
 		 */
-		ALBUM(StringConstants.TRACK_COLUMN_ALBUM),
+		ALBUM(StringConstants.TRACK_COLUMN_ALBUM, StringConstants.TRACK_COLUMN_ALBUM),
 		
 		/**
 		 * genre
 		 */
-		GENRE(StringConstants.TRACK_COLUMN_GENRE),
+		GENRE(StringConstants.TRACK_COLUMN_GENRE, StringConstants.TRACK_COLUMN_GENRE),
 		
 		/**
 		 * kind of track
 		 */
-		KIND(StringConstants.TRACK_COLUMN_KIND),
+		KIND(StringConstants.TRACK_COLUMN_KIND, StringConstants.TRACK_COLUMN_KIND),
 		
 		/**
 		 * size in bytes
 		 */
-		SIZE(StringConstants.TRACK_COLUMN_SIZE),
+		SIZE(StringConstants.TRACK_COLUMN_SIZE, StringConstants.TRACK_COLUMN_SIZE),
 		
 		/**
 		 * duration
 		 */
-		DURATION(StringConstants.TRACK_COLUMN_DURATION),
+		DURATION(StringConstants.TRACK_COLUMN_DURATION, StringConstants.TRACK_COLUMN_DURATION),
 		
 		/**
 		 * year of release
 		 */
-		YEAR(StringConstants.TRACK_COLUMN_YEAR),
+		YEAR(StringConstants.TRACK_COLUMN_YEAR, StringConstants.TRACK_COLUMN_YEAR),
 		
 		/**
 		 * modified date
 		 */
-		MODIFIED(StringConstants.TRACK_COLUMN_MODIFIED),
+		MODIFIED(StringConstants.TRACK_COLUMN_MODIFIED, StringConstants.TRACK_COLUMN_MODIFIED),
 		
 		/**
 		 * added date
 		 */
-		ADDED(StringConstants.TRACK_COLUMN_ADDED),
+		ADDED(StringConstants.TRACK_COLUMN_ADDED, StringConstants.TRACK_COLUMN_ADDED),
 		
 		/**
 		 * bit rate
 		 */
-		BITRATE(StringConstants.TRACK_COLUMN_BITRATE),
+		BITRATE(StringConstants.TRACK_COLUMN_BITRATE, "BitRate"),
 		
 		/**
 		 * sample rate
 		 */
-		SAMPLERATE(StringConstants.TRACK_COLUMN_SAMPLERATE),
+		SAMPLERATE(StringConstants.TRACK_COLUMN_SAMPLERATE, "SampleRate"),
 		
 		/**
 		 * play count
 		 */
-		PLAYCOUNT(StringConstants.TRACK_COLUMN_PLAYCOUNT),
+		PLAYCOUNT(StringConstants.TRACK_COLUMN_PLAYCOUNT, "PlayCount"),
 		
 		/**
 		 * released date
 		 */
-		RELEASED(StringConstants.TRACK_COLUMN_RELEASED),
+		RELEASED(StringConstants.TRACK_COLUMN_RELEASED, StringConstants.TRACK_COLUMN_RELEASED),
 		
 		/**
 		 * rating from 0 to 5
 		 */
-		RATING(StringConstants.TRACK_COLUMN_RATING),
+		RATING(StringConstants.TRACK_COLUMN_RATING, StringConstants.TRACK_COLUMN_RATING),
 		
 		/**
 		 * remote track indicator
 		 */
-		REMOTE(StringConstants.TRACK_COLUMN_REMOTE);
+		REMOTE(StringConstants.TRACK_COLUMN_REMOTE, StringConstants.TRACK_COLUMN_REMOTE),
+        
+        /**
+         * number of playlists
+         */
+        NUMPLAYLISTS(StringConstants.TRACK_COLUMN_NUMPLAYLISTS, "NumPlaylists");
 		
-		private String displayValue;
+		private String headerValue;
+		private String nameValue;
 		
 		/*
 		 * Constructor.
 		 */
-		private ColumnNames (String s)
+		private ColumnNames (String header, String name)
 		{
-			displayValue = s;
+            headerValue = header;
+            nameValue = name;
 		}
+
+        /**
+         * Gets the header value.
+         * 
+         * @return enum header value
+         */
+        public String getHeaderValue()
+        {
+            return headerValue;
+        }
+
+        /**
+         * Gets the name value.
+         * 
+         * @return enum name value
+         */
+        public String getNameValue()
+        {
+            return nameValue;
+        }
 		
 		/**
-		 * Gets the display value.
-		 * 
-		 * @return enum display value
-		 */
-		public String getDisplayValue ()
-		{
-			return displayValue;
-		}
-		
-		/**
-		 * Performs a reverse lookup of the <code>enum</code> from the display
+		 * Performs a reverse lookup of the <code>enum</code> from the name
 		 * value.
 		 * 
-		 * @param value display value to look up
+		 * @param value name value to look up
 		 * @return enum value
 		 */
 		public static ColumnNames getEnum(String value)
@@ -165,14 +192,14 @@ public class TrackDisplayColumns
 	    }
 		
 		/*
-		 * Reverse lookup capability to get the enum based on its display value.
+		 * Reverse lookup capability to get the enum based on its name value.
 		 */
 		private static final Map<String, ColumnNames> lookup = new HashMap<String, ColumnNames>();		
 		static
 		{
 	        for (ColumnNames value : ColumnNames.values())
 	        {
-	            lookup.put(value.getDisplayValue(), value);
+	            lookup.put(value.getNameValue(), value);
 	        }
 	    }
 	}
@@ -202,8 +229,14 @@ public class TrackDisplayColumns
 		/**
 		 * tracks shown for a given playlist
 		 */
-		PLAYLIST_VIEW();
-		
+		PLAYLIST_VIEW(),
+        
+        /**
+         * tracks shown for a playlist family expansion
+         */
+        FAMILY_VIEW();
+
+        private List<String> headers;
 		private List<String> names;
 		private List<String> widths;
 		
@@ -212,6 +245,7 @@ public class TrackDisplayColumns
 		 */
 		private ColumnSet ()
 		{
+            headers = new ArrayList<String>();
 			names = new ArrayList<String>();
 			widths = new ArrayList<String>();
 		}
@@ -220,21 +254,33 @@ public class TrackDisplayColumns
 		 * Builds a column set. 
 		 * 
 		 * @param columnDef column set definitions. The inner list always 
-		 * contains just two elements, representing the column name and 
-		 * corresponding width.
+		 * contains three elements, representing the column header, column 
+		 * name, and corresponding width.
 		 */
 		public void buildColumnSet (List<List<String>> columnDef)
 		{
+            headers.clear();
 			names.clear();
 			widths.clear();
 			
 			for (List<String> columnData : columnDef)
 			{
 				int index = 0;
+                this.headers.add(columnData.get(index++));
 				this.names.add(columnData.get(index++));
 				this.widths.add(columnData.get(index++));
 			}
 		}
+
+        /**
+         * Gets the headers list.
+         * 
+         * @return enum headers list
+         */
+        public List<String> getHeadersList()
+        {
+            return this.headers;
+        }
 		
 		/**
 		 * Gets the names list.
@@ -268,16 +314,17 @@ public class TrackDisplayColumns
 	static
 	{
 		Map<String, String> result = new HashMap<String, String>();
-		result.put(ColumnNames.NUMBER.getDisplayValue(),   "1*");
-		result.put(ColumnNames.NAME.getDisplayValue(),     "4*");
-		result.put(ColumnNames.ARTIST.getDisplayValue(),   "2*");
-		result.put(ColumnNames.ALBUM.getDisplayValue(),    "4*");
-		result.put(ColumnNames.KIND.getDisplayValue(),     "2*");
-		result.put(ColumnNames.DURATION.getDisplayValue(), "1*");
-		result.put(ColumnNames.YEAR.getDisplayValue(),     "1*");
-		result.put(ColumnNames.ADDED.getDisplayValue(),    "2*");
-		result.put(ColumnNames.RATING.getDisplayValue(),   "1*");
-		result.put(ColumnNames.REMOTE.getDisplayValue(),   "1*");
+		result.put(ColumnNames.NUMBER.getNameValue(),       "1*");
+		result.put(ColumnNames.NAME.getNameValue(),         "4*");
+		result.put(ColumnNames.ARTIST.getNameValue(),       "2*");
+		result.put(ColumnNames.ALBUM.getNameValue(),        "4*");
+		result.put(ColumnNames.KIND.getNameValue(),         "2*");
+		result.put(ColumnNames.DURATION.getNameValue(),     "1*");
+		result.put(ColumnNames.YEAR.getNameValue(),         "1*");
+		result.put(ColumnNames.ADDED.getNameValue(),        "2*");
+		result.put(ColumnNames.RATING.getNameValue(),       "1*");
+		result.put(ColumnNames.REMOTE.getNameValue(),       "1*");
+        result.put(ColumnNames.NUMPLAYLISTS.getNameValue(), "1*");
 		
 		COLUMN_WIDTH_MAP = result;
 	}
@@ -313,6 +360,12 @@ public class TrackDisplayColumns
 		buildPlaylistColumnData(prefs);
 		
 		/*
+		 * Note that the family column set is built-in; there is no user preference for it. So we just
+		 * build it from the defaults.
+		 */
+        ColumnSet.FAMILY_VIEW.buildColumnSet(getFamilyColumnDefaults());
+		
+		/*
 		 * If the preferences were altered, serialize them.
 		 */
 		if (prefsAltered == true)
@@ -329,15 +382,23 @@ public class TrackDisplayColumns
 	public static List<List<String>> getFullColumnDefaults ()
 	{
 		List<List<String>> columnList = new ArrayList<List<String>>();
-		
-		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.KIND.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ADDED.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+
+        columnList.add(buildColumnData(ColumnNames.NAME.getHeaderValue(),
+                ColumnNames.NAME.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.ARTIST.getHeaderValue(),
+                ColumnNames.ARTIST.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.ALBUM.getHeaderValue(),
+                ColumnNames.ALBUM.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.KIND.getHeaderValue(),
+                ColumnNames.KIND.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.DURATION.getHeaderValue(),
+                ColumnNames.DURATION.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.YEAR.getHeaderValue(),
+                ColumnNames.YEAR.getNameValue()));
+		columnList.add(buildColumnData(ColumnNames.ADDED.getHeaderValue(),
+		        ColumnNames.ADDED.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.RATING.getHeaderValue(),
+                ColumnNames.RATING.getNameValue()));
 		
 		return columnList;
 	}
@@ -351,13 +412,20 @@ public class TrackDisplayColumns
 	{
 		List<List<String>> columnList = new ArrayList<List<String>>();
 		
-		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.KIND.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.NAME.getHeaderValue(),
+		        ColumnNames.NAME.getNameValue()));
+		columnList.add(buildColumnData(ColumnNames.ARTIST.getHeaderValue(),
+		        ColumnNames.ARTIST.getNameValue()));
+		columnList.add(buildColumnData(ColumnNames.ALBUM.getHeaderValue(),
+		        ColumnNames.ALBUM.getNameValue()));
+		columnList.add(buildColumnData(ColumnNames.KIND.getHeaderValue(),
+		        ColumnNames.KIND.getNameValue()));
+		columnList.add(buildColumnData(ColumnNames.DURATION.getHeaderValue(),
+		        ColumnNames.DURATION.getNameValue()));
+		columnList.add(buildColumnData(ColumnNames.YEAR.getHeaderValue(),
+		        ColumnNames.YEAR.getNameValue()));
+		columnList.add(buildColumnData(ColumnNames.RATING.getHeaderValue(),
+		        ColumnNames.RATING.getNameValue()));
 		
 		return columnList;
 	}
@@ -371,9 +439,12 @@ public class TrackDisplayColumns
 	{
 		List<List<String>> columnList = new ArrayList<List<String>>();
 
-		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
+        columnList.add(buildColumnData(ColumnNames.NAME.getHeaderValue(),
+                ColumnNames.NAME.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.ARTIST.getHeaderValue(),
+                ColumnNames.ARTIST.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.ALBUM.getHeaderValue(),
+                ColumnNames.ALBUM.getNameValue()));
 		
 		return columnList;
 	}
@@ -387,16 +458,42 @@ public class TrackDisplayColumns
 	{
 		List<List<String>> columnList = new ArrayList<List<String>>();
 
-		columnList.add(buildColumnData(ColumnNames.NUMBER.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.NAME.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ARTIST.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.ALBUM.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.DURATION.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.YEAR.getDisplayValue()));
-		columnList.add(buildColumnData(ColumnNames.RATING.getDisplayValue()));
+		columnList.add(buildColumnData(ColumnNames.NUMBER.getHeaderValue(),
+		        ColumnNames.NUMBER.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.NAME.getHeaderValue(),
+                ColumnNames.NAME.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.ARTIST.getHeaderValue(),
+                ColumnNames.ARTIST.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.ALBUM.getHeaderValue(),
+                ColumnNames.ALBUM.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.DURATION.getHeaderValue(),
+                ColumnNames.DURATION.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.YEAR.getHeaderValue(),
+                ColumnNames.YEAR.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.RATING.getHeaderValue(),
+                ColumnNames.RATING.getNameValue()));
 		
 		return columnList;
 	}
+    
+    /**
+     * Gets the list of family column set defaults.
+     * 
+     * @return list of family column set defaults
+     */
+    public static List<List<String>> getFamilyColumnDefaults ()
+    {
+        List<List<String>> columnList = new ArrayList<List<String>>();
+
+        columnList.add(buildColumnData(ColumnNames.NUMBER.getHeaderValue(),
+                ColumnNames.NUMBER.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.NAME.getHeaderValue(),
+                ColumnNames.NAME.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.NUMPLAYLISTS.getHeaderValue(),
+                ColumnNames.NUMPLAYLISTS.getNameValue()));
+        
+        return columnList;
+    }
 	
 	/**
 	 * Creates a column set. This is called by the various methods that create 
@@ -418,29 +515,32 @@ public class TrackDisplayColumns
 		}
 		
 		TableView.ColumnSequence columns = table.getColumns();
-		
+
+        List<String> columnSetHeaders = type.getHeadersList();
 		List<String> columnSetNames = type.getNamesList();
 		List<String> columnSetWidths = type.getWidthsList();
 		
 		for (int i = 0; i < columnSetNames.getLength(); i++)
 		{
 			TableView.Column column = new TableView.Column();
+            column.setHeaderData(columnSetHeaders.get(i));
 			column.setName(columnSetNames.get(i));
-			column.setHeaderData(columnSetNames.get(i));
 			column.setWidth(columnSetWidths.get(i));
 			columns.add(column);
 		}
 	}
 	
 	/**
-	 * Creates the name + width data for an individual track display column.
+	 * Creates the column data for an individual track display column.
 	 * 
+     * @param header column header
 	 * @param name name of the column
-	 * @return list of name + width data
+	 * @return list of column data
 	 */
-	public static List<String> buildColumnData (String name)
+	public static List<String> buildColumnData (String header, String name)
 	{
 		List<String> columnData = new ArrayList<String>();
+        columnData.add(header);
 		columnData.add(name);
 		columnData.add(COLUMN_WIDTH_MAP.get(name));
 		

@@ -105,61 +105,65 @@ public final class PlaylistCollection
 		 * Walk through all playlists.
 		 */
 		Map<String, Playlist> playlists = XMLHandler.getPlaylists();
-        for (String playlistKey : playlists)
-        {
-        	Playlist playlistObj = playlists.get(playlistKey);
-        	String playlistName = playlistObj.getName();
-        	
-        	/*
-        	 * We only want to process playlists in the difference list.
-        	 */
+		
+		if (playlists != null)
+		{
+		    for (String playlistKey : playlists)
+		    {
+		        Playlist playlistObj = playlists.get(playlistKey);
+		        String playlistName = playlistObj.getName();
 
-        	if (ignoredDiffs.indexOf(playlistName) == -1)
-        	{
-        		continue;
-        	}
-        	
-        	/*
-        	 * Set or reset the ignored flag.
-        	 */
-        	boolean playlistIgnored = isPlaylistIgnored(playlistName);
-    		playlistObj.setIgnored(playlistIgnored);
-    		
-    		/*
-    		 * Add or remove the playlist from the list of playlist names, so typing assistance will
-    		 * function properly.
-    		 * 
-    		 * Also, increment or decrement the number of ignored playlists accordingly.
-    		 */
-    		boolean playlistCountModified = false;
-    		
-    		if (playlistIgnored == true)
-    		{
-    			XMLHandler.removePlaylistName(playlistName);
-    			if (playlistObj.getIsFolder() == true)
-    			{
-    				XMLHandler.incrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
-    				playlistCountModified = true;
-    			}
-    		}
-    		else
-    		{
-    			XMLHandler.addPlaylistName(playlistName);
-    			if (playlistObj.getIsFolder() == true)
-    			{
-        			XMLHandler.decrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
-    				playlistCountModified = true;
-    			}
-    		}
-    		
-    		/*
-    		 * Update the main window playlist count if it has been modified.
-    		 */
-    		if (playlistCountModified == true)
-    		{
-    			Utilities.updateMainWindowLabels(prefs.getXMLFileName());
-    		}
-        }
+		        /*
+		         * We only want to process playlists in the difference list.
+		         */
+
+		        if (ignoredDiffs.indexOf(playlistName) == -1)
+		        {
+		            continue;
+		        }
+
+		        /*
+		         * Set or reset the ignored flag.
+		         */
+		        boolean playlistIgnored = isPlaylistIgnored(playlistName);
+		        playlistObj.setIgnored(playlistIgnored);
+
+		        /*
+		         * Add or remove the playlist from the list of playlist names, so typing assistance will
+		         * function properly.
+		         * 
+		         * Also, increment or decrement the number of ignored playlists accordingly.
+		         */
+		        boolean playlistCountModified = false;
+
+		        if (playlistIgnored == true)
+		        {
+		            XMLHandler.removePlaylistName(playlistName);
+		            if (playlistObj.getIsFolder() == true)
+		            {
+		                XMLHandler.incrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
+		                playlistCountModified = true;
+		            }
+		        }
+		        else
+		        {
+		            XMLHandler.addPlaylistName(playlistName);
+		            if (playlistObj.getIsFolder() == true)
+		            {
+		                XMLHandler.decrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
+		                playlistCountModified = true;
+		            }
+		        }
+
+		        /*
+		         * Update the main window playlist count if it has been modified.
+		         */
+		        if (playlistCountModified == true)
+		        {
+		            Utilities.updateMainWindowLabels(prefs.getXMLFileName());
+		        }
+		    }
+		}
 	}
 	
 	/**
@@ -188,7 +192,7 @@ public final class PlaylistCollection
     	{
         	if (ignoredPref.equals(playlistName))
         	{
-    			logger.debug("'" + playlistName + "' is ignored");
+    			logger.debug("playlist '" + playlistName + "' is ignored");
         		result = true;
         		break;
         	}

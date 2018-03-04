@@ -11,6 +11,7 @@ import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.LinkedList;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
+import org.apache.pivot.util.concurrent.Task;
 import org.jdom2.Document;
 import org.jdom2.Element;
 import org.jdom2.JDOMException;
@@ -41,7 +42,7 @@ public final class XMLHandler
     /*
      * The list of tracks; just a simple list.
      */
-    private static ArrayList<Track> Tracks = null;
+    private static ArrayList<Track> tracks = null;
 
     /*
      * The tracks map is a map of the track ID to its index value in the tracks
@@ -49,61 +50,72 @@ public final class XMLHandler
      * created and sorted. This map facilitates quick searches of a track given
      * its track ID (tracks within a playlist are identified only by ID).
      */
-    private static Map<Integer, Integer> TracksMap = null;
+    private static Map<Integer, Integer> tracksMap = null;
 
     /*
      * The duplicates map is a map of the track name to a list of track IDs.
      * This allows us to find duplicates quickly on demand, at the cost of
      * longer time to process the XML file.
      */
-    private static Map<String, List<Integer>> DuplicatesMap = null;
+    private static Map<String, List<Integer>> duplicatesMap = null;
 
     /*
      * The list of playlists. This is a map of the playlist ID to its
      * corresponding Playlist object.
      */
-    private static Map<String, Playlist> Playlists = null;
+    private static Map<String, Playlist> playlists = null;
 
     /*
      * The playlist map is a map of the playlist name to its playlist ID. This
      * map facilitates quick searches of a playlist given its name (playlists
      * referenced by a track are identified by name).
      */
-    private static Map<String, String> PlaylistsMap = null;
+    private static Map<String, String> playlistsMap = null;
 
     /*
      * List of playlist names. This is to provide typing assistance when the
      * user wants to enter a playlist name.
      */
-    private static ArrayList<String> PlaylistNames = null;
+    private static ArrayList<String> playlistNames = null;
 
     /*
      * List of track artist names. This is to provide typing assistance when the
      * user wants to enter an artist name on a track filter.
+     * 
+     * It's also used to correlate multiple artist names to a single artist
+     * object, based on the fact that the multiple names all adhere to a set of
+     * matching rules according to the ArtistNames class.
+     * 
+     * For example, this list can contain both "beatles" and "the beatles", but
+     * only have one artist object. The key from the ArtistCorrelator class is
+     * the same in both list entries, and is the key used in the artists map.
      */
-    private static ArrayList<String> ArtistNames = null;
+    private static ArrayList<ArtistCorrelator> artistCorrelators = null;
 
     /*
-     * Map of artist name to artist object.
-     * 
-     * NOTE: The keys for this map are the artist names converted to lower case.
-     * This is because the same artist might be spelled with different case on
-     * different tracks. This also means that the name shown in the artists
-     * display will be the first such name encountered. However, we do keep a
-     * list of alternate names that the user can see by right clicking on an
-     * artist.
+     * Map of artist key to artist object. The key is kept in the ArtistCorrelator class.
      */
-    private static Map<String, Artist> Artists = null;
+    private static Map<Integer, Artist> artists = null;
 
     /*
      * Number of ignored playlists.
      */
-    private static Integer PlaylistIgnoredCount = 0;
+    private static Integer playlistIgnoredCount = 0;
+    
+    /*
+     * List of artists saved as alternate name manual overrides that no longer exist, due to a
+     * changed or updated XML file.
+     */
+    private static ArrayList<String> invalidManualOverrides = null;
 
     // ---------------- Private variables -----------------------------------
 
     private static String className = XMLHandler.class.getSimpleName();
-    private static Logger logger = (Logger) LoggerFactory.getLogger(className + "_XML");
+    private static Logger xmlLogger = (Logger) LoggerFactory.getLogger(className + "_XML");
+    private static Logger trackLogger = (Logger) LoggerFactory.getLogger(className + "_Track");
+    private static Logger playlistLogger =
+            (Logger) LoggerFactory.getLogger(className + "_Playlist");
+    private static Logger artistLogger = (Logger) LoggerFactory.getLogger(className + "_Artist");
     private static Preferences userPrefs = Preferences.getInstance();
 
     private static Date XMLDate = null;
@@ -136,7 +148,7 @@ public final class XMLHandler
      */
     public static List<Track> getTracks()
     {
-        return Tracks;
+        return tracks;
     }
 
     /**
@@ -146,7 +158,7 @@ public final class XMLHandler
      */
     public static Map<Integer, Integer> getTracksMap()
     {
-        return TracksMap;
+        return tracksMap;
     }
 
     /**
@@ -156,7 +168,7 @@ public final class XMLHandler
      */
     public static Map<String, List<Integer>> getDuplicatesMap()
     {
-        return DuplicatesMap;
+        return duplicatesMap;
     }
 
     /**
@@ -166,7 +178,7 @@ public final class XMLHandler
      */
     public static Map<String, Playlist> getPlaylists()
     {
-        return Playlists;
+        return playlists;
     }
 
     /**
@@ -176,7 +188,7 @@ public final class XMLHandler
      */
     public static Map<String, String> getPlaylistsMap()
     {
-        return PlaylistsMap;
+        return playlistsMap;
     }
 
     /**
@@ -186,7 +198,7 @@ public final class XMLHandler
      */
     public static ArrayList<String> getPlaylistNames()
     {
-        return PlaylistNames;
+        return playlistNames;
     }
 
     /**
@@ -194,9 +206,9 @@ public final class XMLHandler
      * 
      * @return list of artist names
      */
-    public static ArrayList<String> getArtistNames()
+    public static ArrayList<ArtistCorrelator> getArtistCorrelators()
     {
-        return ArtistNames;
+        return artistCorrelators;
     }
 
     /**
@@ -204,19 +216,21 @@ public final class XMLHandler
      * 
      * @return mapping of artist names to artist objects
      */
-    public static Map<String, Artist> getArtists()
+    public static Map<Integer, Artist> getArtists()
     {
-        return Artists;
+        return artists;
     }
-
+    
     /**
-     * Gets the playlist ignored count.
+     * Gets the manual override invalid indicator. This means one or more
+     * artists saved as alternate name manual overrides no longer exist, due
+     * to a changed or updated iTunes XML file.
      * 
-     * @return playlist ignored count
+     * @return manual override invalid indicator
      */
-    public static Integer getPlaylistIgnoredCount()
+    public static ArrayList<String> getInvalidManualOverrides ()
     {
-        return PlaylistIgnoredCount;
+        return invalidManualOverrides;
     }
 
     // ---------------- Public methods --------------------------------------
@@ -227,7 +241,10 @@ public final class XMLHandler
     public static void initializeLogging()
     {
         Logging logging = Logging.getInstance();
-        logging.registerLogger(Logging.Dimension.XML, logger);
+        logging.registerLogger(Logging.Dimension.XML, xmlLogger);
+        logging.registerLogger(Logging.Dimension.TRACK, trackLogger);
+        logging.registerLogger(Logging.Dimension.PLAYLIST, playlistLogger);
+        logging.registerLogger(Logging.Dimension.ARTIST, artistLogger);
     }
 
     /**
@@ -241,9 +258,9 @@ public final class XMLHandler
     {
         int numTracks = 0;
 
-        if (Tracks != null)
+        if (tracks != null)
         {
-            numTracks = Tracks.getLength();
+            numTracks = tracks.getLength();
             if (userPrefs.getShowRemoteTracks() == false)
             {
                 numTracks -= remoteTracksCount;
@@ -261,7 +278,7 @@ public final class XMLHandler
      */
     public static int getNumberOfPlaylists()
     {
-        return (Playlists != null) ? Playlists.getCount() - PlaylistIgnoredCount : 0;
+        return (playlists != null) ? playlists.getCount() - playlistIgnoredCount : 0;
     }
 
     /**
@@ -275,9 +292,9 @@ public final class XMLHandler
     {
         int numArtists = 0;
 
-        if (Artists != null)
+        if (artists != null)
         {
-            numArtists = Artists.getCount();
+            numArtists = artists.getCount();
             if (userPrefs.getShowRemoteTracks() == false)
             {
                 numArtists -= remoteArtistsCount;
@@ -304,9 +321,9 @@ public final class XMLHandler
      */
     public static void addPlaylistName(String playlistName)
     {
-        if (PlaylistNames.indexOf(playlistName) == -1)
+        if (playlistNames.indexOf(playlistName) == -1)
         {
-            PlaylistNames.add(playlistName);
+            playlistNames.add(playlistName);
         }
     }
 
@@ -317,7 +334,7 @@ public final class XMLHandler
      */
     public static void removePlaylistName(String playlistName)
     {
-        PlaylistNames.remove(playlistName);
+        playlistNames.remove(playlistName);
     }
 
     /**
@@ -331,7 +348,7 @@ public final class XMLHandler
      */
     public static void incrementPlaylistIgnoredCount(Integer increment)
     {
-        PlaylistIgnoredCount += increment;
+        playlistIgnoredCount += increment;
     }
 
     /**
@@ -345,7 +362,7 @@ public final class XMLHandler
      */
     public static void decrementPlaylistIgnoredCount(Integer decrement)
     {
-        PlaylistIgnoredCount -= decrement;
+        playlistIgnoredCount -= decrement;
     }
 
     /**
@@ -355,28 +372,29 @@ public final class XMLHandler
      * @throws IOException If an error occurs trying to read the iTunes XML
      * file.
      */
-    public static void processXML(String xmlFileName) throws IOException
+    public static void processXML(String xmlFileName) 
+            throws IOException
     {
-        logger.trace("processXML");
+        xmlLogger.trace("processXML");
 
         /*
          * Create a SAXBuilder to read the XML file.
          */
-        logger.info("creating SAX builder");
+        xmlLogger.info("creating SAX builder");
         SAXBuilder jdomBuilder = new SAXBuilder(null, null, new LocatedJDOMFactory());
 
         /*
          * Build the JDOM document.
          */
         Document jdomDocument = null;
-        logger.info("creating JDOM document");
+        xmlLogger.info("creating JDOM document");
         try
         {
             jdomDocument = jdomBuilder.build(xmlFileName);
         }
         catch (JDOMException e)
         {
-            MainWindow.logException(logger, e);
+            MainWindow.logException(xmlLogger, e);
             handleJDOMError(e.getMessage());
         }
 
@@ -385,7 +403,7 @@ public final class XMLHandler
          * 
          * <plist version="..."> <dict>
          */
-        logger.info("looking for root elements");
+        xmlLogger.info("looking for root elements");
 
         Element root = jdomDocument.getRootElement();
         Element mainDict = nextSibling(root);
@@ -412,7 +430,7 @@ public final class XMLHandler
          * 
          * <key>Date</key> <key>Tracks</key> <key>Playlists</key>
          */
-        logger.info("looking for global information elements");
+        xmlLogger.info("looking for global information elements");
 
         for (Element elem : mainChildren)
         {
@@ -444,7 +462,7 @@ public final class XMLHandler
                 }
                 catch (ParseException e)
                 {
-                    MainWindow.logException(logger, e);
+                    MainWindow.logException(xmlLogger, e);
                     handleJDOMError("unable to parse date value " + dateValue.getValue());
                 }
             }
@@ -496,12 +514,30 @@ public final class XMLHandler
         }
 
         /*
-         * Now gather the actual tracks and playlists.
+         * Now gather the actual tracks.
          */
-        logger.info("gathering tracks");
+        xmlLogger.info("gathering tracks");
         generateTracks(tracksHolder);
 
-        logger.info("gathering playlists");
+        /*
+         * Now that the tracks (and artists) are all created, post-process the artists
+         * to try and find additional alternate names.
+         */
+        artistLogger.info("looking for post-process artist alternate names");
+        lookForArtistAlternateNames();
+        
+        /*
+         * Verify that all artists contained in alternate name manual overrides still exist.
+         * Any that are not are collected into a list that is shown as a warning to the user 
+         * when artists are displayed.
+         */
+        artistLogger.info("verifying artist alternate name manual overrides");
+        verifyManualOverrides();
+
+        /*
+         * Gather playlists.
+         */
+        xmlLogger.info("gathering playlists");
         generatePlaylists(playlistsHolder);
 
         /*
@@ -509,24 +545,211 @@ public final class XMLHandler
          * the total number of playlists if a folder playlist is dynamically
          * added to or removed from the ignored list.
          */
+        playlistLogger.info("setting content count for all folder playlists");
         PlaylistCollection.setPlaylistFolderCounts();
 
         /*
          * We don't want to update track playlist counts for bypassed playlists,
          * identified as such through a preference. Mark such playlists now.
          */
+        playlistLogger.info("marking bypassed playlists");
         PlaylistCollection.markBypassedPlaylists();
 
         /*
          * Now we can go through all the playlists, and for those not skipped,
          * update the track playlist information.
          */
+        playlistLogger.info("updating playlist information for all playlists");
         PlaylistCollection.updateTrackPlaylistInfo();
 
         /*
          * Log the XML file statistics.
          */
         logXMLStats();
+    }
+
+    /**
+     * Transfers an artist as an alternate name to a primary artist.
+     * 
+     * @param altArtistCorr artist correlator object for the alternate artist
+     * @param primaryIdx index into the list of artist correlators for the 
+     * primary artist
+     * @param altIdx index into the list of artist correlators to be used to 
+     * remove the alternate artist 
+     */
+    public static void transferArtistToPrimary(ArtistCorrelator altArtistCorr, int primaryIdx, int altIdx)
+    {
+        artistLogger.trace("transferArtistToPrimary (with index)");
+        
+        if (altArtistCorr == null)
+        {
+            throw new IllegalArgumentException("altArtistCorr argument is null");
+        }
+        
+        if (primaryIdx < 0)
+        {
+            throw new IllegalArgumentException("primaryIdx argument is negative");
+        }
+        
+        if (altIdx < 0)
+        {
+            throw new IllegalArgumentException("altIdx argument is negative");
+        }
+        
+        /*
+         * Call the implementation method.
+         */
+        transferArtistToPrimaryImpl(altArtistCorr, primaryIdx);
+        
+        /*
+         * Delete the now-alternate name from the artist correlators list.
+         */
+        artistCorrelators.remove(altIdx, 1);
+    }
+
+    /**
+     * Transfers an artist as an alternate name to a primary artist.
+     * 
+     * @param altArtistCorr artist correlator object for the alternate artist
+     * @param primaryIdx index into the list of artist correlators for the 
+     * primary artist
+     * @param artistCorrelatorsIter iterator for the list of artist correlators
+     * to be used to remove the alternate artist
+     */
+    public static void transferArtistToPrimary(ArtistCorrelator altArtistCorr, int primaryIdx,
+            Iterator<ArtistCorrelator> artistCorrelatorsIter)
+    {
+        artistLogger.trace("transferArtistToPrimary (with iterator)");
+        
+        if (altArtistCorr == null)
+        {
+            throw new IllegalArgumentException("altArtistCorr argument is null");
+        }
+        
+        if (primaryIdx < 0)
+        {
+            throw new IllegalArgumentException("primaryIdx argument is negative");
+        }
+        
+        if (artistCorrelatorsIter == null)
+        {
+            throw new IllegalArgumentException("artistCorrelatorsIter argument is null");
+        }
+        
+        /*
+         * Call the implementation method.
+         */
+        transferArtistToPrimaryImpl(altArtistCorr, primaryIdx);
+        
+        /*
+         * Delete the now-alternate name from the artist correlators list.
+         */
+        artistCorrelatorsIter.remove();
+    }
+    
+    /**
+     * Transfers an artist from a primary artist (as an alternate) to a 
+     * standalone artist.
+     * 
+     * @param primaryArtist primary artist name
+     * @param altArtist alternate artist name
+     */
+    public static void transferArtistFromPrimary (String primaryArtist, String altArtist)
+    {
+        artistLogger.trace("transferArtistFromPrimary");
+        
+        /*
+         * Step 1 is to create the appropriate objects and add the alternate artist to the 
+         * artistCorrelators and artists lists ...
+         */
+        
+        /*
+         * Access primary artist objects.
+         */
+        ArtistCorrelator primaryArtistCorr = findArtistCorrelator(primaryArtist);
+        Artist primaryArtistObj = artists.get(primaryArtistCorr.getArtistKey());
+        ArtistNames primaryArtistNames = primaryArtistObj.getArtistNames();
+
+        /*
+         * Create the alternate artist names object.
+         */
+        ArtistNames altArtistNames = new ArtistNames(altArtist);
+
+        /*
+         * Create and add the alternate artist correlator object.
+         */
+        ArtistCorrelator altArtistCorr = new ArtistCorrelator(altArtist);
+        altArtistCorr.setNormalizedName(altArtistNames.normalizeName());
+        artistCorrelators.add(altArtistCorr);
+
+        /*
+         * Create the alternate artist object and attach the artist names object.
+         */
+        Artist altArtistObj = new Artist(altArtist);
+        altArtistObj.setArtistNames(altArtistNames);
+        
+        /*
+         * Create the correlator key and add the artist object to the list
+         */
+        Integer correlator = altArtistObj.getCorrelator();
+        altArtistCorr.setArtistKey(correlator);
+        artists.put(correlator, altArtistObj);
+        
+        /*
+         * Step 2 is to remove the alternate artist from the primary's list of alternate names. 
+         * This returns the alternate artist track data representing the alternate. 
+         */
+        ArtistTrackData altTrackData = primaryArtistNames.getAltNames().remove(altArtist);
+        
+        /*
+         * Step 3 is to update the track counts and times for both the primary artist (by decrementing 
+         * the data for the removed alternate), and the alternate artist (by using the artist track 
+         * data retrieved above).
+         */
+        primaryArtistObj.getArtistTrackData().decrementNumLocalTracks(altTrackData.getNumLocalTracks());
+        primaryArtistObj.getArtistTrackData().decrementNumRemoteTracks(altTrackData.getNumRemoteTracks());
+        primaryArtistObj.getArtistTrackData().decrementTotalLocalTime(altTrackData.getTotalLocalTime());
+        primaryArtistObj.getArtistTrackData().decrementTotalRemoteTime(altTrackData.getTotalRemoteTime());
+        
+        altArtistObj.getArtistTrackData().setNumLocalTracks(altTrackData.getNumLocalTracks());
+        altArtistObj.getArtistTrackData().setNumRemoteTracks(altTrackData.getNumRemoteTracks());
+        altArtistObj.getArtistTrackData().setTotalLocalTime(altTrackData.getTotalLocalTime());
+        altArtistObj.getArtistTrackData().setTotalRemoteTime(altTrackData.getTotalRemoteTime());
+    }
+    
+    /**
+     * Finds the artist correlator object for a given artist name.
+     * 
+     * @param artistName artist name for which to search
+     * @return artist correlator object, or null if it could not be found
+     */
+    public static ArtistCorrelator findArtistCorrelator (String artistName)
+    {
+        artistLogger.trace("findArtistCorrelator");
+        
+        ArtistCorrelator artistCorr = null;
+        
+        /*
+         * Create a correlator with which to search.
+         */
+        ArtistCorrelator searchCorr = new ArtistCorrelator();
+        ArtistNames searchNames = new ArtistNames(artistName);
+        searchCorr.setNormalizedName(searchNames.normalizeName());
+
+        /*
+         * Search the correlator list for the given artist.
+         */
+        int index = ArrayList.binarySearch(artistCorrelators, searchCorr, artistCorrelators.getComparator());
+        
+        /*
+         * Return the correlator object if we found it.
+         */
+        if (index >= 0)
+        {
+            artistCorr = artistCorrelators.get(index);
+        }
+        
+        return artistCorr;
     }
 
     // ---------------- Private methods -------------------------------------
@@ -536,7 +759,7 @@ public final class XMLHandler
      */
     private static void generateTracks(Element tracksHolder)
     {
-        logger.trace("generateTracks");
+        trackLogger.trace("generateTracks");
 
         /*
          * Reset the remote tracks and remote artists count.
@@ -553,8 +776,8 @@ public final class XMLHandler
          * We collect all the tracks into a ArrayList of type Track. Initialize
          * it now. Also, make sure it's sorted by track name.
          */
-        Tracks = new ArrayList<Track>();
-        Tracks.setComparator(new Comparator<Track>()
+        tracks = new ArrayList<Track>();
+        tracks.setComparator(new Comparator<Track>()
         {
             @Override
             public int compare(Track t1, Track t2)
@@ -567,25 +790,31 @@ public final class XMLHandler
          * To be able to find a given track easily, we also create a HashMap of
          * the track ID to the index in the above ArrayList.
          */
-        TracksMap = new HashMap<Integer, Integer>();
+        tracksMap = new HashMap<Integer, Integer>();
 
         /*
          * Initialize the duplicates map as well.
          */
-        DuplicatesMap = new HashMap<String, List<Integer>>();
+        duplicatesMap = new HashMap<String, List<Integer>>();
 
         /*
          * Initialize the list of artist names, and set a case-insensitive
          * comparator.
          */
-        ArtistNames = new ArrayList<String>();
-        ArtistNames.setComparator(String.CASE_INSENSITIVE_ORDER);
+        artistCorrelators = new ArrayList<ArtistCorrelator>();
+        artistCorrelators.setComparator(new Comparator<ArtistCorrelator>()
+        {
+            @Override
+            public int compare(ArtistCorrelator c1, ArtistCorrelator c2)
+            {
+                return c1.compareToNormalized(c2);
+            }
+        });
 
         /*
          * Initialize the artists map.
          */
-        Artists = new HashMap<String, Artist>();
-        Artists.setComparator(String.CASE_INSENSITIVE_ORDER);
+        artists = new HashMap<Integer, Artist>();
 
         /*
          * Walk through the elements of the parent <dict> element.
@@ -602,7 +831,7 @@ public final class XMLHandler
         int ID = 0;
         Track trackObj = null;
 
-        logger.debug("starting track loop");
+        trackLogger.debug("starting track loop");
         for (Element trackElem : tracksXML)
         {
 
@@ -760,32 +989,32 @@ public final class XMLHandler
                  * do this before adding it to the main tracks list, to avoid
                  * false duplicates.
                  */
-                int index = ArrayList.binarySearch(Tracks, trackObj, Tracks.getComparator());
+                int index = ArrayList.binarySearch(tracks, trackObj, tracks.getComparator());
                 if (index >= 0)
                 {
                     List<Integer> trackIDs;
                     String trackName = trackObj.getName();
                     int thisID = trackObj.getID();
 
-                    if ((trackIDs = DuplicatesMap.get(trackName)) == null)
+                    if ((trackIDs = duplicatesMap.get(trackName)) == null)
                     {
                         trackIDs = new ArrayList<Integer>();
-                        int foundID = Tracks.get(index).getID();
+                        int foundID = tracks.get(index).getID();
                         trackIDs.add(foundID);
-                        logger.debug("initialized duplicates map entry for track '" + trackName
+                        trackLogger.debug("initialized duplicates map entry for track '" + trackName
                                 + "', track ID " + foundID);
                     }
                     trackIDs.add(thisID);
-                    logger.debug("added track ID " + thisID + " to track '" + trackName + "'");
+                    trackLogger.debug("added track ID " + thisID + " to track '" + trackName + "'");
 
-                    DuplicatesMap.put(trackName, trackIDs);
+                    duplicatesMap.put(trackName, trackIDs);
                 }
 
                 /*
                  * Add the track object to the list.
                  */
-                Tracks.add(trackObj);
-                logger.debug("found track ID " + ID + ", name '" + trackObj.getName() + "'");
+                tracks.add(trackObj);
+                trackLogger.debug("found track ID " + ID + ", name '" + trackObj.getName() + "'");
             }
             else
             {
@@ -801,19 +1030,40 @@ public final class XMLHandler
             {
 
                 /*
-                 * Add the artist name to the list of such names, if it ain't
-                 * already there. Also, create a new artist object, initialize
-                 * it from the track, and add it to the artist map.
+                 * Get an artist names object and normalize the artist name.
                  */
-                int index = ArrayList.binarySearch(ArtistNames, artist,
-                        ArtistNames.getComparator());
+                ArtistNames artistNames = new ArtistNames(artist);
+                String normalizedName = artistNames.normalizeName();
+
+                /*
+                 * Try to match the artist name to the current list of artists. This method
+                 * detects alternate artist names, matching them to the existing primary name.
+                 */
+                int index =
+                        artistNames.matchArtist(artistCorrelators, artistLogger);
                 if (index < 0)
                 {
-                    ArtistNames.add(artist);
-                    Artist artistObj = new Artist(artist.toLowerCase());
-                    artistObj.addTrackToArtist(trackObj);
-                    Artists.put(artist.toLowerCase(), artistObj);
-                    logger.debug("found artist name '" + artist + "'");
+
+                    /*
+                     * We did not find a match. Add the artist name to the list of such names
+                     * (as a correlator object).
+                     */
+                    ArtistCorrelator artistCorr = new ArtistCorrelator(artist);
+                    artistCorr.setNormalizedName(normalizedName);
+                    artistCorrelators.add(artistCorr);
+
+                    /*
+                     * Create a new artist object, initialize it from the track, and add it to 
+                     * the artist map.
+                     */
+                    Artist artistObj = new Artist(artist);
+                    artistObj.setArtistNames(artistNames);
+                    artistObj.addTrackToArtist(trackObj, artistLogger);
+                    Integer correlator = artistObj.getCorrelator();
+                    artistCorr.setArtistKey(correlator);
+                    artists.put(correlator, artistObj);
+                    artistLogger.debug("found artist name '" + artist + "', normalized '"
+                            + normalizedName + "'");
 
                     /*
                      * This is tricky. We need to keep a count of artists that
@@ -823,12 +1073,13 @@ public final class XMLHandler
                      * the else leg we're hitting the same artist again, so if
                      * that track is local, we then decrement the remote artists
                      * count. And then remember that fact using a flag in the
-                     * artist object. A thing of beauty, yes?
+                     * artist track data object. A thing of beauty, yes?
                      */
                     if (trackObj.getRemote() == true)
                     {
                         remoteArtistsCount++;
-                        artistObj.setRemoteArtistControl(Artist.RemoteArtistControl.REMOTE);
+                        artistObj.getArtistTrackData().setRemoteArtistControl(
+                                ArtistTrackData.RemoteArtistControl.REMOTE);
                     }
                 }
 
@@ -839,19 +1090,23 @@ public final class XMLHandler
                  */
                 else
                 {
-                    Artist artistObj = Artists.get(artist.toLowerCase());
-                    artistObj.addTrackToArtist(trackObj);
-                    Artists.put(artist.toLowerCase(), artistObj);
+                    ArtistCorrelator artistCorr = artistCorrelators.get(index);
+                    Artist artistObj = artists.get(artistCorr.getArtistKey());
+                    artistObj.addTrackToArtist(trackObj, artistLogger);
+                    artists.put(artistCorr.getArtistKey(), artistObj);
+                    artistLogger.debug("updated existing artist name '" + artist + "', normalized '"
+                            + normalizedName + "'");
 
                     /*
                      * See comment above in the if leg.
                      */
-                    if (trackObj.getRemote() == false && artistObj
-                            .getRemoteArtistControl() == Artist.RemoteArtistControl.REMOTE)
+                    if (trackObj.getRemote() == false && 
+                            artistObj.getArtistTrackData().getRemoteArtistControl() == 
+                            ArtistTrackData.RemoteArtistControl.REMOTE)
                     {
                         remoteArtistsCount--;
-                        artistObj.setRemoteArtistControl(
-                                Artist.RemoteArtistControl.REMOTE_AND_LOCAL);
+                        artistObj.getArtistTrackData().setRemoteArtistControl(
+                                ArtistTrackData.RemoteArtistControl.REMOTE_AND_LOCAL);
                     }
                 }
             }
@@ -869,11 +1124,11 @@ public final class XMLHandler
          * correct.
          */
         int index = 0;
-        for (Track track : Tracks)
+        for (Track track : tracks)
         {
             int trackID = track.getID();
-            TracksMap.put(trackID, index++);
-            logger.debug("mapped track ID " + trackID + " to index " + index);
+            tracksMap.put(trackID, index++);
+            trackLogger.debug("mapped track ID " + trackID + " to index " + index);
         }
     }
 
@@ -882,13 +1137,13 @@ public final class XMLHandler
      */
     private static void generatePlaylists(Element playlistsHolder)
     {
-        logger.trace("generatePlaylists");
+        playlistLogger.trace("generatePlaylists");
 
         /*
          * Reset the playlist ignored count, so it doesn't keep growing if we
          * reread the XML file.
          */
-        PlaylistIgnoredCount = 0;
+        playlistIgnoredCount = 0;
 
         /*
          * Get a list of the XML playlists to work with.
@@ -899,25 +1154,25 @@ public final class XMLHandler
          * We collect all the playlists into a HashMap of the playlist name to
          * its Playlist object. Initialize it now.
          */
-        Playlists = new HashMap<String, Playlist>();
+        playlists = new HashMap<String, Playlist>();
 
         /*
          * To be able to find a given playlist by name, we also create a HashMap
          * of the playlist name to ID.
          */
-        PlaylistsMap = new HashMap<String, String>();
+        playlistsMap = new HashMap<String, String>();
 
         /*
          * Initialize the list of playlist names, and set a case-insensitive
          * comparator.
          */
-        PlaylistNames = new ArrayList<String>();
-        PlaylistNames.setComparator(String.CASE_INSENSITIVE_ORDER);
+        playlistNames = new ArrayList<String>();
+        playlistNames.setComparator(String.CASE_INSENSITIVE_ORDER);
 
         /*
          * Walk through the elements of the parent <array> element.
          */
-        logger.debug("starting playlist loop");
+        playlistLogger.debug("starting playlist loop");
         for (Element playlistElem : playlistsXML)
         {
 
@@ -988,7 +1243,7 @@ public final class XMLHandler
                         List<Integer> playlistTracks = new LinkedList<Integer>();
                         playlistTracks = gatherPlaylistTracks(playlistAttr);
 
-                        logger.debug("playlist '" + playlistObj.getName() + "' has "
+                        playlistLogger.debug("playlist '" + playlistObj.getName() + "' has "
                                 + playlistTracks.getLength() + " tracks");
                         playlistObj.setTracks(playlistTracks);
 
@@ -1016,9 +1271,9 @@ public final class XMLHandler
             /*
              * Add the playlist object to the collection.
              */
-            Playlists.put(playlistObj.getPersistentID(), playlistObj);
-            PlaylistsMap.put(playlistObj.getName(), playlistObj.getPersistentID());
-            logger.debug("found playlist name " + playlistObj.getName());
+            playlists.put(playlistObj.getPersistentID(), playlistObj);
+            playlistsMap.put(playlistObj.getName(), playlistObj.getPersistentID());
+            playlistLogger.debug("found playlist name " + playlistObj.getName());
 
             /*
              * If the playlist is not ignored, add its name to the playlist name
@@ -1029,6 +1284,205 @@ public final class XMLHandler
                 addPlaylistName(playlistObj.getName());
             }
         }
+    }
+    
+    /*
+     * Verify that artist names contained in any manual overrides are still valid. The iTunes
+     * XML file could have been changed or updated.
+     */
+    private static void verifyManualOverrides ()
+    {
+        artistLogger.trace("verifyManualOverrides");
+        
+        ArtistCorrelator searchCorr = new ArtistCorrelator();
+        
+        /*
+         * Initialize the list of invalid names.
+         */
+        if (invalidManualOverrides == null)
+        {
+            invalidManualOverrides = new ArrayList<String>();
+        }
+        else
+        {
+            invalidManualOverrides.clear();
+        }
+        
+        /*
+         * Get the manual overrides from the preferences.
+         */
+        Map<String, List<String>> manualOverrides = userPrefs.getManualOverrides();
+        
+        /*
+         * Loop through all primary and alternate artists to verify they still exist. If not,
+         * add them to the invalid list.
+         */
+        for (String primaryArtist : manualOverrides)
+        {
+            int primaryIdx;
+            
+            /*
+             * The primary artists always exist in the database, so we search for them there.
+             */
+            ArtistNames primaryTemp = new ArtistNames(primaryArtist);
+            searchCorr.setNormalizedName(primaryTemp.normalizeName());
+            if ((primaryIdx = ArrayList.binarySearch(artistCorrelators, 
+                    searchCorr, artistCorrelators.getComparator())) < 0)
+            {
+                invalidManualOverrides.add(primaryArtist);
+                artistLogger.debug("found invalid primary artist " + primaryArtist);
+            }
+            
+            /*
+             * Check the alternates from the override.
+             */
+            List<String> alternateArtists = manualOverrides.get(primaryArtist);
+            for (String alternateArtist : alternateArtists)
+            {
+                
+                /*
+                 * If we found the primary, then we want to look for this alternate in the primary's
+                 * alternate list. It should not exist in its own right in the database.
+                 */
+                if (primaryIdx >= 0)
+                {
+                    ArtistCorrelator primaryCorr = artistCorrelators.get(primaryIdx);
+                    Artist primaryArtistObj = artists.get(primaryCorr.getArtistKey());
+                    ArtistNames primaryNames = primaryArtistObj.getArtistNames();
+                    Map<String, ArtistTrackData> altNames = primaryNames.getAltNames();
+                    if (!altNames.containsKey(alternateArtist))
+                    {
+                        invalidManualOverrides.add(alternateArtist);
+                        artistLogger.debug("found invalid alternate artist " + alternateArtist);
+                    }
+                }
+                
+                /*
+                 * If we did not find the primary, then this alternate (if it exists) will be in
+                 * the database, since there was no primary to add it to as an alternate.
+                 */
+                else
+                {
+                    ArtistNames altTemp = new ArtistNames(alternateArtist);
+                    searchCorr.setNormalizedName(altTemp.normalizeName());
+                    if (ArrayList.binarySearch(artistCorrelators, searchCorr, 
+                            artistCorrelators.getComparator()) < 0)
+                    {
+                        invalidManualOverrides.add(alternateArtist);
+                        artistLogger.debug("found invalid alternate artist " + alternateArtist);
+                    }
+                }
+            }
+        }
+    }
+
+    /*
+     * As we collected tracks and artists, we were able to find alternate artist names like
+     * the following:
+     * 
+     *   ABC
+     *   ABC Featuring Q
+     * 
+     * But only if the artists were found in the above order. If the name with the "featuring"
+     * tag was found first, then we didn't try looking when artist ABC was found, the reason 
+     * being it would be very inefficient to check all artists in such a way for a fringe case.
+     * 
+     * However, such an artist was flagged in the ArtistNames object. So here we run the artist
+     * list looking for those flags and trying to find the primary artist. If so, we then process
+     * the name with the "featuring" tag as an alternate for the primary.
+     * 
+     * Similar logic is used for alternate name manual overrides set by the user. We have the same 
+     * out of order problem detailed above.
+     */
+    private static void lookForArtistAlternateNames ()
+    {
+        artistLogger.trace("lookForArtistAlternateNames");
+
+        /*
+         * Loop through the correlator list. We need to use an iterator instead of a foreach
+         * so we can safely remove correlator items while looping.
+         */
+        Iterator<ArtistCorrelator> artistCorrelatorsIter = artistCorrelators.iterator();
+        while (artistCorrelatorsIter.hasNext())
+        {
+            ArtistCorrelator artistCorr = artistCorrelatorsIter.next();
+
+            Artist artistObj = artists.get(artistCorr.getArtistKey());
+            ArtistNames artistNames = artistObj.getArtistNames();
+
+            /*
+             * If the post-processing type is set, try to find the associated primary artist.
+             */
+            ArtistNames.PostProcessType postProcessType = artistNames.getPostProcessType();
+            if (postProcessType != ArtistNames.PostProcessType.NONE)
+            {
+                artistLogger.debug("artist name '" + artistCorr.getDisplayName() + "', normalized '"
+                        + artistCorr.getNormalizedName() + "', post-processing type '"
+                        + postProcessType.getDisplayValue() + "'");
+
+                int index = artistNames.checkPostProcessType(artistCorrelators);
+
+                /*
+                 * If we found the primary artist then transfer this alternate to it, and remove
+                 * this alternate from the correlators list.
+                 */
+                if (index >= 0)
+                {
+                    transferArtistToPrimary(artistCorr, index, artistCorrelatorsIter);
+                }
+            }
+        }
+    }
+    
+    /*
+     * This is the implementation method for transferring an alternate artist to a primary. There
+     * are multiple public methods with differing parameters for deleting the alternate artist
+     * correlator, but the bulk of the logic (this method) is identical.
+     */
+    private static void transferArtistToPrimaryImpl (ArtistCorrelator altArtistCorr, int primaryIdx)
+    {
+        artistLogger.trace("transferArtistToPrimaryImpl");
+
+        /*
+         * Access the objects we need.
+         */
+        Artist altArtistObj = artists.get(altArtistCorr.getArtistKey());
+
+        ArtistCorrelator primaryArtistCorr = artistCorrelators.get(primaryIdx);
+        Artist primaryArtistObj = artists.get(primaryArtistCorr.getArtistKey());
+        ArtistNames primaryArtistNames = primaryArtistObj.getArtistNames();
+
+        artistLogger.debug("adding alternate artist name '" + altArtistCorr.getDisplayName()
+                + "', normalized '" + altArtistCorr.getNormalizedName() + "' to primary '"
+                + primaryArtistCorr.getDisplayName() + ", normalized '"
+                + primaryArtistCorr.getNormalizedName());
+
+        /*
+         * Add the alternate name to the primary artist.
+         */
+        primaryArtistNames.addAlternateName(altArtistObj.getDisplayName(), 
+                altArtistObj.getArtistTrackData(), artistLogger);
+
+        /*
+         * Update the primary artist counts and times.
+         */
+        int updatedValue = primaryArtistObj.getArtistTrackData().getNumLocalTracks() + 
+                altArtistObj.getArtistTrackData().getNumLocalTracks();
+        primaryArtistObj.getArtistTrackData().setNumLocalTracks(updatedValue);
+        updatedValue = primaryArtistObj.getArtistTrackData().getNumRemoteTracks() + 
+                altArtistObj.getArtistTrackData().getNumRemoteTracks();
+        primaryArtistObj.getArtistTrackData().setNumRemoteTracks(updatedValue);
+        updatedValue = primaryArtistObj.getArtistTrackData().getTotalLocalTime() + 
+                altArtistObj.getArtistTrackData().getTotalLocalTime();
+        primaryArtistObj.getArtistTrackData().setTotalLocalTime(updatedValue);
+        updatedValue = primaryArtistObj.getArtistTrackData().getTotalRemoteTime() + 
+                altArtistObj.getArtistTrackData().getTotalRemoteTime();
+        primaryArtistObj.getArtistTrackData().setTotalRemoteTime(updatedValue);
+
+        /*
+         * Delete the now-alternate name from the artist list.
+         */
+        artists.remove(altArtistCorr.getArtistKey());
     }
 
     /*
@@ -1044,7 +1498,7 @@ public final class XMLHandler
      */
     private static List<Integer> gatherPlaylistTracks(Element playlistTracksKeyElem)
     {
-        logger.trace("gatherPlaylistTracks");
+        playlistLogger.trace("gatherPlaylistTracks");
 
         List<Integer> playlistTracks = new LinkedList<Integer>();
 
@@ -1101,8 +1555,8 @@ public final class XMLHandler
                          * So we finally have the track ID. Add it to the
                          * collection we will return.
                          */
-                        Integer playlistTrackID = new Integer(
-                                nextIntValue(playlistTrackAttrsIter, keyValue));
+                        Integer playlistTrackID =
+                                new Integer(nextIntValue(playlistTrackAttrsIter, keyValue));
                         playlistTracks.add(playlistTrackID);
                     }
                     else
@@ -1178,7 +1632,7 @@ public final class XMLHandler
         }
         catch (IndexOutOfBoundsException e)
         {
-            MainWindow.logException(logger, e);
+            MainWindow.logException(xmlLogger, e);
             handleJDOMError("expected sibling element not found after " + current.getTextTrim());
         }
 
@@ -1271,7 +1725,7 @@ public final class XMLHandler
         }
         catch (ParseException e)
         {
-            MainWindow.logException(logger, e);
+            MainWindow.logException(xmlLogger, e);
             handleJDOMError("unable to parse date value " + nextTrackAttr.getTextTrim());
         }
 
@@ -1331,10 +1785,10 @@ public final class XMLHandler
         /*
          * Number of tracks and remote tracks.
          */
-        if (Tracks != null)
+        if (tracks != null)
         {
             output.append(String.format("%2d", ++itemNum) + ") " + "Number of tracks: "
-                    + Tracks.getLength() + lineSeparator);
+                    + tracks.getLength() + lineSeparator);
             output.append(String.format("%2d", ++itemNum) + ") " + "Number of remote tracks: "
                     + remoteTracksCount + lineSeparator);
         }
@@ -1342,21 +1796,21 @@ public final class XMLHandler
         /*
          * Number of playlists and ignored playlists.
          */
-        if (Playlists != null)
+        if (playlists != null)
         {
             output.append(String.format("%2d", ++itemNum) + ") " + "Number of playlists: "
-                    + Playlists.getCount() + lineSeparator);
+                    + playlists.getCount() + lineSeparator);
             output.append(String.format("%2d", ++itemNum) + ") " + "Number of ignored playlists: "
-                    + PlaylistIgnoredCount + lineSeparator);
+                    + playlistIgnoredCount + lineSeparator);
         }
 
         /*
          * Number of artists and remote artists.
          */
-        if (Artists != null)
+        if (artists != null)
         {
             output.append(String.format("%2d", ++itemNum) + ") " + "Number of artists: "
-                    + Artists.getCount() + lineSeparator);
+                    + artists.getCount() + lineSeparator);
             output.append(String.format("%2d", ++itemNum) + ") " + "Number of remote artists: "
                     + remoteArtistsCount + lineSeparator);
         }
@@ -1364,8 +1818,46 @@ public final class XMLHandler
         /*
          * Log it!
          */
-        Logging logging = Logging.getInstance();
-        Logger diagLogger = logging.getDiagLogger();
+        Logger diagLogger = Logging.getInstance().getDiagLogger();
         diagLogger.info(output.toString());
+    }
+
+    // ---------------- Nested classes --------------------------------------
+    
+    /**
+     * Inner class that encapsulates reading the iTunes XML file in a
+     * background task.
+     * 
+     * @author Jon
+     *
+     */
+    public static final class ReadXMLTask extends Task<Integer>
+    {
+        @Override
+        public Integer execute()
+        {
+            int result = 0;
+            
+            /*
+             * Get the user preferences.
+             */
+            Preferences userPrefs = Preferences.getInstance();
+            
+            /*
+             * Process the XML file.
+             */
+            try
+            {
+                processXML(userPrefs.getXMLFileName());
+            }
+            catch (IOException e)
+            {
+                MainWindow.logException(xmlLogger, e);
+                throw new InternalErrorException(true, e.getMessage());
+            }
+            
+            return result;
+            
+        }
     }
 }

@@ -194,6 +194,9 @@ public class PreferencesWindow
     @BXML private BoxPane playlistLogLevelPrefsBoxPane = null;
     @BXML private Label playlistLogLevelPrefsLabel = null;
     @BXML private Spinner playlistLogLevelPrefsSpinner = null;
+    @BXML private BoxPane artistLogLevelPrefsBoxPane = null;
+    @BXML private Label artistLogLevelPrefsLabel = null;
+    @BXML private Spinner artistLogLevelPrefsSpinner = null;
     @BXML private BoxPane filterLogLevelPrefsBoxPane = null;
     @BXML private Label filterLogLevelPrefsLabel = null;
     @BXML private Spinner filterLogLevelPrefsSpinner = null;
@@ -227,8 +230,7 @@ public class PreferencesWindow
     @BXML private PushButton previewButton = null;
 
     /**
-     * Class constructor specifying the preferences sheet and the associated
-     * owning window.
+     * Class constructor.
      * 
      * @param preferences preferences sheet
      * @param owner owning window
@@ -273,7 +275,8 @@ public class PreferencesWindow
      * @throws SerializationException If an error occurs trying to deserialize
      * the BXML file.
      */
-    public void displayPreferences(Display display) throws IOException, SerializationException
+    public void displayPreferences(Display display) 
+            throws IOException, SerializationException
     {
         logger.trace("displayPreferences: " + this.hashCode());
 
@@ -342,12 +345,13 @@ public class PreferencesWindow
         }
 
         /*
-         * Set the widths of the column preferences labels.
+         * Set the widths of the column preferences and remote tracks labels.
          */
         fullColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         duplicatesColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         filteredColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         playlistColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
+        remoteTracksLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
 
         /*
          * Set the spacing of the miscellaneous preferences row elements.
@@ -363,6 +367,7 @@ public class PreferencesWindow
         xmlLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
         trackLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
         playlistLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
+        artistLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
         filterLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
 
         logger.debug("setting up tabs");
@@ -466,7 +471,7 @@ public class PreferencesWindow
         }
         else
         {
-            index = skinNames.indexOf(Skins.defaultSkin);
+            index = skinNames.indexOf(Skins.DEFAULT_SKIN);
         }
         skinPrefsSpinner.setSelectedIndex(index);
 
@@ -488,6 +493,7 @@ public class PreferencesWindow
         setupLogLevelSpinner(Logging.Dimension.XML, xmlLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.TRACK, trackLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.PLAYLIST, playlistLogLevelPrefsSpinner);
+        setupLogLevelSpinner(Logging.Dimension.ARTIST, artistLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.FILTER, filterLogLevelPrefsSpinner);
 
         /*
@@ -497,30 +503,12 @@ public class PreferencesWindow
         if (userPrefs.getGlobalLogLevel() == true)
         {
             logLevelPrefsCheckbox.setSelected(true);
-            uiLogLevelPrefsLabel.setEnabled(false);
-            uiLogLevelPrefsSpinner.setEnabled(false);
-            xmlLogLevelPrefsLabel.setEnabled(false);
-            xmlLogLevelPrefsSpinner.setEnabled(false);
-            trackLogLevelPrefsLabel.setEnabled(false);
-            trackLogLevelPrefsSpinner.setEnabled(false);
-            playlistLogLevelPrefsLabel.setEnabled(false);
-            playlistLogLevelPrefsSpinner.setEnabled(false);
-            filterLogLevelPrefsLabel.setEnabled(false);
-            filterLogLevelPrefsSpinner.setEnabled(false);
+            toggleDimensionalLogLevelWidgets(false);
         }
         else
         {
             logLevelPrefsCheckbox.setSelected(false);
-            uiLogLevelPrefsLabel.setEnabled(true);
-            uiLogLevelPrefsSpinner.setEnabled(true);
-            xmlLogLevelPrefsLabel.setEnabled(true);
-            xmlLogLevelPrefsSpinner.setEnabled(true);
-            trackLogLevelPrefsLabel.setEnabled(true);
-            trackLogLevelPrefsSpinner.setEnabled(true);
-            playlistLogLevelPrefsLabel.setEnabled(true);
-            playlistLogLevelPrefsSpinner.setEnabled(true);
-            filterLogLevelPrefsLabel.setEnabled(true);
-            filterLogLevelPrefsSpinner.setEnabled(true);
+            toggleDimensionalLogLevelWidgets(true);
         }
 
         /*
@@ -554,16 +542,20 @@ public class PreferencesWindow
          */
         bypassPrefsBorderLabel.setText(StringConstants.PREFS_BYPASS_BORDER);
         bypassPrefsBorderLabel.setTooltipText(StringConstants.PREFS_BYPASS_TIP);
+        bypassPrefsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         ignoredPrefsBorderLabel.setText(StringConstants.PREFS_IGNORED_BORDER);
         ignoredPrefsBorderLabel.setTooltipText(StringConstants.PREFS_IGNORED_TIP);
+        ignoredPrefsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         tab1ResetButton.setButtonData(StringConstants.PREFS_RESET);
         tab1ResetButton.setTooltipText(StringConstants.PREFS_TAB1_RESET_TIP);
+        tab1ResetButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * ... second tab.
          */
         columnPrefsBorderLabel.setText(StringConstants.PREFS_COLUMN_BORDER);
         columnPrefsBorderLabel.setTooltipText(StringConstants.PREFS_COLUMN_TIP);
+        columnPrefsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         fullColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_FULL);
         fullNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
         fullNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
@@ -610,40 +602,64 @@ public class PreferencesWindow
         playlistRemoteCheckbox.setButtonData(StringConstants.TRACK_COLUMN_REMOTE);
         remoteTracksLabel.setText(StringConstants.PREFS_SHOW_REMOTE_TRACKS);
         remoteTracksLabel.setTooltipText(StringConstants.PREFS_SHOW_REMOTE_TRACKS_TIP);
+        remoteTracksLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         tab2ResetButton.setButtonData(StringConstants.PREFS_RESET);
         tab2ResetButton.setTooltipText(StringConstants.PREFS_TAB2_RESET_TIP);
+        tab2ResetButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * ... third tab.
          */
         skinPrefsBorderLabel.setText(StringConstants.PREFS_SKIN_BORDER);
         skinPrefsBorderLabel.setTooltipText(StringConstants.PREFS_SKIN_TIP);
+        skinPrefsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         skinPrefsButton.setButtonData(StringConstants.PREFS_SKIN_PREVIEW);
         saveDirectoryBorderLabel.setText(StringConstants.PREFS_SAVE_DIR_BORDER);
         saveDirectoryBorderLabel.setTooltipText(StringConstants.PREFS_SAVE_DIR_TIP);
+        saveDirectoryBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         logHistoryPrefsBorderLabel.setText(StringConstants.PREFS_LOG_HISTORY_BORDER);
         logHistoryPrefsBorderLabel.setTooltipText(StringConstants.PREFS_LOG_HISTORY_TIP);
+        logHistoryPrefsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         logLevelPrefsBorderLabel.setText(StringConstants.PREFS_LOG_LEVEL_BORDER);
         logLevelPrefsBorderLabel.setTooltipText(StringConstants.PREFS_LOG_LEVEL_TIP);
+        logLevelPrefsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         logLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
+        logLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         logLevelPrefsCheckbox.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
+        logLevelPrefsCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         uiLogLevelPrefsLabel.setText(StringConstants.PREFS_UI_LOG_LEVEL);
         uiLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_UI_LOG_LEVEL_TIP);
+        uiLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         uiLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_UI_LOG_LEVEL_TIP);
+        uiLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         xmlLogLevelPrefsLabel.setText(StringConstants.PREFS_XML_LOG_LEVEL);
         xmlLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_XML_LOG_LEVEL_TIP);
+        xmlLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         xmlLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_XML_LOG_LEVEL_TIP);
+        xmlLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         trackLogLevelPrefsLabel.setText(StringConstants.PREFS_TRACK_LOG_LEVEL);
         trackLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_TRACK_LOG_LEVEL_TIP);
+        trackLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         trackLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_TRACK_LOG_LEVEL_TIP);
+        trackLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         playlistLogLevelPrefsLabel.setText(StringConstants.PREFS_PLAYLIST_LOG_LEVEL);
         playlistLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_PLAYLIST_LOG_LEVEL_TIP);
+        playlistLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         playlistLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_PLAYLIST_LOG_LEVEL_TIP);
+        playlistLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        artistLogLevelPrefsLabel.setText(StringConstants.PREFS_ARTIST_LOG_LEVEL);
+        artistLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_ARTIST_LOG_LEVEL_TIP);
+        artistLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        artistLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_ARTIST_LOG_LEVEL_TIP);
+        artistLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         filterLogLevelPrefsLabel.setText(StringConstants.PREFS_FILTER_LOG_LEVEL);
         filterLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_FILTER_LOG_LEVEL_TIP);
+        filterLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         filterLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_FILTER_LOG_LEVEL_TIP);
+        filterLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         tab3ResetButton.setButtonData(StringConstants.PREFS_RESET);
         tab3ResetButton.setTooltipText(StringConstants.PREFS_TAB3_RESET_TIP);
+        tab3ResetButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         preferencesDoneButton.setButtonData(StringConstants.DONE);
 
@@ -651,8 +667,6 @@ public class PreferencesWindow
          * Set the window title.
          */
         preferencesSheet.setTitle(Skins.Window.PREFERENCES.getDisplayValue());
-
-        logger.debug("registering and skinning preferences window");
 
         /*
          * Now register the preferences window skin elements.
@@ -721,9 +735,10 @@ public class PreferencesWindow
                 /*
                  * Register the new components and skin them.
                  */
-                Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(rowComponents);
+                Map<Skins.Element, List<Component>> windowElements = 
+                        skins.mapComponentsToSkinElements(rowComponents);
                 skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
-                skins.skinMe(Skins.Window.PREFERENCES);
+                skins.skinMe(Skins.Window.PREFERENCES, windowElements);
 
                 preferencesSheet.repaint();
             }
@@ -808,16 +823,7 @@ public class PreferencesWindow
                  * all the dimensional log level widgets.
                  */
                 logLevelPrefsCheckbox.setSelected(true);
-                uiLogLevelPrefsLabel.setEnabled(false);
-                uiLogLevelPrefsSpinner.setEnabled(false);
-                xmlLogLevelPrefsLabel.setEnabled(false);
-                xmlLogLevelPrefsSpinner.setEnabled(false);
-                trackLogLevelPrefsLabel.setEnabled(false);
-                trackLogLevelPrefsSpinner.setEnabled(false);
-                playlistLogLevelPrefsLabel.setEnabled(false);
-                playlistLogLevelPrefsSpinner.setEnabled(false);
-                filterLogLevelPrefsLabel.setEnabled(false);
-                filterLogLevelPrefsSpinner.setEnabled(false);
+                toggleDimensionalLogLevelWidgets(false);
 
                 /*
                  * Update all log level spinners to the default value.
@@ -830,6 +836,7 @@ public class PreferencesWindow
                 xmlLogLevelPrefsSpinner.setSelectedIndex(index);
                 trackLogLevelPrefsSpinner.setSelectedIndex(index);
                 playlistLogLevelPrefsSpinner.setSelectedIndex(index);
+                artistLogLevelPrefsSpinner.setSelectedIndex(index);
                 filterLogLevelPrefsSpinner.setSelectedIndex(index);
 
                 /*
@@ -907,8 +914,9 @@ public class PreferencesWindow
                              * Walk through the preview table, which contains
                              * weekdays.
                              */
-                            @SuppressWarnings("unchecked") List<HashMap<String, String>> tableData = (List<HashMap<String, String>>) previewTableView
-                                    .getTableData();
+                            @SuppressWarnings("unchecked") 
+                            List<HashMap<String, String>> tableData = 
+                                (List<HashMap<String, String>>) previewTableView.getTableData();
                             for (int i = 0; i < tableData.getLength(); i++)
                             {
                                 HashMap<String, String> row = tableData.get(i);
@@ -1048,7 +1056,7 @@ public class PreferencesWindow
                  * Open the preview dialog. The close button action is included
                  * in the BXML.
                  */
-                logger.info("opening preview dialog");
+                logger.info("opening skin preview dialog");
                 skinPreviewDialog.open(display);
             }
         });
@@ -1131,6 +1139,16 @@ public class PreferencesWindow
 
                     List<BypassPreference> bypassPrefs = collectBypassPrefs();
                     userPrefs.replaceBypassPrefs(bypassPrefs);
+                    
+                    /*
+                     * Mark all bypassed playlists.
+                     */
+                    PlaylistCollection.markBypassedPlaylists();
+                    
+                    /*
+                     * Update the track playlist info for all playlists, which includes the bypassed flag.
+                     */
+                    PlaylistCollection.updateTrackPlaylistInfo();
                 }
 
                 if (ignoredPrefsUpdated == true)
@@ -1294,6 +1312,8 @@ public class PreferencesWindow
                     userPrefs.setLogLevel(Logging.Dimension.TRACK, Level.toLevel(levelPref));
                     levelPref = (String) playlistLogLevelPrefsSpinner.getSelectedItem();
                     userPrefs.setLogLevel(Logging.Dimension.PLAYLIST, Level.toLevel(levelPref));
+                    levelPref = (String) artistLogLevelPrefsSpinner.getSelectedItem();
+                    userPrefs.setLogLevel(Logging.Dimension.ARTIST, Level.toLevel(levelPref));
                     levelPref = (String) filterLogLevelPrefsSpinner.getSelectedItem();
                     userPrefs.setLogLevel(Logging.Dimension.FILTER, Level.toLevel(levelPref));
 
@@ -1409,6 +1429,7 @@ public class PreferencesWindow
          */
         Checkbox includeChildren = new Checkbox(StringConstants.PREFS_BYPASS_INCLUDE);
         includeChildren.setTooltipText(StringConstants.PREFS_BYPASS_INCLUDE_TIP);
+        includeChildren.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         if (bypassPref != null)
         {
             includeChildren.setSelected((bypassPref.getIncludeChildren()));
@@ -1422,10 +1443,12 @@ public class PreferencesWindow
         PushButton plusButton = new PushButton();
         plusButton.setButtonData("+");
         plusButton.setTooltipText(StringConstants.PREFS_BYPASS_PLUS_BUTTON);
+        plusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         PushButton minusButton = new PushButton();
         minusButton.setButtonData("-");
         minusButton.setTooltipText(StringConstants.PREFS_BYPASS_MINUS_BUTTON);
+        minusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * We need the ability to insert and remove playlist preference rows
@@ -1459,7 +1482,8 @@ public class PreferencesWindow
                 {
                     TablePane tablePane = (TablePane) parent;
                     int playlistPrefsRowIndex = tablePane.getRowAt(plusButtonYCoordinate);
-                    logger.info("plus button pressed for playlist pref index " + playlistPrefsRowIndex);
+                    logger.info("plus button pressed for bypass playlist pref index " 
+                            + playlistPrefsRowIndex);
 
                     /*
                      * Add the table row and collect the components that need to
@@ -1483,10 +1507,10 @@ public class PreferencesWindow
                     /*
                      * Register the new components and skin them.
                      */
-                    Map<Skins.Element, List<Component>> windowElements = skins
-                            .mapComponentsToSkinElements(rowComponents);
+                    Map<Skins.Element, List<Component>> windowElements = 
+                            skins.mapComponentsToSkinElements(rowComponents);
                     skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
-                    skins.skinMe(Skins.Window.PREFERENCES);
+                    skins.skinMe(Skins.Window.PREFERENCES, windowElements);
 
                     preferencesSheet.repaint();
                 }
@@ -1522,7 +1546,8 @@ public class PreferencesWindow
 
                     TablePane tablePane = (TablePane) parent;
                     int playlistPrefsRowIndex = tablePane.getRowAt(minusButtonYCoordinate);
-                    logger.info("minus button pressed for playlist pref index " + playlistPrefsRowIndex);
+                    logger.info("minus button pressed for bypass playlist pref index " 
+                            + playlistPrefsRowIndex);
 
                     /*
                      * Get the number of rows and make sure we don't go below
@@ -1635,10 +1660,12 @@ public class PreferencesWindow
         PushButton plusButton = new PushButton();
         plusButton.setButtonData("+");
         plusButton.setTooltipText(StringConstants.PREFS_IGNORED_PLUS_BUTTON);
+        plusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         PushButton minusButton = new PushButton();
         minusButton.setButtonData("-");
         minusButton.setTooltipText(StringConstants.PREFS_IGNORED_MINUS_BUTTON);
+        minusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
 
         /*
          * We need the ability to insert and remove playlist preference rows
@@ -1672,7 +1699,8 @@ public class PreferencesWindow
                 {
                     TablePane tablePane = (TablePane) parent;
                     int playlistPrefsRowIndex = tablePane.getRowAt(plusButtonYCoordinate);
-                    logger.info("plus button pressed for playlist pref index " + playlistPrefsRowIndex);
+                    logger.info("plus button pressed for ignored playlist pref index " 
+                            + playlistPrefsRowIndex);
 
                     /*
                      * Add the table row and collect the components that need to
@@ -1696,10 +1724,10 @@ public class PreferencesWindow
                     /*
                      * Register the new components and skin them.
                      */
-                    Map<Skins.Element, List<Component>> windowElements = skins
-                            .mapComponentsToSkinElements(rowComponents);
+                    Map<Skins.Element, List<Component>> windowElements = 
+                            skins.mapComponentsToSkinElements(rowComponents);
                     skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
-                    skins.skinMe(Skins.Window.PREFERENCES);
+                    skins.skinMe(Skins.Window.PREFERENCES, windowElements);
 
                     preferencesSheet.repaint();
                 }
@@ -1735,7 +1763,8 @@ public class PreferencesWindow
 
                     TablePane tablePane = (TablePane) parent;
                     int playlistPrefsRowIndex = tablePane.getRowAt(minusButtonYCoordinate);
-                    logger.info("minus button pressed for playlist pref index " + playlistPrefsRowIndex);
+                    logger.info("minus button pressed for ignored playlist pref index " 
+                            + playlistPrefsRowIndex);
 
                     /*
                      * Get the number of rows and make sure we don't go below
@@ -1891,70 +1920,80 @@ public class PreferencesWindow
         if (fullNumberCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NUMBER.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullNameCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NAME.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullArtistCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ARTIST.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullAlbumCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ALBUM.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullKindCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.KIND.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullDurationCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.DURATION.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullYearCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.YEAR.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullAddedCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ADDED.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullRatingCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.RATING.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (fullRemoteCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
             columnPrefs.add(columnData);
         }
 
@@ -1976,70 +2015,80 @@ public class PreferencesWindow
         if (duplicatesNumberCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NUMBER.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesNameCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NAME.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesArtistCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ARTIST.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesAlbumCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ALBUM.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesKindCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.KIND.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesDurationCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.DURATION.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesYearCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.YEAR.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesAddedCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ADDED.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesRatingCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.RATING.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (duplicatesRemoteCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
             columnPrefs.add(columnData);
         }
 
@@ -2061,70 +2110,80 @@ public class PreferencesWindow
         if (filteredNumberCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NUMBER.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredNameCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NAME.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredArtistCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ARTIST.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredAlbumCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ALBUM.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredKindCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.KIND.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredDurationCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.DURATION.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredYearCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.YEAR.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredAddedCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ADDED.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredRatingCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.RATING.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (filteredRemoteCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
             columnPrefs.add(columnData);
         }
 
@@ -2146,70 +2205,80 @@ public class PreferencesWindow
         if (playlistNumberCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NUMBER.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NUMBER.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistNameCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.NAME.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.NAME.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistArtistCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ARTIST.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ARTIST.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistAlbumCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ALBUM.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ALBUM.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistKindCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.KIND.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.KIND.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistDurationCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.DURATION.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.DURATION.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistYearCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.YEAR.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.YEAR.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistAddedCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.ADDED.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.ADDED.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistRatingCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.RATING.getNameValue());
             columnPrefs.add(columnData);
         }
 
         if (playlistRemoteCheckbox.isSelected())
         {
             List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getDisplayValue());
+                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
+                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
             columnPrefs.add(columnData);
         }
 
@@ -2529,7 +2598,8 @@ public class PreferencesWindow
     {
         logger.trace("initializeTrackColumnStuff: " + this.hashCode());
 
-        fullNumberCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullNumberCheckbox");
+        fullNumberCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullNumberCheckbox");
         components.add(fullNumberCheckbox);
 
         fullNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2541,7 +2611,8 @@ public class PreferencesWindow
             }
         });
 
-        fullNameCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullNameCheckbox");
+        fullNameCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullNameCheckbox");
         components.add(fullNameCheckbox);
 
         fullNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2553,7 +2624,8 @@ public class PreferencesWindow
             }
         });
 
-        fullArtistCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullArtistCheckbox");
+        fullArtistCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullArtistCheckbox");
         components.add(fullArtistCheckbox);
 
         fullArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2565,7 +2637,8 @@ public class PreferencesWindow
             }
         });
 
-        fullAlbumCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullAlbumCheckbox");
+        fullAlbumCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullAlbumCheckbox");
         components.add(fullAlbumCheckbox);
 
         fullAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2577,7 +2650,8 @@ public class PreferencesWindow
             }
         });
 
-        fullKindCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullKindCheckbox");
+        fullKindCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullKindCheckbox");
         components.add(fullKindCheckbox);
 
         fullKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2589,7 +2663,8 @@ public class PreferencesWindow
             }
         });
 
-        fullDurationCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullDurationCheckbox");
+        fullDurationCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullDurationCheckbox");
         components.add(fullDurationCheckbox);
 
         fullDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2601,7 +2676,8 @@ public class PreferencesWindow
             }
         });
 
-        fullYearCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullYearCheckbox");
+        fullYearCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullYearCheckbox");
         components.add(fullYearCheckbox);
 
         fullYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2613,7 +2689,8 @@ public class PreferencesWindow
             }
         });
 
-        fullAddedCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullAddedCheckbox");
+        fullAddedCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullAddedCheckbox");
         components.add(fullAddedCheckbox);
 
         fullAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2625,7 +2702,8 @@ public class PreferencesWindow
             }
         });
 
-        fullRatingCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullRatingCheckbox");
+        fullRatingCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullRatingCheckbox");
         components.add(fullRatingCheckbox);
 
         fullRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2637,7 +2715,8 @@ public class PreferencesWindow
             }
         });
 
-        fullRemoteCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("fullRemoteCheckbox");
+        fullRemoteCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("fullRemoteCheckbox");
         components.add(fullRemoteCheckbox);
 
         fullRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2649,7 +2728,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesNumberCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesNumberCheckbox");
+        duplicatesNumberCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesNumberCheckbox");
         components.add(duplicatesNumberCheckbox);
 
         duplicatesNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2661,7 +2741,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesNameCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesNameCheckbox");
+        duplicatesNameCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesNameCheckbox");
         components.add(duplicatesNameCheckbox);
 
         duplicatesNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2673,7 +2754,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesArtistCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesArtistCheckbox");
+        duplicatesArtistCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesArtistCheckbox");
         components.add(duplicatesArtistCheckbox);
 
         duplicatesArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2685,7 +2767,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesAlbumCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesAlbumCheckbox");
+        duplicatesAlbumCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesAlbumCheckbox");
         components.add(duplicatesAlbumCheckbox);
 
         duplicatesAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2697,7 +2780,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesKindCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesKindCheckbox");
+        duplicatesKindCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesKindCheckbox");
         components.add(duplicatesKindCheckbox);
 
         duplicatesKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2709,7 +2793,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesDurationCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesDurationCheckbox");
+        duplicatesDurationCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesDurationCheckbox");
         components.add(duplicatesDurationCheckbox);
 
         duplicatesDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2721,7 +2806,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesYearCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesYearCheckbox");
+        duplicatesYearCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesYearCheckbox");
         components.add(duplicatesYearCheckbox);
 
         duplicatesYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2733,7 +2819,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesAddedCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesAddedCheckbox");
+        duplicatesAddedCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesAddedCheckbox");
         components.add(duplicatesAddedCheckbox);
 
         duplicatesAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2745,7 +2832,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesRatingCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesRatingCheckbox");
+        duplicatesRatingCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesRatingCheckbox");
         components.add(duplicatesRatingCheckbox);
 
         duplicatesRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2757,7 +2845,8 @@ public class PreferencesWindow
             }
         });
 
-        duplicatesRemoteCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesRemoteCheckbox");
+        duplicatesRemoteCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesRemoteCheckbox");
         components.add(duplicatesRemoteCheckbox);
 
         duplicatesRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2769,7 +2858,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredNumberCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredNumberCheckbox");
+        filteredNumberCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredNumberCheckbox");
         components.add(filteredNumberCheckbox);
 
         filteredNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2781,7 +2871,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredNameCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredNameCheckbox");
+        filteredNameCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredNameCheckbox");
         components.add(filteredNameCheckbox);
 
         filteredNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2793,7 +2884,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredArtistCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredArtistCheckbox");
+        filteredArtistCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredArtistCheckbox");
         components.add(filteredArtistCheckbox);
 
         filteredArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2805,7 +2897,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredAlbumCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredAlbumCheckbox");
+        filteredAlbumCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredAlbumCheckbox");
         components.add(filteredAlbumCheckbox);
 
         filteredAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2817,7 +2910,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredKindCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredKindCheckbox");
+        filteredKindCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredKindCheckbox");
         components.add(filteredKindCheckbox);
 
         filteredKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2829,7 +2923,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredDurationCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredDurationCheckbox");
+        filteredDurationCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredDurationCheckbox");
         components.add(filteredDurationCheckbox);
 
         filteredDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2841,7 +2936,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredYearCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredYearCheckbox");
+        filteredYearCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredYearCheckbox");
         components.add(filteredYearCheckbox);
 
         filteredYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2853,7 +2949,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredAddedCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredAddedCheckbox");
+        filteredAddedCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredAddedCheckbox");
         components.add(filteredAddedCheckbox);
 
         filteredAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2865,7 +2962,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredRatingCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredRatingCheckbox");
+        filteredRatingCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredRatingCheckbox");
         components.add(filteredRatingCheckbox);
 
         filteredRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2877,7 +2975,8 @@ public class PreferencesWindow
             }
         });
 
-        filteredRemoteCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("filteredRemoteCheckbox");
+        filteredRemoteCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredRemoteCheckbox");
         components.add(filteredRemoteCheckbox);
 
         filteredRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2889,7 +2988,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistNumberCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistNumberCheckbox");
+        playlistNumberCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistNumberCheckbox");
         components.add(playlistNumberCheckbox);
 
         playlistNumberCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2901,7 +3001,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistNameCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistNameCheckbox");
+        playlistNameCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistNameCheckbox");
         components.add(playlistNameCheckbox);
 
         playlistNameCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2913,7 +3014,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistArtistCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistArtistCheckbox");
+        playlistArtistCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistArtistCheckbox");
         components.add(playlistArtistCheckbox);
 
         playlistArtistCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2925,7 +3027,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistAlbumCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistAlbumCheckbox");
+        playlistAlbumCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistAlbumCheckbox");
         components.add(playlistAlbumCheckbox);
 
         playlistAlbumCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2937,7 +3040,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistKindCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistKindCheckbox");
+        playlistKindCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistKindCheckbox");
         components.add(playlistKindCheckbox);
 
         playlistKindCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2949,7 +3053,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistDurationCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistDurationCheckbox");
+        playlistDurationCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistDurationCheckbox");
         components.add(playlistDurationCheckbox);
 
         playlistDurationCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2961,7 +3066,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistYearCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistYearCheckbox");
+        playlistYearCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistYearCheckbox");
         components.add(playlistYearCheckbox);
 
         playlistYearCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2973,7 +3079,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistAddedCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistAddedCheckbox");
+        playlistAddedCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistAddedCheckbox");
         components.add(playlistAddedCheckbox);
 
         playlistAddedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2985,7 +3092,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistRatingCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistRatingCheckbox");
+        playlistRatingCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistRatingCheckbox");
         components.add(playlistRatingCheckbox);
 
         playlistRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -2997,7 +3105,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistRemoteCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("playlistRemoteCheckbox");
+        playlistRemoteCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistRemoteCheckbox");
         components.add(playlistRemoteCheckbox);
 
         playlistRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -3018,7 +3127,8 @@ public class PreferencesWindow
     {
         logger.trace("initializeLogLevelStuff: " + this.hashCode());
 
-        logLevelPrefsSpinner = (Spinner) prefsWindowSerializer.getNamespace().get("logLevelPrefsSpinner");
+        logLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("logLevelPrefsSpinner");
         components.add(logLevelPrefsSpinner);
 
         logLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
@@ -3035,7 +3145,8 @@ public class PreferencesWindow
             }
         });
 
-        logLevelPrefsCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("logLevelPrefsCheckbox");
+        logLevelPrefsCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("logLevelPrefsCheckbox");
         components.add(logLevelPrefsCheckbox);
 
         logLevelPrefsCheckbox.getButtonPressListeners().add(new ButtonPressListener()
@@ -3051,34 +3162,17 @@ public class PreferencesWindow
                  */
                 if (button.isSelected())
                 {
-                    uiLogLevelPrefsLabel.setEnabled(false);
-                    uiLogLevelPrefsSpinner.setEnabled(false);
-                    xmlLogLevelPrefsLabel.setEnabled(false);
-                    xmlLogLevelPrefsSpinner.setEnabled(false);
-                    trackLogLevelPrefsLabel.setEnabled(false);
-                    trackLogLevelPrefsSpinner.setEnabled(false);
-                    playlistLogLevelPrefsLabel.setEnabled(false);
-                    playlistLogLevelPrefsSpinner.setEnabled(false);
-                    filterLogLevelPrefsLabel.setEnabled(false);
-                    filterLogLevelPrefsSpinner.setEnabled(false);
+                    toggleDimensionalLogLevelWidgets(false);
                 }
                 else
                 {
-                    uiLogLevelPrefsLabel.setEnabled(true);
-                    uiLogLevelPrefsSpinner.setEnabled(true);
-                    xmlLogLevelPrefsLabel.setEnabled(true);
-                    xmlLogLevelPrefsSpinner.setEnabled(true);
-                    trackLogLevelPrefsLabel.setEnabled(true);
-                    trackLogLevelPrefsSpinner.setEnabled(true);
-                    playlistLogLevelPrefsLabel.setEnabled(true);
-                    playlistLogLevelPrefsSpinner.setEnabled(true);
-                    filterLogLevelPrefsLabel.setEnabled(true);
-                    filterLogLevelPrefsSpinner.setEnabled(true);
+                    toggleDimensionalLogLevelWidgets(true);
                 }
             }
         });
 
-        uiLogLevelPrefsSpinner = (Spinner) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsSpinner");
+        uiLogLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsSpinner");
         components.add(uiLogLevelPrefsSpinner);
 
         uiLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
@@ -3095,7 +3189,8 @@ public class PreferencesWindow
             }
         });
 
-        xmlLogLevelPrefsSpinner = (Spinner) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsSpinner");
+        xmlLogLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsSpinner");
         components.add(xmlLogLevelPrefsSpinner);
 
         xmlLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
@@ -3112,7 +3207,8 @@ public class PreferencesWindow
             }
         });
 
-        trackLogLevelPrefsSpinner = (Spinner) prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsSpinner");
+        trackLogLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsSpinner");
         components.add(trackLogLevelPrefsSpinner);
 
         trackLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
@@ -3129,8 +3225,8 @@ public class PreferencesWindow
             }
         });
 
-        playlistLogLevelPrefsSpinner = (Spinner) prefsWindowSerializer.getNamespace()
-                .get("playlistLogLevelPrefsSpinner");
+        playlistLogLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsSpinner");
         components.add(playlistLogLevelPrefsSpinner);
 
         playlistLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
@@ -3147,7 +3243,26 @@ public class PreferencesWindow
             }
         });
 
-        filterLogLevelPrefsSpinner = (Spinner) prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsSpinner");
+        artistLogLevelPrefsSpinner =
+                (Spinner) prefsWindowSerializer.getNamespace().get("artistLogLevelPrefsSpinner");
+        components.add(artistLogLevelPrefsSpinner);
+
+        artistLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
+        {
+            @Override
+            public void selectedIndexChanged(Spinner spinner, int previousSelectedIndex)
+            {
+                logLevelPrefsUpdated = true;
+            }
+
+            @Override
+            public void selectedItemChanged(Spinner spinner, Object previousSelectedItem)
+            {
+            }
+        });
+
+        filterLogLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsSpinner");
         components.add(filterLogLevelPrefsSpinner);
 
         filterLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
@@ -3199,6 +3314,27 @@ public class PreferencesWindow
     }
 
     /*
+     * Toggle the dimensional log level labels and spinners on or off.
+     */
+    private void toggleDimensionalLogLevelWidgets(boolean value)
+    {
+        logger.trace("toggleDimensionalLogLevelWidgets: " + this.hashCode());
+        
+        uiLogLevelPrefsLabel.setEnabled(value);
+        uiLogLevelPrefsSpinner.setEnabled(value);
+        xmlLogLevelPrefsLabel.setEnabled(value);
+        xmlLogLevelPrefsSpinner.setEnabled(value);
+        trackLogLevelPrefsLabel.setEnabled(value);
+        trackLogLevelPrefsSpinner.setEnabled(value);
+        playlistLogLevelPrefsLabel.setEnabled(value);
+        playlistLogLevelPrefsSpinner.setEnabled(value);
+        artistLogLevelPrefsLabel.setEnabled(value);
+        artistLogLevelPrefsSpinner.setEnabled(value);
+        filterLogLevelPrefsLabel.setEnabled(value);
+        filterLogLevelPrefsSpinner.setEnabled(value);
+    }
+
+    /*
      * Initialize preferences window BXML variables and collect the list of
      * components to be skinned.
      */
@@ -3207,76 +3343,106 @@ public class PreferencesWindow
     {
         logger.trace("initializeWindowBxmlVariables: " + this.hashCode());
 
-        preferencesSheet = (Sheet) prefsWindowSerializer.readObject(getClass().getResource("preferencesWindow.bxml"));
+        preferencesSheet = 
+                (Sheet) prefsWindowSerializer.readObject(getClass().getResource("preferencesWindow.bxml"));
 
-        tabPane = (TabPane) prefsWindowSerializer.getNamespace().get("tabPane");
+        tabPane = 
+                (TabPane) prefsWindowSerializer.getNamespace().get("tabPane");
         components.add(tabPane);
 
         /*
          * First tab.
          */
-        bypassPrefsBorder = (Border) prefsWindowSerializer.getNamespace().get("bypassPrefsBorder");
+        bypassPrefsBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("bypassPrefsBorder");
         components.add(bypassPrefsBorder);
-        bypassPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("bypassPrefsBoxPane");
+        bypassPrefsBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("bypassPrefsBoxPane");
         components.add(bypassPrefsBoxPane);
-        bypassPrefsBorderLabel = (Label) prefsWindowSerializer.getNamespace().get("bypassPrefsBorderLabel");
+        bypassPrefsBorderLabel = 
+                (Label) prefsWindowSerializer.getNamespace().get("bypassPrefsBorderLabel");
         components.add(bypassPrefsBorderLabel);
-        bypassPrefsTablePane = (TablePane) prefsWindowSerializer.getNamespace().get("bypassPrefsTablePane");
+        bypassPrefsTablePane = 
+                (TablePane) prefsWindowSerializer.getNamespace().get("bypassPrefsTablePane");
         components.add(bypassPrefsTablePane);
-        ignoredPrefsBorder = (Border) prefsWindowSerializer.getNamespace().get("ignoredPrefsBorder");
+        ignoredPrefsBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("ignoredPrefsBorder");
         components.add(ignoredPrefsBorder);
-        ignoredPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("ignoredPrefsBoxPane");
+        ignoredPrefsBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("ignoredPrefsBoxPane");
         components.add(ignoredPrefsBoxPane);
-        ignoredPrefsBorderLabel = (Label) prefsWindowSerializer.getNamespace().get("ignoredPrefsBorderLabel");
+        ignoredPrefsBorderLabel = 
+                (Label) prefsWindowSerializer.getNamespace().get("ignoredPrefsBorderLabel");
         components.add(ignoredPrefsBorderLabel);
-        ignoredPrefsTablePane = (TablePane) prefsWindowSerializer.getNamespace().get("ignoredPrefsTablePane");
+        ignoredPrefsTablePane = 
+                (TablePane) prefsWindowSerializer.getNamespace().get("ignoredPrefsTablePane");
         components.add(ignoredPrefsTablePane);
-        tab1ResetBorder = (Border) prefsWindowSerializer.getNamespace().get("tab1ResetBorder");
+        tab1ResetBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("tab1ResetBorder");
         components.add(tab1ResetBorder);
-        tab1ResetBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("tab1ResetBoxPane");
+        tab1ResetBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("tab1ResetBoxPane");
         components.add(tab1ResetBoxPane);
-        tab1ResetButton = (PushButton) prefsWindowSerializer.getNamespace().get("tab1ResetButton");
+        tab1ResetButton = 
+                (PushButton) prefsWindowSerializer.getNamespace().get("tab1ResetButton");
         components.add(tab1ResetButton);
 
         /*
          * Second tab.
          */
-        columnPrefsBorderLabel = (Label) prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
+        columnPrefsBorderLabel = 
+                (Label) prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
         components.add(columnPrefsBorderLabel);
-        columnPrefsBorder = (Border) prefsWindowSerializer.getNamespace().get("columnPrefsBorder");
+        columnPrefsBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("columnPrefsBorder");
         components.add(columnPrefsBorder);
-        columnPrefsTablePane = (TablePane) prefsWindowSerializer.getNamespace().get("columnPrefsTablePane");
+        columnPrefsTablePane = 
+                (TablePane) prefsWindowSerializer.getNamespace().get("columnPrefsTablePane");
         components.add(columnPrefsTablePane);
-        fullColumnPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("fullColumnPrefsBoxPane");
+        fullColumnPrefsBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("fullColumnPrefsBoxPane");
         components.add(fullColumnPrefsBoxPane);
-        fullColumnPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("fullColumnPrefsLabel");
+        fullColumnPrefsLabel = 
+                (Label) prefsWindowSerializer.getNamespace().get("fullColumnPrefsLabel");
         components.add(fullColumnPrefsLabel);
-        duplicatesColumnPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace()
-                .get("duplicatesColumnPrefsBoxPane");
+        duplicatesColumnPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("duplicatesColumnPrefsBoxPane");
         components.add(duplicatesColumnPrefsBoxPane);
-        duplicatesColumnPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("duplicatesColumnPrefsLabel");
+        duplicatesColumnPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("duplicatesColumnPrefsLabel");
         components.add(duplicatesColumnPrefsLabel);
-        filteredColumnPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("filteredColumnPrefsBoxPane");
+        filteredColumnPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("filteredColumnPrefsBoxPane");
         components.add(filteredColumnPrefsBoxPane);
-        filteredColumnPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("filteredColumnPrefsLabel");
+        filteredColumnPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("filteredColumnPrefsLabel");
         components.add(filteredColumnPrefsLabel);
-        playlistColumnPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("playlistColumnPrefsBoxPane");
+        playlistColumnPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("playlistColumnPrefsBoxPane");
         components.add(playlistColumnPrefsBoxPane);
-        playlistColumnPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("playlistColumnPrefsLabel");
+        playlistColumnPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("playlistColumnPrefsLabel");
         components.add(playlistColumnPrefsLabel);
-        remoteTracksBorder = (Border) prefsWindowSerializer.getNamespace().get("remoteTracksBorder");
+        remoteTracksBorder =
+                (Border) prefsWindowSerializer.getNamespace().get("remoteTracksBorder");
         components.add(remoteTracksBorder);
-        remoteTracksBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("remoteTracksBoxPane");
+        remoteTracksBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("remoteTracksBoxPane");
         components.add(remoteTracksBoxPane);
-        remoteTracksLabel = (Label) prefsWindowSerializer.getNamespace().get("remoteTracksLabel");
+        remoteTracksLabel = 
+                (Label) prefsWindowSerializer.getNamespace().get("remoteTracksLabel");
         components.add(remoteTracksLabel);
-        remoteTracksCheckbox = (Checkbox) prefsWindowSerializer.getNamespace().get("remoteTracksCheckbox");
+        remoteTracksCheckbox =
+                (Checkbox) prefsWindowSerializer.getNamespace().get("remoteTracksCheckbox");
         components.add(remoteTracksCheckbox);
-        tab2ResetBorder = (Border) prefsWindowSerializer.getNamespace().get("tab2ResetBorder");
+        tab2ResetBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("tab2ResetBorder");
         components.add(tab2ResetBorder);
-        tab2ResetBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("tab2ResetBoxPane");
+        tab2ResetBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("tab2ResetBoxPane");
         components.add(tab2ResetBoxPane);
-        tab2ResetButton = (PushButton) prefsWindowSerializer.getNamespace().get("tab2ResetButton");
+        tab2ResetButton = 
+                (PushButton) prefsWindowSerializer.getNamespace().get("tab2ResetButton");
         components.add(tab2ResetButton);
 
         /*
@@ -3290,76 +3456,114 @@ public class PreferencesWindow
          */
         miscPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("miscPrefsBoxPane");
 
-        skinPrefsBorderLabel = (Label) prefsWindowSerializer.getNamespace().get("skinPrefsBorderLabel");
+        skinPrefsBorderLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("skinPrefsBorderLabel");
         components.add(skinPrefsBorderLabel);
-        skinPrefsBorder = (Border) prefsWindowSerializer.getNamespace().get("skinPrefsBorder");
+        skinPrefsBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("skinPrefsBorder");
         components.add(skinPrefsBorder);
-        skinPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("skinPrefsBoxPane");
+        skinPrefsBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("skinPrefsBoxPane");
         components.add(skinPrefsBoxPane);
-        skinPrefsSpinner = (Spinner) prefsWindowSerializer.getNamespace().get("skinPrefsSpinner");
+        skinPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("skinPrefsSpinner");
         components.add(skinPrefsSpinner);
-        skinPrefsButton = (PushButton) prefsWindowSerializer.getNamespace().get("skinPrefsButton");
+        skinPrefsButton = 
+                (PushButton) prefsWindowSerializer.getNamespace().get("skinPrefsButton");
         components.add(skinPrefsButton);
-        saveDirectoryBorderLabel = (Label) prefsWindowSerializer.getNamespace().get("saveDirectoryBorderLabel");
+        saveDirectoryBorderLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("saveDirectoryBorderLabel");
         components.add(saveDirectoryBorderLabel);
-        saveDirectoryBorder = (Border) prefsWindowSerializer.getNamespace().get("saveDirectoryBorder");
+        saveDirectoryBorder =
+                (Border) prefsWindowSerializer.getNamespace().get("saveDirectoryBorder");
         components.add(saveDirectoryBorder);
-        saveDirectoryBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("saveDirectoryBoxPane");
+        saveDirectoryBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("saveDirectoryBoxPane");
         components.add(saveDirectoryBoxPane);
-        saveDirectoryTextInput = (TextInput) prefsWindowSerializer.getNamespace().get("saveDirectoryTextInput");
+        saveDirectoryTextInput =
+                (TextInput) prefsWindowSerializer.getNamespace().get("saveDirectoryTextInput");
         components.add(saveDirectoryTextInput);
-        logHistoryPrefsBorderLabel = (Label) prefsWindowSerializer.getNamespace().get("logHistoryPrefsBorderLabel");
+        logHistoryPrefsBorderLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("logHistoryPrefsBorderLabel");
         components.add(logHistoryPrefsBorderLabel);
-        logHistoryPrefsBorder = (Border) prefsWindowSerializer.getNamespace().get("logHistoryPrefsBorder");
+        logHistoryPrefsBorder =
+                (Border) prefsWindowSerializer.getNamespace().get("logHistoryPrefsBorder");
         components.add(logHistoryPrefsBorder);
-        logHistoryPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("logHistoryPrefsBoxPane");
+        logHistoryPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("logHistoryPrefsBoxPane");
         components.add(logHistoryPrefsBoxPane);
-        logHistoryPrefsTextInput = (TextInput) prefsWindowSerializer.getNamespace().get("logHistoryPrefsTextInput");
+        logHistoryPrefsTextInput =
+                (TextInput) prefsWindowSerializer.getNamespace().get("logHistoryPrefsTextInput");
         components.add(logHistoryPrefsTextInput);
-        logLevelPrefsBorderLabel = (Label) prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
+        logLevelPrefsBorderLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
         components.add(logLevelPrefsBorderLabel);
-        logLevelPrefsBorder = (Border) prefsWindowSerializer.getNamespace().get("logLevelPrefsBorder");
+        logLevelPrefsBorder =
+                (Border) prefsWindowSerializer.getNamespace().get("logLevelPrefsBorder");
         components.add(logLevelPrefsBorder);
-        logLevelPrefsTablePane = (TablePane) prefsWindowSerializer.getNamespace().get("logLevelPrefsTablePane");
+        logLevelPrefsTablePane =
+                (TablePane) prefsWindowSerializer.getNamespace().get("logLevelPrefsTablePane");
         components.add(logLevelPrefsTablePane);
-        logLevelPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("logLevelPrefsBoxPane");
+        logLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("logLevelPrefsBoxPane");
         components.add(logLevelPrefsBoxPane);
-        uiLogLevelPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsBoxPane");
+        uiLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsBoxPane");
         components.add(uiLogLevelPrefsBoxPane);
-        uiLogLevelPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsLabel");
+        uiLogLevelPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsLabel");
         components.add(uiLogLevelPrefsLabel);
-        xmlLogLevelPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsBoxPane");
+        xmlLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsBoxPane");
         components.add(xmlLogLevelPrefsBoxPane);
-        xmlLogLevelPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsLabel");
+        xmlLogLevelPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsLabel");
         components.add(xmlLogLevelPrefsLabel);
-        trackLogLevelPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsBoxPane");
+        trackLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsBoxPane");
         components.add(trackLogLevelPrefsBoxPane);
-        trackLogLevelPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsLabel");
+        trackLogLevelPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsLabel");
         components.add(trackLogLevelPrefsLabel);
-        playlistLogLevelPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace()
-                .get("playlistLogLevelPrefsBoxPane");
+        playlistLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsBoxPane");
         components.add(playlistLogLevelPrefsBoxPane);
-        playlistLogLevelPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsLabel");
+        playlistLogLevelPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("playlistLogLevelPrefsLabel");
         components.add(playlistLogLevelPrefsLabel);
-        filterLogLevelPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsBoxPane");
+        artistLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("artistLogLevelPrefsBoxPane");
+        components.add(artistLogLevelPrefsBoxPane);
+        artistLogLevelPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("artistLogLevelPrefsLabel");
+        components.add(artistLogLevelPrefsLabel);
+        filterLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsBoxPane");
         components.add(filterLogLevelPrefsBoxPane);
-        filterLogLevelPrefsLabel = (Label) prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsLabel");
+        filterLogLevelPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("filterLogLevelPrefsLabel");
         components.add(filterLogLevelPrefsLabel);
-        tab3ResetBorder = (Border) prefsWindowSerializer.getNamespace().get("tab3ResetBorder");
+        tab3ResetBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("tab3ResetBorder");
         components.add(tab3ResetBorder);
-        tab3ResetBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("tab3ResetBoxPane");
+        tab3ResetBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("tab3ResetBoxPane");
         components.add(tab3ResetBoxPane);
-        tab3ResetButton = (PushButton) prefsWindowSerializer.getNamespace().get("tab3ResetButton");
+        tab3ResetButton = 
+                (PushButton) prefsWindowSerializer.getNamespace().get("tab3ResetButton");
         components.add(tab3ResetButton);
 
         /*
          * Action buttons.
          */
-        actionBorder = (Border) prefsWindowSerializer.getNamespace().get("actionBorder");
+        actionBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("actionBorder");
         components.add(actionBorder);
-        actionBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("actionBoxPane");
+        actionBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("actionBoxPane");
         components.add(actionBoxPane);
-        preferencesDoneButton = (PushButton) prefsWindowSerializer.getNamespace().get("preferencesDoneButton");
+        preferencesDoneButton =
+                (PushButton) prefsWindowSerializer.getNamespace().get("preferencesDoneButton");
         components.add(preferencesDoneButton);
     }
 
@@ -3374,43 +3578,58 @@ public class PreferencesWindow
 
         BXMLSerializer dialogSerializer = new BXMLSerializer();
 
-        skinPreviewDialog = (Dialog) dialogSerializer.readObject(getClass().getResource("skinPreviewWindow.bxml"));
+        skinPreviewDialog = 
+                (Dialog) dialogSerializer.readObject(getClass().getResource("skinPreviewDialog.bxml"));
 
         /*
          * This doesn't need to be added to the components. It's an invisible
          * table pane. It's only needed to control the size of the skin preview
          * dialog.
          */
-        mainTablePane = (TablePane) dialogSerializer.getNamespace().get("mainTablePane");
+        mainTablePane = 
+                (TablePane) dialogSerializer.getNamespace().get("mainTablePane");
 
-        previewTextBorder = (Border) dialogSerializer.getNamespace().get("previewTextBorder");
+        previewTextBorder = 
+                (Border) dialogSerializer.getNamespace().get("previewTextBorder");
         components.add(previewTextBorder);
-        previewTextBoxPane = (BoxPane) dialogSerializer.getNamespace().get("previewTextBoxPane");
+        previewTextBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("previewTextBoxPane");
         components.add(previewTextBoxPane);
-        previewTextLabel = (Label) dialogSerializer.getNamespace().get("previewTextLabel");
+        previewTextLabel = 
+                (Label) dialogSerializer.getNamespace().get("previewTextLabel");
         components.add(previewTextLabel);
-        previewTextInput = (TextInput) dialogSerializer.getNamespace().get("previewTextInput");
+        previewTextInput = 
+                (TextInput) dialogSerializer.getNamespace().get("previewTextInput");
         components.add(previewTextInput);
-        previewTableBorder = (Border) dialogSerializer.getNamespace().get("previewTableBorder");
+        previewTableBorder = 
+                (Border) dialogSerializer.getNamespace().get("previewTableBorder");
         components.add(previewTableBorder);
-        previewTableView = (TableView) dialogSerializer.getNamespace().get("previewTableView");
+        previewTableView = 
+                (TableView) dialogSerializer.getNamespace().get("previewTableView");
         components.add(previewTableView);
 
         /*
          * These don't need to be added to the components list because they're
          * subcomponents.
          */
-        previewTableColumnWeekday = (TableView.Column) dialogSerializer.getNamespace().get("previewTableColumnWeekday");
-        previewTableColumnColor = (TableView.Column) dialogSerializer.getNamespace().get("previewTableColumnColor");
-        previewTableColumnMood = (TableView.Column) dialogSerializer.getNamespace().get("previewTableColumnMood");
+        previewTableColumnWeekday =
+                (TableView.Column) dialogSerializer.getNamespace().get("previewTableColumnWeekday");
+        previewTableColumnColor =
+                (TableView.Column) dialogSerializer.getNamespace().get("previewTableColumnColor");
+        previewTableColumnMood =
+                (TableView.Column) dialogSerializer.getNamespace().get("previewTableColumnMood");
 
-        previewTableViewHeader = (TableViewHeader) dialogSerializer.getNamespace().get("previewTableViewHeader");
+        previewTableViewHeader =
+                (TableViewHeader) dialogSerializer.getNamespace().get("previewTableViewHeader");
         components.add(previewTableViewHeader);
-        previewButtonBorder = (Border) dialogSerializer.getNamespace().get("previewButtonBorder");
+        previewButtonBorder = 
+                (Border) dialogSerializer.getNamespace().get("previewButtonBorder");
         components.add(previewButtonBorder);
-        previewButtonBoxPane = (BoxPane) dialogSerializer.getNamespace().get("previewButtonBoxPane");
+        previewButtonBoxPane =
+                (BoxPane) dialogSerializer.getNamespace().get("previewButtonBoxPane");
         components.add(previewButtonBoxPane);
-        previewButton = (PushButton) dialogSerializer.getNamespace().get("previewButton");
+        previewButton = 
+                (PushButton) dialogSerializer.getNamespace().get("previewButton");
         components.add(previewButton);
     }
 }

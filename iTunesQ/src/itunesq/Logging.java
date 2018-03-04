@@ -2,6 +2,7 @@ package itunesq;
 
 import java.io.File;
 import java.util.Iterator;
+
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
@@ -91,6 +92,11 @@ public class Logging
 		 * logging associated with processing of playlists
 		 */
 		PLAYLIST("Playlist"),
+        
+        /**
+         * logging associated with processing of artists
+         */
+        ARTIST("Artist"),
 		
 		/**
 		 * logging associated with processing of query filters
@@ -167,9 +173,9 @@ public class Logging
 	
 	private Preferences userPrefs = null;
 	
-	private static final String logFileName = "iTunesQ";
-	private static final String logFileSuffix = ".log";
-	private static final String fileNamePattern = "%date %level [%thread] [%file:%line] %msg%n";
+	private static final String LOG_FILE_NAME = "iTunesQ";
+	private static final String LOG_FILE_SUFFIX = ".log";
+	private static final String FILE_NAME_PATTERN = "%date %level [%thread] [%file:%line] %msg%n";
 	
 	/*
 	 * Constructor. Making it private prevents instantiation by any other class.
@@ -351,7 +357,7 @@ public class Logging
 	        	 * We only care about our log files.
 	        	 */
 	        	String fileName = file.getName();
-	        	if (fileName.startsWith(logFileName) && fileName.endsWith(logFileSuffix))
+	        	if (fileName.startsWith(LOG_FILE_NAME) && fileName.endsWith(LOG_FILE_SUFFIX))
 	        	{
 	        		
 	        		/*
@@ -392,11 +398,11 @@ public class Logging
          * Get the global log level indicator and the associated global log level.
          */
         globalLogLevel = userPrefs.getGlobalLogLevel();
-    	Level globalLevel = Dimension.ALL.getLogLevel();
+    	Level globalLevel = userPrefs.getLogLevel(Dimension.ALL);
         
         /*
          * If the log level preference exists, use it. Otherwise use the default.
-         */    	
+         */
         for (Dimension dimension : Dimension.values())
         {
             Level level = userPrefs.getLogLevel(dimension);
@@ -419,10 +425,18 @@ public class Logging
         		{
         			if (globalLogLevel == true)
         			{
+        		        if (MainWindow.getDiagTrigger() == MainWindow.DiagTrigger.LOGGER_LOGGING)
+        		        {
+                            diagLogger.info("... " + logger.toString() + ", level " + globalLevel.toString());
+        		        }
         				logger.setLevel(globalLevel);
         			}
         			else
         			{
+                        if (MainWindow.getDiagTrigger() == MainWindow.DiagTrigger.LOGGER_LOGGING)
+                        {
+                            diagLogger.info("logger " + logger.toString() + ", level " + level.toString());
+                        }
         				logger.setLevel(level);
         			}
         		}
@@ -522,7 +536,7 @@ public class Logging
 		{
 			saveDirectory = Preferences.getDefaultSaveDirectory();
 		}
-		policy.setFileNamePattern(saveDirectory + "/" + logFileName + "-%d" + logFileSuffix);
+		policy.setFileNamePattern(saveDirectory + "/" + LOG_FILE_NAME + "-%d" + LOG_FILE_SUFFIX);
 		policy.setMaxHistory(userPrefs.getMaxLogHistory());
 		policy.setCleanHistoryOnStart(true);
 		policy.start();
@@ -532,7 +546,7 @@ public class Logging
 		 */
 		PatternLayoutEncoder encoder = new PatternLayoutEncoder();
 		encoder.setContext(loggerContext);
-		encoder.setPattern(fileNamePattern);
+		encoder.setPattern(FILE_NAME_PATTERN);
 		encoder.start();
 		
 		/*

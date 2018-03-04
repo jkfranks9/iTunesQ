@@ -1,6 +1,7 @@
 package itunesq;
 
 import java.util.Comparator;
+
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.wtk.content.TreeBranch;
 import org.apache.pivot.wtk.content.TreeNode;
@@ -159,16 +160,6 @@ public final class PlaylistTree
 	private static TreeBranch addOrUpdateParent (TreeBranch enclosingBranch, Playlist playlistObj)
 	{
 		logger.trace("addOrUpdateParent");
-
-		if (enclosingBranch == null)
-		{
-			throw new IllegalArgumentException("enclosingBranch argument is null");
-		}
-
-		if (playlistObj == null)
-		{
-			throw new IllegalArgumentException("playlistObj argument is null");
-		}
 		
 		TreeBranch searchBranch = enclosingBranch;
 		
@@ -278,16 +269,6 @@ public final class PlaylistTree
     private static int indexOfBranchParent (TreeBranch searchBranch, TreeBranch parentBranch) 
     {
 		logger.trace("indexOfBranchParent");
-
-		if (searchBranch == null)
-		{
-			throw new IllegalArgumentException("searchBranch argument is null");
-		}
-
-		if (parentBranch == null)
-		{
-			throw new IllegalArgumentException("parentBranch argument is null");
-		}
 		
         int index = 0;
         

@@ -20,8 +20,7 @@ public class XMLProcessingException extends RuntimeException
 	private static final long serialVersionUID = -2609150953149143887L;
 	
 	/**
-	 * Constructor that specifies the line and column of the XML file, as well
-	 * as the error message.
+	 * Class constructor.
 	 * 
 	 * @param line line in the XML file
 	 * @param column column in the line
@@ -33,6 +32,8 @@ public class XMLProcessingException extends RuntimeException
 		this.line = line;
 		this.column = column;
 	}
+
+    //---------------- Getters and setters ---------------------------------
 	
 	/**
 	 * Gets the line in the XML file.

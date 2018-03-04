@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <Dialog bxml:id="dialog" modal="false"
-	styles="{backgroundColor:5}"
+	styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}"
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns="org.apache.pivot.wtk">
         
@@ -16,7 +16,7 @@
        	<TablePane.Row height="1*">
        		<Border bxml:id="previewTextBorder">
            		<BoxPane bxml:id="previewTextBoxPane" orientation="horizontal"
-           		    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+           		    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            			<Label bxml:id="previewTextLabel"
                			styles="{horizontalAlignment:'center', verticalAlignment:'center'}"/>
                		<TextInput bxml:id="previewTextInput"/>
@@ -28,8 +28,7 @@
        	<TablePane.Row height="4*">
        		<Border bxml:id="previewTableBorder">
        			<ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
-       				<TableView bxml:id="previewTableView" selectMode="single"
-                        styles="{includeTrailingVerticalGridLine:true}">
+       				<TableView bxml:id="previewTableView" selectMode="single">
        					<columns>
        						<TableView.Column bxml:id="previewTableColumnWeekday" name="weekday"/>
        						<TableView.Column bxml:id="previewTableColumnColor" name="color"/>
@@ -50,7 +49,7 @@
        	<TablePane.Row height="1*">
        		<Border bxml:id="previewButtonBorder">
            		<BoxPane bxml:id="previewButtonBoxPane" orientation="horizontal"
-       		   	    styles="{spacing: 5, padding:10, verticalAlignment:'center'}">
+       		   	    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
            		   	<PushButton bxml:id="previewButton"
            		      	ButtonPressListener.buttonPressed="dialog.close()"/>
            		</BoxPane>

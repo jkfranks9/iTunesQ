@@ -1,6 +1,8 @@
 package itunesq;
 
+import java.util.Comparator;
 import java.util.Date;
+
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
@@ -15,22 +17,6 @@ public class Track
 {
 
     //---------------- Class variables -------------------------------------
-	
-	/**
-	 * Map key to obtain playlists for a track.
-	 * <p>
-	 * This is a column definition, but is not displayed as such. It holds 
-	 * playlist names that are displayed on the right side of a split pane 
-	 * when the results of a track query are displayed.
-	 */
-	public static final String MAP_PLAYLISTS  = "Playlists";
-	
-	/**
-	 * Map key to obtain bypassed playlists for a track.
-	 * <p>
-	 * This is a column definition, but is not displayed as such.
-	 */
-	public static final String MAP_BYPASSED  = "Bypassed";
 	
 	/*
 	 * Track attributes.
@@ -63,7 +49,7 @@ public class Track
 	private static final int RATING_DIVISOR = 20;
 	
 	/**
-	 * Class constructor specifying the track ID.
+	 * Class constructor.
 	 * 
 	 * @param ID track ID
 	 */
@@ -71,6 +57,19 @@ public class Track
 	{
 		trkID = ID;
 		trkPlaylists = new ArrayList<TrackPlaylistInfo>();
+		
+		/*
+		 * Set a comparator so that when we display the playlists for a track they are sorted.
+		 */
+		trkPlaylists.setComparator(new Comparator<TrackPlaylistInfo>()
+        {
+            @Override
+            public int compare(TrackPlaylistInfo c1, TrackPlaylistInfo c2)
+            {
+                return c1.compareTo(c2);
+            }
+        });
+		
 		trkRemote = false;
 	}
 	
@@ -125,22 +124,14 @@ public class Track
 	{
 		this.trkArtist = artist;
 	}
-	
-	/**
-	 * Gets the composer name.
-	 * 
-	 * @return composer name
-	 */
-	public String getComposer() {
-		return trkComposer;
-	}
 
 	/**
 	 * Sets the composer name.
 	 * 
 	 * @param composer composer name
 	 */
-	public void setComposer(String composer) {
+	public void setComposer(String composer)
+	{
 		this.trkComposer = composer;
 	}
 
@@ -165,19 +156,11 @@ public class Track
 	}
 
 	/**
-	 * Gets the genre.
-	 * 
-	 * @return genre
-	 */
-	public String getGenre() {
-		return trkGenre;
-	}
-
-	/**
 	 * Sets the genre.
 	 * @param genre genre
 	 */
-	public void setGenre(String genre) {
+	public void setGenre(String genre)
+	{
 		this.trkGenre = genre;
 	}
 
@@ -202,20 +185,12 @@ public class Track
 	}
 
 	/**
-	 * Gets the size of the track in bytes.
-	 * 
-	 * @return size of the track
-	 */
-	public int getSize() {
-		return trkSize;
-	}
-
-	/**
 	 * Sets the size of the track in bytes.
 	 * 
 	 * @param size size of the track
 	 */
-	public void setSize(int size) {
+	public void setSize(int size)
+	{
 		this.trkSize = size;
 	}
 
@@ -260,31 +235,13 @@ public class Track
 	}
 
 	/**
-	 * Gets the modification date.
-	 * 
-	 * @return modification date
-	 */
-	public Date getModified() {
-		return trkModified;
-	}
-
-	/**
 	 * Sets the modification date.
 	 * 
 	 * @param modified modification date
 	 */
-	public void setModified(Date modified) {
-		this.trkModified = modified;
-	}
-
-	/**
-	 * Gets the date the track was added.
-	 * 
-	 * @return date the track was added
-	 */
-	public Date getDateAdded ()
+	public void setModified(Date modified)
 	{
-		return trkDateAdded;
+		this.trkModified = modified;
 	}
 
 	/**
@@ -298,30 +255,13 @@ public class Track
 	}
 
 	/**
-	 * Gets the bit rate.
-	 * 
-	 * @return bit rate
-	 */
-	public int getBitRate() {
-		return trkBitRate;
-	}
-
-	/**
 	 * Sets the bit rate.
 	 * 
 	 * @param bitRate bit rate
 	 */
-	public void setBitRate(int bitRate) {
+	public void setBitRate(int bitRate)
+	{
 		this.trkBitRate = bitRate;
-	}
-
-	/**
-	 * Gets the sample rate.
-	 * 
-	 * @return sample rate
-	 */
-	public int getSampleRate() {
-		return trkSampleRate;
 	}
 
 	/**
@@ -329,17 +269,9 @@ public class Track
 	 * 
 	 * @param sampleRate sample rate
 	 */
-	public void setSampleRate(int sampleRate) {
+	public void setSampleRate(int sampleRate)
+	{
 		this.trkSampleRate = sampleRate;
-	}
-
-	/**
-	 * Gets the play count.
-	 * 
-	 * @return play count
-	 */
-	public int getPlayCount() {
-		return trkPlayCount;
 	}
 
 	/**
@@ -347,17 +279,9 @@ public class Track
 	 * 
 	 * @param playCount play count
 	 */
-	public void setPlayCount(int playCount) {
+	public void setPlayCount(int playCount)
+	{
 		this.trkPlayCount = playCount;
-	}
-
-	/**
-	 * Gets the release date.
-	 * 
-	 * @return release date
-	 */
-	public Date getReleased() {
-		return trkReleased;
 	}
 
 	/**
@@ -365,19 +289,9 @@ public class Track
 	 * 
 	 * @param released release date
 	 */
-	public void setReleased(Date released) {
-		this.trkReleased = released;
-	}
-
-	/**
-	 * Gets the track rating. This is the uncorrected rating as exists in the
-	 * XML file.
-	 * 
-	 * @return track rating
-	 */
-	public int getRawRating ()
+	public void setReleased(Date released)
 	{
-		return trkRating;
+		this.trkReleased = released;
 	}
 
 	/**
@@ -399,6 +313,16 @@ public class Track
 	public void setRating (int rating)
 	{
 		this.trkRating = rating;
+	}
+	
+	/**
+	 * Get the list of playlist info objects.
+	 * 
+	 * @return list of playlist info objects
+	 */
+	public List<TrackPlaylistInfo> getPlaylists ()
+	{
+	    return trkPlaylists;
 	}
 	
 	/**
@@ -424,12 +348,11 @@ public class Track
     //---------------- Public methods --------------------------------------
 
 	/**
-	 * Gets the track playlist count. This only includes playlists that are 
-	 * not bypassed.
+	 * Gets the track non-bypassed playlist count.
 	 * 
-	 * @return track playlist count
+	 * @return track non-bypassed playlist count
 	 */
-	public int getTrkPlaylistCount()
+	public int getNonBypassedPlaylistCount ()
 	{
 		int playlistCount = 0;
 		
@@ -443,6 +366,14 @@ public class Track
 		
 		return playlistCount;
 	}
+	
+	/**
+	 * Clears the track playlist info.
+	 */
+	public void clearPlaylistInfo ()
+	{
+	    trkPlaylists.clear();
+	}
 
 	/**
 	 * Adds playlist info to the track.
@@ -451,7 +382,35 @@ public class Track
 	 */
 	public void addPlaylistInfoToTrack(TrackPlaylistInfo playlistInfo)
 	{
-		this.trkPlaylists.add(playlistInfo);
+	    int index = 0;
+	    boolean playlistFound = false;
+	    
+	    /*
+	     * Check if we already have a playlist info for the input playlist. This can happen
+	     * if the bypass preferences are updated.
+	     */
+	    for (TrackPlaylistInfo trackPlaylistInfo : trkPlaylists)
+	    {
+	        if (trackPlaylistInfo.getPlaylistName().equals(playlistInfo.getPlaylistName()))
+	        {
+	            playlistFound = true;
+	            break;
+	        }
+	        
+	        index++;
+	    }
+	    
+	    /*
+	     * Add or update the playlist info.
+	     */
+	    if (playlistFound == false)
+	    {
+	        trkPlaylists.add(playlistInfo);
+	    }
+	    else
+	    {
+            trkPlaylists.update(index, playlistInfo);
+	    }
 	}
 
 	/**
@@ -479,55 +438,55 @@ public class Track
 		
 		if (trackNum > 0)
 		{
-			result.put(TrackDisplayColumns.ColumnNames.NUMBER.getDisplayValue(), 
+			result.put(TrackDisplayColumns.ColumnNames.NUMBER.getNameValue(), 
 					Integer.toString(trackNum));
 		}
-		result.put(TrackDisplayColumns.ColumnNames.ID.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.ID.getNameValue(), 
 				Integer.toString(trkID));
-		result.put(TrackDisplayColumns.ColumnNames.NAME.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.NAME.getNameValue(), 
 				trkName);
-		result.put(TrackDisplayColumns.ColumnNames.ARTIST.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.ARTIST.getNameValue(), 
 				trkArtist);
-		result.put(TrackDisplayColumns.ColumnNames.COMPOSER.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.COMPOSER.getNameValue(), 
 				trkComposer);
-		result.put(TrackDisplayColumns.ColumnNames.ALBUM.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.ALBUM.getNameValue(), 
 				trkAlbum);
-		result.put(TrackDisplayColumns.ColumnNames.GENRE.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.GENRE.getNameValue(), 
 				trkGenre);
-		result.put(TrackDisplayColumns.ColumnNames.KIND.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.KIND.getNameValue(), 
 				trkKind);
-		result.put(TrackDisplayColumns.ColumnNames.SIZE.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.SIZE.getNameValue(), 
 				Integer.toString(trkSize));
-		result.put(TrackDisplayColumns.ColumnNames.DURATION.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.DURATION.getNameValue(), 
 				Utilities.convertMillisecondTime(trkDuration));
 		
 		/*
 		 * If year is 0 then it doesn't exist, so use a value of null so it won't be seen in
 		 * track details.
 		 */
-		result.put(TrackDisplayColumns.ColumnNames.YEAR.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.YEAR.getNameValue(), 
 				(trkYear > 0) ? Integer.toString(trkYear) : null);
 		
-		result.put(TrackDisplayColumns.ColumnNames.MODIFIED.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.MODIFIED.getNameValue(), 
 				Utilities.formatDate(trkModified));
-		result.put(TrackDisplayColumns.ColumnNames.ADDED.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.ADDED.getNameValue(), 
 				Utilities.formatDate(trkDateAdded));
-		result.put(TrackDisplayColumns.ColumnNames.BITRATE.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.BITRATE.getNameValue(), 
 				Integer.toString(trkBitRate));
-		result.put(TrackDisplayColumns.ColumnNames.SAMPLERATE.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.SAMPLERATE.getNameValue(), 
 				Integer.toString(trkSampleRate));
-		result.put(TrackDisplayColumns.ColumnNames.PLAYCOUNT.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.PLAYCOUNT.getNameValue(), 
 				Integer.toString(trkPlayCount));
 		
 		/*
 		 * Release date is optional, so use null if it doesn't exist.
 		 */
-		result.put(TrackDisplayColumns.ColumnNames.RELEASED.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.RELEASED.getNameValue(), 
 				(trkReleased != null) ? Utilities.formatDate(trkReleased) : null);
 		
-		result.put(TrackDisplayColumns.ColumnNames.RATING.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.RATING.getNameValue(), 
 				Integer.toString(trkRating / RATING_DIVISOR));
-		result.put(TrackDisplayColumns.ColumnNames.REMOTE.getDisplayValue(), 
+		result.put(TrackDisplayColumns.ColumnNames.REMOTE.getNameValue(), 
 				(trkRemote == true) ? "Y" : "N");
 
 		/*
@@ -540,8 +499,8 @@ public class Track
 		{	
 			if (playlistsStr.length() > 0)
 			{
-				playlistsStr.append(",");
-				bypassedStr.append(",");
+				playlistsStr.append(InternalConstants.LIST_ITEM_SEPARATOR);
+				bypassedStr.append(InternalConstants.LIST_ITEM_SEPARATOR);
 			}
 			
 			playlistsStr.append(playlistInfo.getPlaylistName());
@@ -556,8 +515,13 @@ public class Track
 			}
 		}
 		
-		result.put(MAP_PLAYLISTS, playlistsStr.toString());
-		result.put(MAP_BYPASSED, bypassedStr.toString());
+		result.put(PlaylistDisplayColumns.ColumnNames.PLAYLIST_NAMES.getNameValue(), 
+		        playlistsStr.toString());
+		result.put(PlaylistDisplayColumns.ColumnNames.BYPASSED.getNameValue(), 
+		        bypassedStr.toString());
+		
+		result.put(TrackDisplayColumns.ColumnNames.NUMPLAYLISTS.getNameValue(), 
+		        Integer.toString(trkPlaylists.getLength()));
 		
 		return result;
 	}

@@ -1,8 +1,9 @@
 package itunesq;
 
-import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
-import org.apache.pivot.collections.List;
+import org.apache.pivot.collections.Map;
+
+import ch.qos.logback.classic.Logger;
 
 /**
  * Class that represents an artist.
@@ -15,67 +16,23 @@ public class Artist
 
     // ---------------- Class variables -------------------------------------
 
-    private String keyName;
     private String displayName;
-    private List<String> altNames;
-    private Integer numLocalTracks;
-    private Integer numRemoteTracks;
-    private Integer totalLocalTime;
-    private Integer totalRemoteTime;
-    private RemoteArtistControl remoteArtistControl;
+    private ArtistNames artistNames;
+    private ArtistTrackData artistTrackData;
 
     /**
-     * Control that allows us to keep track of the number of artists that
-     * contain only remote tracks. Such artists should not be counted if remote
-     * tracks are not being shown.
-     */
-    public enum RemoteArtistControl
-    {
-
-        /**
-         * artist does not contain remote tracks
-         */
-        NO_REMOTE,
-
-        /**
-         * artist contains only remote tracks
-         */
-        REMOTE,
-
-        /**
-         * artist contains local and remote tracks
-         */
-        REMOTE_AND_LOCAL;
-    }
-
-    /**
-     * Class constructor specifying the key name (lower case artist name).
+     * Class constructor.
      * 
-     * @param keyName
-     *            lower case artist name
+     * @param displayName artist display name
      */
-    public Artist(String keyName)
+    public Artist(String displayName)
     {
-        this.keyName = keyName;
-        altNames = new ArrayList<String>();
-        numLocalTracks = 0;
-        numRemoteTracks = 0;
-        totalLocalTime = 0;
-        totalRemoteTime = 0;
-        remoteArtistControl = RemoteArtistControl.NO_REMOTE;
+        this.displayName = displayName;
+        artistNames = null;
+        artistTrackData = new ArtistTrackData();
     }
 
     // ---------------- Getters and setters ---------------------------------
-
-    /**
-     * Gets the key name. This is the artist name in lower case.
-     * 
-     * @return lower case artist name
-     */
-    public String getKeyName()
-    {
-        return keyName;
-    }
 
     /**
      * Gets the display name. This is the first spelling of the artist we
@@ -89,134 +46,92 @@ public class Artist
     }
 
     /**
-     * Gets the list of alternate artist names. This is a list of the artist
-     * names in any case.
+     * Gets the artist names object. This contains information about any
+     * alternate artist names that are found.
      * 
-     * @return list of alternate artist names
+     * @return artist names object
      */
-    public List<String> getAltNames()
+    public ArtistNames getArtistNames()
     {
-        return altNames;
+        return artistNames;
     }
 
     /**
-     * Gets the number of local tracks for this artist.
+     * Sets the artist names object. This contains information about any
+     * alternate artist names that are found.
      * 
-     * @return number of local tracks
+     * @param artistNames artist names object
      */
-    public Integer getNumLocalTracks()
+    public void setArtistNames(ArtistNames artistNames)
     {
-        return numLocalTracks;
+        this.artistNames = artistNames;
     }
-
+    
     /**
-     * Gets the number of remote tracks for this artist.
+     * Gets the artist track data object. This contains information about all
+     * tracks for this artist.
      * 
-     * @return number of remote tracks
+     * @return artist track data object
      */
-    public Integer getNumRemoteTracks()
+    public ArtistTrackData getArtistTrackData ()
     {
-        return numRemoteTracks;
-    }
-
-    /**
-     * Gets the total time of local tracks for this artist.
-     * 
-     * @return total time of local tracks
-     */
-    public Integer getTotalLocalTime()
-    {
-        return totalLocalTime;
-    }
-
-    /**
-     * Gets the total time of remote tracks for this artist.
-     * 
-     * @return total time of remote tracks
-     */
-    public Integer getTotalRemoteTime()
-    {
-        return totalRemoteTime;
-    }
-
-    /**
-     * Gets the remote artist control. This is used to remember that we've
-     * accounted for this artist containing both local and remote tracks, and
-     * have adjusted the count of remote-only artists accordingly.
-     * 
-     * @return remote artist control
-     */
-    public RemoteArtistControl getRemoteArtistControl()
-    {
-        return remoteArtistControl;
-    }
-
-    /**
-     * Sets the remote artist control. This is used to remember that we've
-     * accounted for this artist containing both local and remote tracks, and
-     * have adjusted the count of remote-only artists accordingly.
-     * 
-     * @param remoteArtistControl
-     *            remote artist control
-     */
-    public void setRemoteArtistControl(RemoteArtistControl remoteArtistControl)
-    {
-        this.remoteArtistControl = remoteArtistControl;
+        return artistTrackData;
     }
 
     // ---------------- Public methods --------------------------------------
 
     /**
      * Adds a new track to this artist. This involves updating the track and
-     * total time values, as well as updating the list of alternate case
-     * spellings for the artist name.
+     * total time values, as well as updating the list of alternate artist
+     * names.
      * 
-     * @param track
-     *            track object
+     * @param track track object
+     * @param artistLogger logger to use
      */
-    public void addTrackToArtist(Track track)
-    {
+    public void addTrackToArtist(Track track, Logger artistLogger)
+    {  
+        if (track == null)
+        {
+            throw new IllegalArgumentException("track argument is null");
+        }
+        
+        if (artistLogger == null)
+        {
+            throw new IllegalArgumentException("artistLogger argument is null");
+        }
+        
+        artistLogger.trace("addTrackToArtist: " + this.hashCode());
+        
         String artistName = track.getArtist();
 
         /*
-         * Determine if this spelling of the artist name already exists in the
-         * alternate names list.
+         * The artist name could possibly be an alternate, so see if it needs to be saved.
          */
-        boolean foundName = false;
-        for (String altName : altNames)
-        {
-            if (artistName.equals(altName))
-            {
-                foundName = true;
-            }
-        }
-
-        /*
-         * If this is a new alternate spelling, add it to the list. Also, use
-         * the first such spelling found as the display name for the artist.
-         */
-        if (foundName == false)
-        {
-            altNames.add(artistName);
-
-            if (displayName == null || displayName.isEmpty())
-            {
-                displayName = artistName;
-            }
-        }
+        artistNames.checkAndSaveAlternateName(artistName, track.getRemote(), artistLogger);
 
         /*
          * Update the local or remote track counts and total time.
          */
         if (track.getRemote() == false)
         {
-            numLocalTracks++;
-            totalLocalTime += track.getDuration();
-        } else
-        {
-            numRemoteTracks++;
-            totalRemoteTime += track.getDuration();
+            artistTrackData.incrementNumLocalTracks(1);
+            artistTrackData.incrementTotalLocalTime(track.getDuration());
         }
+        else
+        {
+            artistTrackData.incrementNumRemoteTracks(1);
+            artistTrackData.incrementTotalRemoteTime(track.getDuration());
+        }
+    }
+
+    /**
+     * Gets a correlator to use with this instance.
+     * 
+     * @return correlator
+     */
+    public Integer getCorrelator()
+    {
+        return this.hashCode();
     }
 
     /**
@@ -229,15 +144,37 @@ public class Artist
         HashMap<String, String> result = new HashMap<String, String>();
 
         result.put(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue(), displayName);
+
+        /*
+         * Reduce the number of alternate names if there are remote-only artists and remote tracks
+         * are not being shown.
+         */
+        Preferences prefs = Preferences.getInstance();
+        boolean showRemoteTracks = prefs.getShowRemoteTracks();
+
+        Map<String, ArtistTrackData> altNames = artistNames.getAltNames();
+        int numAltNames = altNames.getCount();
+
+        for (String altName : altNames)
+        {
+            ArtistTrackData.RemoteArtistControl remoteControl = altNames.get(altName).getRemoteArtistControl();
+            if (showRemoteTracks == false && remoteControl == ArtistTrackData.RemoteArtistControl.REMOTE)
+            {
+                numAltNames--;
+            }
+        }
+
         result.put(ArtistDisplayColumns.ColumnNames.NUM_ALTNAMES.getNameValue(),
-                Integer.toString(altNames.getLength() - 1));
-        result.put(ArtistDisplayColumns.ColumnNames.LOCAL_NUM_TRACKS.getNameValue(), Integer.toString(numLocalTracks));
+                Integer.toString(numAltNames));
+
+        result.put(ArtistDisplayColumns.ColumnNames.LOCAL_NUM_TRACKS.getNameValue(),
+                Integer.toString(artistTrackData.getNumLocalTracks()));
         result.put(ArtistDisplayColumns.ColumnNames.LOCAL_TOTAL_TIME.getNameValue(),
-                Utilities.convertMillisecondTime(totalLocalTime));
+                Utilities.convertMillisecondTime(artistTrackData.getTotalLocalTime()));
         result.put(ArtistDisplayColumns.ColumnNames.REMOTE_NUM_TRACKS.getNameValue(),
-                Integer.toString(numRemoteTracks));
+                Integer.toString(artistTrackData.getNumRemoteTracks()));
         result.put(ArtistDisplayColumns.ColumnNames.REMOTE_TOTAL_TIME.getNameValue(),
-                Utilities.convertMillisecondTime(totalRemoteTime));
+                Utilities.convertMillisecondTime(artistTrackData.getTotalRemoteTime()));
 
         return result;
     }

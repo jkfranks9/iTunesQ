@@ -8,8 +8,12 @@ import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.pivot.collections.ArrayList;
+import org.apache.pivot.util.concurrent.Task;
+import org.apache.pivot.util.concurrent.TaskListener;
 import org.apache.pivot.wtk.Label;
+import org.apache.pivot.wtk.TaskAdapter;
 import org.apache.pivot.wtk.TextInput;
+import org.apache.pivot.wtk.Window;
 
 /**
  * Class that contains various useful utility methods.
@@ -76,7 +80,8 @@ public final class Utilities
      * @throws ParseException If an error occurs trying to parse the date
      * string.
      */
-    public static Date parseDate(String dateStr) throws ParseException
+    public static Date parseDate(String dateStr) 
+            throws ParseException
     {
         SimpleDateFormat dateParser = new SimpleDateFormat(new String(FORMATTED_DATE));
 
@@ -145,7 +150,8 @@ public final class Utilities
      * @throws ParseException If an error occurs trying to parse the time
      * string.
      */
-    public static long parseTime(String timeString) throws ParseException
+    public static long parseTime(String timeString) 
+            throws ParseException
     {
         SimpleDateFormat format;
         Date date;
@@ -225,66 +231,73 @@ public final class Utilities
         default:
             return result;
         }
-
+        
         /*
-         * A negative return from binarySearch() is the negative value of the
-         * index at which the name would be inserted, meaning it wasn't found.
-         * We use this as a trigger to keep looking.
+         * Don't do anything if the input list of names to search is null.
          */
-        int insertionPoint = ArrayList.binarySearch(names, text, names.getComparator());
-        if (insertionPoint < 0)
+        if (names != null)
         {
-            insertionPoint = -(insertionPoint + 1);
-            int numNames = names.getLength();
 
             /*
-             * No point in continuing to look if the insertion point is beyond
-             * the end of the names list.
+             * A negative return from binarySearch() is the negative value of the
+             * index at which the name would be inserted, meaning it wasn't found.
+             * We use this as a trigger to keep looking.
              */
-            if (insertionPoint < numNames)
+            int insertionPoint = ArrayList.binarySearch(names, text, names.getComparator());
+            if (insertionPoint < 0)
             {
-                text = text.toLowerCase();
-                final String name = names.get(insertionPoint);
+                insertionPoint = -(insertionPoint + 1);
+                int numNames = names.getLength();
 
                 /*
-                 * We're getting closer if the name at the insertion point
-                 * starts with the entered text.
+                 * No point in continuing to look if the insertion point is beyond
+                 * the end of the names list.
                  */
-                boolean isCandidate;
-                if (operatorIS == true)
+                if (insertionPoint < numNames)
                 {
-                    isCandidate = name.toLowerCase().startsWith(text);
-                }
-                else
-                {
-                    isCandidate = name.toLowerCase().contains(text);
-                }
-
-                if (isCandidate == true)
-                {
-                    String nextName = (insertionPoint == numNames - 1) ? null : names.get(insertionPoint + 1);
+                    text = text.toLowerCase();
+                    final String name = names.get(insertionPoint);
 
                     /*
-                     * Paydirt if at least one more name exists, but doesn't
-                     * start with or contain the entered text.
+                     * We're getting closer if the name at the insertion point
+                     * starts with the entered text.
                      */
+                    boolean isCandidate;
                     if (operatorIS == true)
                     {
-                        isCandidate = !name.toLowerCase().startsWith(text);
+                        isCandidate = name.toLowerCase().startsWith(text);
                     }
                     else
                     {
-                        isCandidate = !name.toLowerCase().contains(text);
+                        isCandidate = name.toLowerCase().contains(text);
                     }
 
-                    if (nextName == null || isCandidate == false)
+                    if (isCandidate == true)
                     {
-                        result = true;
-                        textInput.setText(name);
+                        String nextName = (insertionPoint == numNames - 1) ? null : names.get(insertionPoint + 1);
 
-                        int selectionStart = text.length();
-                        int selectionLength = name.length() - selectionStart;
-                        textInput.setSelection(selectionStart, selectionLength);
+                        /*
+                         * Paydirt if at least one more name exists, but doesn't
+                         * start with or contain the entered text.
+                         */
+                        if (operatorIS == true)
+                        {
+                            isCandidate = !name.toLowerCase().startsWith(text);
+                        }
+                        else
+                        {
+                            isCandidate = !name.toLowerCase().contains(text);
+                        }
+
+                        if (nextName == null || isCandidate == false)
+                        {
+                            result = true;
+                            textInput.setText(name);
+
+                            int selectionStart = text.length();
+                            int selectionLength = name.length() - selectionStart;
+                            textInput.setSelection(selectionStart, selectionLength);
+                        }
                     }
                 }
             }
@@ -337,21 +350,68 @@ public final class Utilities
      * Processes the XML file, and updates the main window XML file information.
      * 
      * @param xmlFileName name of the XML file to be processed
+     * @param owningWindow owning window
      * @throws IOException If an error occurs trying to read the iTunes XML
      * file.
      */
-    public static void updateFromXMLFile(String xmlFileName) throws IOException
+    public static void updateFromXMLFile(String xmlFileName, Window owningWindow) 
+            throws IOException
     {
 
         /*
-         * Read and process the XML file.
+         * Start the activity indicator.
          */
-        XMLHandler.processXML(xmlFileName);
-
+        MainWindow.updateActivityIndicator(true);
+        
         /*
-         * Update the main window information based on the XML file contents.
+         * Create the concurrent task.
          */
-        updateMainWindowLabels(xmlFileName);
+        XMLHandler.ReadXMLTask xmlTask = new XMLHandler.ReadXMLTask();
+        
+        /*
+         * Listener that gets called when the task completes.
+         */
+        TaskListener<Integer> taskListener = new TaskListener<Integer>()
+        {
+            
+            /*
+             * The task completed successfully. Stop the activity indicator, update the main
+             * window labels and repaint the main window.
+             */
+            @Override
+            public void taskExecuted(Task<Integer> task)
+            {
+                MainWindow.updateActivityIndicator(false);
+                Utilities.updateMainWindowLabels(xmlFileName);
+                owningWindow.repaint(true);
+            }
+
+            /*
+             * The task failed. I think this only happens if an exception was throw, in which
+             * case we convert it to an internal error exception. But also throw an exception
+             * if getFault returns null, because we really can't do anything without the XML
+             * file being processed.
+             */
+            @Override
+            public void executeFailed(Task<Integer> task)
+            {
+                MainWindow.updateActivityIndicator(false);
+                
+                if (task.getFault() != null)
+                {
+                    throw new InternalErrorException(true, task.getFault().getMessage());
+                }
+                else
+                {
+                    throw new InternalErrorException(true, "failed to execute ReadXMLTask");
+                }
+            }
+        };
+        
+        /*
+         * All set. Run the background task.
+         */
+        xmlTask.execute(new TaskAdapter<Integer>(taskListener));
     }
 
     /**
@@ -368,11 +428,14 @@ public final class Utilities
      */
     public static void updateMainWindowLabels(String xmlFileName)
     {
-        fileLabel.setText(xmlFileName + StringConstants.UTILITY_XMLFILE_DATE + XMLHandler.getXMLFileTimestamp());
-        numTracksLabel.setText(StringConstants.UTILITY_NUMTRACKS + Integer.toString(XMLHandler.getNumberOfTracks()));
-        numPlaylistsLabel
-                .setText(StringConstants.UTILITY_NUMPLAYLISTS + Integer.toString(XMLHandler.getNumberOfPlaylists()));
-        numArtistsLabel.setText(StringConstants.UTILITY_NUMARTISTS + Integer.toString(XMLHandler.getNumberOfArtists()));
+        fileLabel.setText(xmlFileName + StringConstants.UTILITY_XMLFILE_DATE 
+                + XMLHandler.getXMLFileTimestamp());
+        numTracksLabel.setText(StringConstants.UTILITY_NUMTRACKS 
+                + Integer.toString(XMLHandler.getNumberOfTracks()));
+        numPlaylistsLabel.setText(StringConstants.UTILITY_NUMPLAYLISTS 
+                + Integer.toString(XMLHandler.getNumberOfPlaylists()));
+        numArtistsLabel.setText(StringConstants.UTILITY_NUMARTISTS 
+                + Integer.toString(XMLHandler.getNumberOfArtists()));
     }
 
     /**

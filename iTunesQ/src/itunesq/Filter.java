@@ -359,6 +359,8 @@ public class Filter
 		filterText = text;
 	}
 
+    // ---------------- Public methods --------------------------------------
+
 	/**
 	 * Gets the list of logic <code>enum</code> values.
 	 * 
