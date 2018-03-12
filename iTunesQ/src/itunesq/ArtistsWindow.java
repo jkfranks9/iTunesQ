@@ -6,13 +6,12 @@ import java.util.Iterator;
 
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
-import org.apache.pivot.collections.ArrayAdapter;
 import org.apache.pivot.collections.ArrayList;
+import org.apache.pivot.collections.Dictionary;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.collections.Sequence;
-import org.apache.pivot.collections.Sequence.Tree.Path;
 import org.apache.pivot.collections.immutable.ImmutableList;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.wtk.Alert;
@@ -38,9 +37,7 @@ import org.apache.pivot.wtk.TableViewSelectionListener;
 import org.apache.pivot.wtk.TableViewSortListener;
 import org.apache.pivot.wtk.TreeView;
 import org.apache.pivot.wtk.TreeView.SelectMode;
-import org.apache.pivot.wtk.TreeViewBranchListener;
 import org.apache.pivot.wtk.Window;
-import org.apache.pivot.wtk.WindowStateListener;
 import org.apache.pivot.wtk.content.TreeBranch;
 import org.apache.pivot.wtk.content.TreeNode;
 import org.slf4j.LoggerFactory;
@@ -60,23 +57,23 @@ public class ArtistsWindow
 
     private Window artistsWindow = null;
     private Dialog altNamesDialog = null;
-    private Dialog altNameSelectionDialog = null;
-    private Dialog manualOverridesDialog = null;
+    private Dialog setAltNameSelectionDialog = null;
+    private Dialog removeAltNameSelectionDialog = null;
+    private Dialog artistOverridesDialog = null;
     private List<String> selectedArtists = null;
     private ImmutableList<Span> selectedRanges = null;
-    private boolean invalidOverridesFound = false;
-    private Map<TreePath, String> overridePaths = null;
+    private String primaryForRemoval = null;
     
     private Skins skins = null;
     private Preferences userPrefs = null;
     private Logger uiLogger = null;
     private Logger artistLogger = null;
     
-    private static final int NUM_MANUAL_SELECTION_THRESHOLD = 5;
+    private static final int NUM_SET_SELECTION_THRESHOLD = 5;
 
     /*
      * Map key to hold the index into the full list of artists. This is a column definition, 
-     * but is not displayed as such. We need it for manual alternate name processing. When the
+     * but is not displayed as such. We need it for set alternate name processing. When the
      * user selects a group of artists, she is then presented with a list of those artists to
      * select which one is primary. Because that list is separate from the full list, we would
      * not be able to easily find the primary in the full list without this value.
@@ -100,7 +97,8 @@ public class ArtistsWindow
     @BXML private Border actionBorder = null;
     @BXML private BoxPane actionBoxPane = null;
     @BXML private PushButton doneButton = null;
-    @BXML private PushButton altNameButton = null;
+    @BXML private PushButton setAltNameButton = null;
+    @BXML private PushButton removeAltNameButton = null;
     @BXML private PushButton reviewOverridesButton = null;
 
     /*
@@ -110,35 +108,49 @@ public class ArtistsWindow
     @BXML private TablePane altNamesTablePane = null;
 
     /*
-     * ... alternate name selection dialog.
+     * ... set alternate name selection dialog.
      */
-    @BXML private Border altSelectLabelsBorder = null;
-    @BXML private BoxPane altSelectLabelsBoxPane = null;
-    @BXML private Label altSelectWarningLabel = null;
-    @BXML private Label altSelectInstructionsLabel = null;
-    @BXML private Border altSelectTableBorder = null;
-    @BXML private ScrollPane altSelectTableScrollPane = null;
-    @BXML private TableView altSelectTableView = null;
-    @BXML private TableView.Column altSelectTableColumnArtist = null;
-    @BXML private Border altSelectButtonBorder = null;
-    @BXML private BoxPane altSelectButtonBoxPane = null;
-    @BXML private PushButton altSelectCancelButton = null;
-    @BXML private PushButton altSelectProceedButton = null;
+    @BXML private Border setAltSelectLabelsBorder = null;
+    @BXML private BoxPane setAltSelectLabelsBoxPane = null;
+    @BXML private Label setAltSelectWarningLabel = null;
+    @BXML private Label setAltSelectInstructionsLabel = null;
+    @BXML private Border setAltSelectTableBorder = null;
+    @BXML private ScrollPane setAltSelectTableScrollPane = null;
+    @BXML private TableView setAltSelectTableView = null;
+    @BXML private TableView.Column setAltSelectTableColumnArtist = null;
+    @BXML private Border setAltSelectButtonBorder = null;
+    @BXML private BoxPane setAltSelectButtonBoxPane = null;
+    @BXML private PushButton setAltSelectCancelButton = null;
+    @BXML private PushButton setAltSelectProceedButton = null;
 
     /*
-     * ... review manual overrides dialog.
+     * ... remove alternate name selection dialog.
      */
-    @BXML private Border manualOverridesLabelsBorder = null;
-    @BXML private BoxPane manualOverridesLabelsBoxPane = null;
-    @BXML private Label manualOverridesInstructionsLabel = null;
-    @BXML private Label manualOverridesInfoLabel = null;
-    @BXML private Border manualOverridesTreeBorder = null;
-    @BXML private ScrollPane manualOverridesTreeScrollPane = null;
-    @BXML private TreeView manualOverridesTreeView = null;
-    @BXML private Border manualOverridesButtonBorder = null;
-    @BXML private BoxPane manualOverridesButtonBoxPane = null;
-    @BXML private PushButton manualOverridesDoneButton = null;
-    @BXML private PushButton manualOverridesDeleteButton = null;
+    @BXML private Border removeAltSelectLabelsBorder = null;
+    @BXML private BoxPane removeAltSelectLabelsBoxPane = null;
+    @BXML private Label removeAltSelectInstructionsLabel = null;
+    @BXML private Border removeAltSelectTableBorder = null;
+    @BXML private ScrollPane removeAltSelectTableScrollPane = null;
+    @BXML private TableView removeAltSelectTableView = null;
+    @BXML private TableView.Column removeAltSelectTableColumnArtist = null;
+    @BXML private Border removeAltSelectButtonBorder = null;
+    @BXML private BoxPane removeAltSelectButtonBoxPane = null;
+    @BXML private PushButton removeAltSelectCancelButton = null;
+    @BXML private PushButton removeAltSelectProceedButton = null;
+
+    /*
+     * ... review artist overrides dialog.
+     */
+    @BXML private Border artistOverridesLabelBorder = null;
+    @BXML private BoxPane artistOverridesLabelBoxPane = null;
+    @BXML private Label artistOverridesManualLabel = null;
+    @BXML private Label artistOverridesAutomaticLabel = null;
+    @BXML private Border artistOverridesTreeBorder = null;
+    @BXML private ScrollPane artistOverridesTreeScrollPane = null;
+    @BXML private TreeView artistOverridesTreeView = null;
+    @BXML private Border artistOverridesButtonBorder = null;
+    @BXML private BoxPane artistOverridesButtonBoxPane = null;
+    @BXML private PushButton artistOverridesDoneButton = null;
 
     /**
      * Class constructor.
@@ -277,11 +289,13 @@ public class ArtistsWindow
          */
         if (showRemoteTracks == false)
         {
-            ArtistDisplayColumns.createColumnSet(ArtistDisplayColumns.ColumnSet.LOCAL_VIEW, artistsTableView);
+            ArtistDisplayColumns.createColumnSet(ArtistDisplayColumns.ColumnSet.LOCAL_VIEW, 
+                    artistsTableView);
         }
         else
         {
-            ArtistDisplayColumns.createColumnSet(ArtistDisplayColumns.ColumnSet.REMOTE_VIEW, artistsTableView);
+            ArtistDisplayColumns.createColumnSet(ArtistDisplayColumns.ColumnSet.REMOTE_VIEW, 
+                    artistsTableView);
         }
 
         /*
@@ -320,20 +334,25 @@ public class ArtistsWindow
         /*
          * Add widget texts.
          */
-        instructionsLabel.setText(StringConstants.ARTISTS_INSTRUCTIONS);
+        instructionsLabel.setText(StringConstants.ARTISTS_SET_INSTRUCTIONS);
         doneButton.setButtonData(StringConstants.DONE);
-        altNameButton.setButtonData(StringConstants.ARTISTS_ALTNAME_BUTTON);
-        altNameButton.setTooltipText(StringConstants.ARTISTS_ALTNAME_BUTTON_TIP);
-        altNameButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        setAltNameButton.setButtonData(StringConstants.ARTISTS_SET_ALTNAME_BUTTON);
+        setAltNameButton.setTooltipText(StringConstants.ARTISTS_SET_ALTNAME_BUTTON_TIP);
+        setAltNameButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        removeAltNameButton.setButtonData(StringConstants.ARTISTS_REMOVE_ALTNAME_BUTTON);
+        removeAltNameButton.setTooltipText(StringConstants.ARTISTS_REMOVE_ALTNAME_BUTTON_TIP);
+        removeAltNameButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         reviewOverridesButton.setButtonData(StringConstants.ARTISTS_REVIEW_OVERRIDES_BUTTON);
         reviewOverridesButton.setTooltipText(StringConstants.ARTISTS_REVIEW_OVERRIDES_BUTTON_TIP);
         reviewOverridesButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         
         /*
-         * Disable the alternate name button to start. It only gets enabled when two or more rows
-         * are selected.
+         * Disable the set and remove alternate name buttons to start. They only get enabled when 
+         * two or more rows are selected, or a row with existing alternate names is selected,
+         * respectively. 
          */
-        altNameButton.setEnabled(false);
+        setAltNameButton.setEnabled(false);
+        removeAltNameButton.setEnabled(false);
 
         /*
          * Set the window title.
@@ -343,8 +362,7 @@ public class ArtistsWindow
         /*
          * Register the artists window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.ARTISTS, windowElements);
+        skins.registerWindowElements(Skins.Window.ARTISTS, components);
 
         /*
          * Skin the artists window.
@@ -396,14 +414,14 @@ public class ArtistsWindow
         });
 
         /*
-         * Listener to handle the alternate name button press.
+         * Listener to handle the set alternate name button press.
          */
-        altNameButton.getButtonPressListeners().add(new ButtonPressListener()
+        setAltNameButton.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
             {
-                uiLogger.info("alternate name button pressed");
+                uiLogger.info("set alternate name button pressed");
 
                 Display display = button.getDisplay();
                 
@@ -411,6 +429,25 @@ public class ArtistsWindow
                  * Set up and open the set alternate names dialog.
                  */
                 setAlternateNames(display);
+            }
+        });
+
+        /*
+         * Listener to handle the remove alternate name button press.
+         */
+        removeAltNameButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                uiLogger.info("remove alternate name button pressed");
+
+                Display display = button.getDisplay();
+                
+                /*
+                 * Set up and open the remove alternate names dialog.
+                 */
+                removeAlternateNames(display);
             }
         });
 
@@ -448,7 +485,7 @@ public class ArtistsWindow
                 ImmutableList<Span> selectedRanges = tableView.getSelectedRanges();
                 
                 /*
-                 * The selections get used if the alternate name button is pressed. That button 
+                 * The selections get used if the set alternate name button is pressed. That button 
                  * is grayed out unless at least 2 rows are selected, so count the number of 
                  * selections and enable or disable the button.
                  */
@@ -458,7 +495,12 @@ public class ArtistsWindow
                     numSelections += (span.end - span.start) + 1;
                 }
 
-                altNameButton.setEnabled(numSelections > 1);
+                setAltNameButton.setEnabled(numSelections > 1);
+                
+                /*
+                 * Enable the remove alternate name button if a single row is selected.
+                 */
+                removeAltNameButton.setEnabled(numSelections == 1);
             }
         });
 
@@ -509,25 +551,6 @@ public class ArtistsWindow
                 }
 
                 return false;
-            }
-        });
-
-        /*
-         * This window state listener gets control when the artists window opens.
-         * Issue an alert if any of the manual overrides are not valid.
-         */
-        artistsWindow.getWindowStateListeners().add(new WindowStateListener.Adapter()
-        {
-            @Override
-            public void windowOpened(Window window)
-            {
-                List<String> invalidManualOverrides = XMLHandler.getInvalidManualOverrides();
-                if (invalidManualOverrides != null && invalidManualOverrides.getLength() > 0)
-                {
-                    invalidOverridesFound = true;
-                    Alert.alert(MessageType.WARNING, StringConstants.ALERT_INVALID_MANUAL_OVERRIDES, 
-                            artistsWindow);
-                }
             }
         });
     }
@@ -616,18 +639,17 @@ public class ArtistsWindow
             /*
              * Set the window title.
              */
-            altNamesDialog.setTitle(Skins.Window.ALTNAMES.getDisplayValue());
+            altNamesDialog.setTitle(Skins.Window.ALT_NAMES.getDisplayValue());
 
             /*
              * Register the window elements.
              */
-            Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-            skins.registerWindowElements(Skins.Window.ALTNAMES, windowElements);
+            skins.registerWindowElements(Skins.Window.ALT_NAMES, components);
 
             /*
              * Skin the alternate names dialog.
              */
-            skins.skinMe(Skins.Window.ALTNAMES);
+            skins.skinMe(Skins.Window.ALT_NAMES);
 
             /*
              * Open the alternate names dialog. There is no close button, so the
@@ -650,13 +672,13 @@ public class ArtistsWindow
         uiLogger.trace("setAlternateNames: " + this.hashCode());
 
         /*
-         * Get the BXML information for the alternate name selection dialog, and
+         * Get the BXML information for the set alternate name selection dialog, and
          * gather the list of components to be skinned.
          */
         List<Component> components = new ArrayList<Component>();
         try
         {
-            initializeAltNameSelectionDialogBxmlVariables(components);
+            initializeSetAltNameSelectionDialogBxmlVariables(components);
         }
         catch (IOException | SerializationException e)
         {
@@ -667,7 +689,7 @@ public class ArtistsWindow
         /*
          * Listener to handle the cancel button press.
          */
-        altSelectCancelButton.getButtonPressListeners().add(new ButtonPressListener()
+        setAltSelectCancelButton.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
@@ -679,14 +701,14 @@ public class ArtistsWindow
                  */
                 cleanSelectedArtists();
                 
-                altNameSelectionDialog.close();
+                setAltNameSelectionDialog.close();
             }
         });
         
         /*
          * Listener to handle the proceed button press.
          */
-        altSelectProceedButton.getButtonPressListeners().add(new ButtonPressListener()
+        setAltSelectProceedButton.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
@@ -698,7 +720,7 @@ public class ArtistsWindow
                  */
                 mergeAlternatesToPrimary();
                 
-                altNameSelectionDialog.close();
+                setAltNameSelectionDialog.close();
             }
         });
         
@@ -713,25 +735,31 @@ public class ArtistsWindow
         selectedArtists.clear();
         
         /*
-         * Gather the list of selected artists.
+         * Create the table data list.
          */
         List<HashMap<String, String>> altSelectTableData = new ArrayList<HashMap<String, String>>();
         
+        /*
+         * Get the selected rows.
+         */
         @SuppressWarnings("unchecked") 
         Sequence<HashMap<String, String>> selectedRows = 
                 (Sequence<HashMap<String, String>>) artistsTableView.getSelectedRows();
         
+        /*
+         * Gather the selected artists into a list.
+         */
         boolean dissimilarNames = false;
         for (int rowIndex = 0; rowIndex < selectedRows.getLength(); rowIndex++)
         {
             HashMap<String, String> rowData = selectedRows.get(rowIndex);
-            HashMap<String, String> selectedArtist = new HashMap<String, String>();
             String artistName = rowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
+            HashMap<String, String> artistData = new HashMap<String, String>();
 
             /*
              * Add the artist to the table data to be displayed.
              */
-            selectedArtist.put(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue(), artistName);
+            artistData.put(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue(), artistName);
             
             /*
              * Also add a hidden column with the index into the artist in the full list of
@@ -739,13 +767,13 @@ public class ArtistsWindow
              * from the list of selected rows, so we can then proceed to remove all the 
              * alternate artist rows.
              */
-            selectedArtist.put(MAP_PRIMARY_ARTIST, 
+            artistData.put(MAP_PRIMARY_ARTIST, 
                     Integer.toString(getSelectedIndexForRelativeIndex(rowIndex)));
             
-            altSelectTableData.add(selectedArtist);
+            altSelectTableData.add(artistData);
 
             /*
-             * Also save the artist for later processing if the proceed button is pressed.
+             * Save the artist for later processing if the proceed button is pressed.
              */
             int index = selectedArtists.add(artistName);
 
@@ -775,20 +803,23 @@ public class ArtistsWindow
                 dissimilarNames = true;
             }
         }
+
+        artistLogger.info("found " + altSelectTableData.getLength()
+                + " artist names to display");
         
         /*
          * Assume we don't need the warning label.
          */
-        altSelectWarningLabel.setVisible(false);
+        setAltSelectWarningLabel.setVisible(false);
         
         /*
          * Include the warning label if the number of selections seems excessive, or if the 
          * selected names are dissimilar.
          */
-        if (selectedArtists.getLength() > NUM_MANUAL_SELECTION_THRESHOLD || dissimilarNames == true)
+        if (selectedArtists.getLength() > NUM_SET_SELECTION_THRESHOLD || dissimilarNames == true)
         {
-            altSelectWarningLabel.setVisible(true);
-            altSelectWarningLabel.setText(StringConstants.ARTISTS_ALTSELECT_WARNING);
+            setAltSelectWarningLabel.setVisible(true);
+            setAltSelectWarningLabel.setText(StringConstants.ARTISTS_ALTSELECT_WARNING);
             
             /*
              * Set the text red. This label is not part of the components list, so it
@@ -797,13 +828,13 @@ public class ArtistsWindow
              */
             Map<String, Object> warningLabelStyles = new HashMap<String, Object>();
             warningLabelStyles.put("color", "#FF0000");
-            altSelectWarningLabel.setStyles(warningLabelStyles);
+            setAltSelectWarningLabel.setStyles(warningLabelStyles);
         }
 
         /*
          * Set the selected artists table data.
          */
-        altSelectTableView.setTableData(altSelectTableData);
+        setAltSelectTableView.setTableData(altSelectTableData);
         
         /*
          * Set the preferred height of the scrollable table view. This is apparently the secret that
@@ -811,56 +842,235 @@ public class ArtistsWindow
          * of actually scrolling. Determined via much trial and error since Pivot's documentation
          * is horrid.
          */
-        altSelectTableScrollPane.setPreferredHeight(InternalConstants.MANUAL_OVERRIDES_SCROLLPANE_HEIGHT);
+        setAltSelectTableScrollPane.setPreferredHeight(InternalConstants.ARTIST_OVERRIDES_SCROLLPANE_HEIGHT);
 
         /*
          * Add widget texts.
          */
-        altSelectInstructionsLabel.setText(StringConstants.ARTISTS_ALTSELECT_INSTRUCTIONS);
-        altSelectTableColumnArtist.setHeaderData(StringConstants.TRACK_COLUMN_ARTIST);
-        altSelectTableColumnArtist.setName(StringConstants.TRACK_COLUMN_ARTIST);
-        altSelectCancelButton.setButtonData(StringConstants.CANCEL);
-        altSelectProceedButton.setButtonData(StringConstants.ARTISTS_ALTNAME_PROCEED_BUTTON);
+        setAltSelectInstructionsLabel.setText(StringConstants.ARTISTS_ALTSELECT_INSTRUCTIONS);
+        setAltSelectTableColumnArtist.setHeaderData(StringConstants.TRACK_COLUMN_ARTIST);
+        setAltSelectTableColumnArtist.setName(StringConstants.TRACK_COLUMN_ARTIST);
+        setAltSelectCancelButton.setButtonData(StringConstants.CANCEL);
+        setAltSelectProceedButton.setButtonData(StringConstants.PROCEED);
 
         /*
          * Set the window title.
          */
-        altNameSelectionDialog.setTitle(Skins.Window.ALTNAMESELECTION.getDisplayValue());
+        setAltNameSelectionDialog.setTitle(Skins.Window.SET_ALT_NAME_SELECTION.getDisplayValue());
 
         /*
-         * Register the alternate name selection dialog skin elements.
+         * Register the set alternate name selection dialog skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = 
-                skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.ALTNAMESELECTION, windowElements);
+        skins.registerWindowElements(Skins.Window.SET_ALT_NAME_SELECTION, components);
 
         /*
-         * Skin the alternate name selection dialog.
+         * Skin the set alternate name selection dialog.
          */
-        skins.skinMe(Skins.Window.ALTNAMESELECTION);
+        skins.skinMe(Skins.Window.SET_ALT_NAME_SELECTION);
 
         /*
-         * Open the alternate name selection dialog.
+         * Open the set alternate name selection dialog.
          */
-        uiLogger.info("opening alternate name selection dialog");
-        altNameSelectionDialog.open(display);
+        uiLogger.info("opening set alternate name selection dialog");
+        setAltNameSelectionDialog.open(display);
     }
     
     /*
-     * Display the current manual overrides for user review.
+     * Handle the remove alternate names button.
+     */
+    private void removeAlternateNames (Display display)
+    {
+        uiLogger.trace("removeAlternateNames: " + this.hashCode());
+
+        /*
+         * Get the BXML information for the remove alternate name selection dialog, and
+         * gather the list of components to be skinned.
+         */
+        List<Component> components = new ArrayList<Component>();
+        try
+        {
+            initializeRemoveAltNameSelectionDialogBxmlVariables(components);
+        }
+        catch (IOException | SerializationException e)
+        {
+            MainWindow.logException(uiLogger, e);
+            throw new InternalErrorException(true, e.getMessage());
+        }
+        
+        /*
+         * Listener to handle the cancel button press.
+         */
+        removeAltSelectCancelButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                uiLogger.info("remove alternates cancel button pressed");
+                
+                /*
+                 * Clean up the selected artists.
+                 */
+                cleanSelectedArtists();
+                
+                removeAltNameSelectionDialog.close();
+            }
+        });
+        
+        /*
+         * Listener to handle the proceed button press.
+         */
+        removeAltSelectProceedButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                uiLogger.info("remove alternates proceed button pressed");
+                
+                /*
+                 * Remove all the selected alternates from the primary artist.
+                 */
+                removeAlternatesFromPrimary();
+                
+                removeAltNameSelectionDialog.close();
+            }
+        });
+        
+        /*
+         * Set multiple selection mode.
+         */
+        removeAltSelectTableView.setSelectMode(TableView.SelectMode.MULTI);
+        
+        /*
+         * Create the table data list.
+         */
+        List<HashMap<String, String>> altRemoveTableData = new ArrayList<HashMap<String, String>>();
+        
+        /*
+         * Get the selected rows.
+         */
+        @SuppressWarnings("unchecked") 
+        Sequence<HashMap<String, String>> selectedRows = 
+                (Sequence<HashMap<String, String>>) artistsTableView.getSelectedRows();
+
+        /*
+         * Get the primary artist and save it for the proceed button handler.
+         */
+        HashMap<String, String> rowData = selectedRows.get(0);
+        primaryForRemoval = rowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
+
+        /*
+         * The alternate artist names are kept in an ArtistNames object, which is obtained from the
+         * artist object. But to get the artist object we need the artist correlator.
+         */
+        ArtistCorrelator artistCorr = XMLHandler.findArtistCorrelator(primaryForRemoval);
+        Artist artistObj = XMLHandler.getArtists().get(artistCorr.getArtistKey());
+        ArtistNames artistNames = artistObj.getArtistNames();
+
+        /*
+         * Get the artist alternate names.
+         */
+        Map<String, ArtistTrackData> altNames = artistNames.getAltNames();
+
+        /*
+         * Only display the dialog if there is at least one alternate name.
+         */
+        if (altNames.getCount() > 0)
+        {
+
+            /*
+             * Get the show remote tracks preference.
+             */
+            boolean showRemoteTracks = userPrefs.getShowRemoteTracks();
+            
+            /*
+             * Build a list of alternate artist data. We need to weed out remote artists if 
+             * remotes are not being shown.
+             */
+            for (String altName : altNames)
+            {
+                HashMap<String, String> altArtistData = new HashMap<String, String>();
+                
+                ArtistTrackData.RemoteArtistControl remoteControl = 
+                        altNames.get(altName).getRemoteArtistControl();
+                if (showRemoteTracks == false 
+                        && remoteControl == ArtistTrackData.RemoteArtistControl.REMOTE)
+                {
+                    continue;
+                }
+
+                altArtistData.put(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue(), altName);
+                
+                altRemoveTableData.add(altArtistData);
+            }
+
+            artistLogger.info("found " + altRemoveTableData.getLength()
+                    + " alternate artist names to display");
+
+            /*
+             * Set the alternate artists table data.
+             */
+            removeAltSelectTableView.setTableData(altRemoveTableData);
+
+            /*
+             * Set the preferred height of the scrollable table view. This is apparently the secret that
+             * prevents the scrollable area from growing in size to accommodate all the data instead
+             * of actually scrolling. Determined via much trial and error since Pivot's documentation
+             * is horrid.
+             */
+            removeAltSelectTableScrollPane.setPreferredHeight(InternalConstants.ARTIST_OVERRIDES_SCROLLPANE_HEIGHT);
+
+            /*
+             * Add widget texts.
+             */
+            removeAltSelectInstructionsLabel.setText(StringConstants.ARTISTS_REMOVE_INSTRUCTIONS);
+            removeAltSelectTableColumnArtist.setHeaderData(StringConstants.TRACK_COLUMN_ARTIST);
+            removeAltSelectTableColumnArtist.setName(StringConstants.TRACK_COLUMN_ARTIST);
+            removeAltSelectCancelButton.setButtonData(StringConstants.CANCEL);
+            removeAltSelectProceedButton.setButtonData(StringConstants.PROCEED);
+
+            /*
+             * Set the window title.
+             */
+            removeAltNameSelectionDialog.setTitle(Skins.Window.REMOVE_ALT_NAME_SELECTION.
+                    getDisplayValue());
+
+            /*
+             * Register the remove alternate name selection dialog skin elements.
+             */
+            skins.registerWindowElements(Skins.Window.REMOVE_ALT_NAME_SELECTION, components);
+
+            /*
+             * Skin the remove alternate name selection dialog.
+             */
+            skins.skinMe(Skins.Window.REMOVE_ALT_NAME_SELECTION);
+
+            /*
+             * Open the remove alternate name selection dialog.
+             */
+            uiLogger.info("opening remove alternate name selection dialog");
+            removeAltNameSelectionDialog.open(display);
+        }
+        else
+        {
+            Alert.alert(MessageType.INFO, StringConstants.ALERT_NO_ALTERNATE_NAMES, artistsWindow);
+        }
+    }
+    
+    /*
+     * Display the current artist overrides for user review.
      */
     private void reviewOverrides (Display display)
     {
         uiLogger.trace("reviewOverrides: " + this.hashCode());
 
         /*
-         * Get the BXML information for the manual overrides dialog, and
+         * Get the BXML information for the artist overrides dialog, and
          * gather the list of components to be skinned.
          */
         List<Component> components = new ArrayList<Component>();
         try
         {
-            initializeManualOverridesDialogBxmlVariables(components);
+            initializeArtistOverridesDialogBxmlVariables(components);
         }
         catch (IOException | SerializationException e)
         {
@@ -871,63 +1081,21 @@ public class ArtistsWindow
         /*
          * Listener to handle the done button press.
          */
-        manualOverridesDoneButton.getButtonPressListeners().add(new ButtonPressListener()
+        artistOverridesDoneButton.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
             {
-                uiLogger.info("manual overrides done button pressed");
+                uiLogger.info("artist overrides done button pressed");
                 
-                manualOverridesDialog.close();
-            }
-        });
-        
-        /*
-         * Listener to handle the delete button press.
-         */
-        manualOverridesDeleteButton.getButtonPressListeners().add(new ButtonPressListener()
-        {
-            @Override
-            public void buttonPressed(Button button)
-            {
-                uiLogger.info("manual overrides delete button pressed");
-                
-                /*
-                 * Undo all the selected manual overrides.
-                 */
-                undoManualOverrides();
-                
-                manualOverridesDialog.close();
-            }
-        });
-        
-        /*
-         * Listener to handle tree view branch collapse or expand.
-         */
-        manualOverridesTreeView.getTreeViewBranchListeners().add(new TreeViewBranchListener()
-        {
-            @Override
-            public void branchExpanded(TreeView treeView, Path path)
-            {  
-            }
-
-            @Override
-            public void branchCollapsed(TreeView treeView, Path path)
-            {
-                
-                /*
-                 * Don't allow the user to collapse any branches. We depend on the path to every
-                 * node in the tree remaining the same between the time we create the tree and the 
-                 * time the delete button is pressed.
-                 */
-                treeView.expandAll();
+                artistOverridesDialog.close();
             }
         });
         
         /*
          * Set multiple selection mode.
          */
-        manualOverridesTreeView.setSelectMode(SelectMode.MULTI);
+        artistOverridesTreeView.setSelectMode(SelectMode.MULTI);
         
         /*
          * Initialize the top branch for displaying the overrides.
@@ -935,32 +1103,14 @@ public class ArtistsWindow
         TreeBranch topBranch = new TreeBranch();
         
         /*
-         * Initialize a map of paths to override artist names. This is used in the delete button
-         * handler to easily locate the artists to be deleted from the manual overrides based on
-         * the selected paths.
+         * Gather the tree of artist overrides for display.
          */
-        overridePaths = new HashMap<TreePath, String>();
+        List<ArtistAlternateNameOverride> artistOverrides = userPrefs.getArtistOverrides();
         
-        /*
-         * Get the invalid overrides list.
-         */
-        List<String> invalidManualOverrides = XMLHandler.getInvalidManualOverrides();
-        
-        /*
-         * Initialize the array of paths we want to select that indicate invalid overrides.
-         */
-        Path[] invalidPaths = new Path[invalidManualOverrides.getLength()];
-        int pathIndex = 0;
-        
-        /*
-         * Gather the tree of manual overrides for display. As we go along, create a path for
-         * each node in the tree and add it to the override paths. Also, build up the invalid
-         * path array for all invalid artists, so we can highlight those in the display.
-         */
-        int primaryIndex = 0;
-        Map<String, List<String>> manualOverrides = userPrefs.getManualOverrides();
-        for (String primaryArtist : manualOverrides)
+        for (ArtistAlternateNameOverride override : artistOverrides)
         {
+            String primaryArtist = override.getPrimaryArtist() + " (" 
+                    + override.getOverrideType().toString() + ")";
             
             /*
              * Each primary is a branch.
@@ -969,30 +1119,9 @@ public class ArtistsWindow
             topBranch.add(primary);
             
             /*
-             * Add the path the override paths map.
-             */
-            Path primaryPath = new Path(primaryIndex);
-            Integer[] primaryPathArray = primaryPath.toArray();
-            TreePath primaryTreePath = new TreePath(artistLogger, primaryPathArray);
-            overridePaths.put(primaryTreePath, primaryArtist);
-            
-            /*
-             * Add the path to the invalid paths array if this artist is no longer valid.
-             */
-            for (String invalidOverride : invalidManualOverrides)
-            {
-                if (invalidOverride.equals(primaryArtist))
-                {
-                    invalidPaths[pathIndex++] = primaryPath;
-                    break;
-                }
-            }
-            
-            /*
              * Process the alternate artists for this primary.
              */
-            List<String> alternateArtists = manualOverrides.get(primaryArtist);
-            int alternateIndex = 0;
+            List<String> alternateArtists = override.getAlternateArtists();
             for (String alternateArtist : alternateArtists)
             {
                 
@@ -1001,50 +1130,14 @@ public class ArtistsWindow
                  */
                 TreeNode alternate = new TreeNode(alternateArtist);
                 primary.add(alternate);
-                
-                /*
-                 * Add the path the override paths map.
-                 */
-                Path alternatePath = new Path(primaryIndex, alternateIndex);
-                Integer[] alternatePathArray = alternatePath.toArray();
-                TreePath alternateTreePath = new TreePath(artistLogger, alternatePathArray);
-                overridePaths.put(alternateTreePath, alternateArtist);
-                
-                /*
-                 * Add the path to the invalid paths array if this artist is no longer valid.
-                 */
-                for (String invalidOverride : invalidManualOverrides)
-                {
-                    if (invalidOverride.equals(alternateArtist))
-                    {
-                        invalidPaths[pathIndex++] = alternatePath;
-                        break;
-                    }
-                }
-                alternateIndex++;
             }
-            primaryIndex++;
         }
 
         /*
-         * Set the manual overrides tree data and expand all branches.
+         * Set the artist overrides tree data and expand all branches.
          */
-        manualOverridesTreeView.setTreeData(topBranch);
-        manualOverridesTreeView.expandAll();
-
-        /*
-         * Set the selected paths, if any.
-         */
-        if (pathIndex > 0)
-        {
-            Sequence<Path> selectedPaths = new ArrayAdapter<Path>(invalidPaths);
-            manualOverridesTreeView.setSelectedPaths(selectedPaths);
-        }
-        
-        /*
-         * Enable or disable the info label based on the presence of invalid overrides.
-         */
-        manualOverridesInfoLabel.setVisible(invalidOverridesFound);
+        artistOverridesTreeView.setTreeData(topBranch);
+        artistOverridesTreeView.expandAll();
         
         /*
          * Set the preferred height of the scrollable tree view. This is apparently the secret that
@@ -1052,40 +1145,36 @@ public class ArtistsWindow
          * of actually scrolling. Determined via much trial and error since Pivot's documentation
          * is horrid.
          */
-        manualOverridesTreeScrollPane.setPreferredHeight(InternalConstants.MANUAL_OVERRIDES_SCROLLPANE_HEIGHT);
+        artistOverridesTreeScrollPane.setPreferredHeight(InternalConstants.
+                ARTIST_OVERRIDES_SCROLLPANE_HEIGHT);
 
         /*
          * Add widget texts.
          */
-        manualOverridesInstructionsLabel.setText(StringConstants.ARTISTS_MANUAL_OVERRIDES_INSTRUCTIONS);
-        manualOverridesInfoLabel.setText(StringConstants.ARTISTS_MANUAL_OVERRIDES_INFO);
-        manualOverridesDoneButton.setButtonData(StringConstants.DONE);
-        manualOverridesDeleteButton.setButtonData(StringConstants.ARTISTS_MANUAL_OVERRIDES_DELETE_BUTTON);
-        manualOverridesDeleteButton.setTooltipText(StringConstants.ARTISTS_MANUAL_OVERRIDES_DELETE_BUTTON_TIP);
-        manualOverridesDeleteButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        artistOverridesDoneButton.setButtonData(StringConstants.DONE);
+        artistOverridesManualLabel.setText(StringConstants.ARTISTS_REVIEW_OVERRIDES_MANUAL);
+        artistOverridesAutomaticLabel.setText(StringConstants.ARTISTS_REVIEW_OVERRIDES_AUTOMATIC);
 
         /*
          * Set the window title.
          */
-        manualOverridesDialog.setTitle(Skins.Window.MANUALOVERRIDES.getDisplayValue());
+        artistOverridesDialog.setTitle(Skins.Window.ARTIST_OVERRIDES.getDisplayValue());
 
         /*
-         * Register the manual overrides dialog skin elements.
+         * Register the artist overrides dialog skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = 
-                skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.MANUALOVERRIDES, windowElements);
+        skins.registerWindowElements(Skins.Window.ARTIST_OVERRIDES, components);
 
         /*
-         * Skin the manual overrides dialog.
+         * Skin the artist overrides dialog.
          */
-        skins.skinMe(Skins.Window.MANUALOVERRIDES);
+        skins.skinMe(Skins.Window.ARTIST_OVERRIDES);
 
         /*
-         * Open the manual overrides dialog.
+         * Open the artist overrides dialog.
          */
-        uiLogger.info("opening review manual overrides dialog");
-        manualOverridesDialog.open(display, artistsWindow);
+        uiLogger.info("opening review artist overrides dialog");
+        artistOverridesDialog.open(display, artistsWindow);
     }
     
     /*
@@ -1121,8 +1210,8 @@ public class ArtistsWindow
     }
     
     /*
-     * Clean up selected artists. This is called if we cancel the manual alternate name selection
-     * for some reason.
+     * Clean up selected artists. This is called from the cancel button handlers for the set 
+     * and remove alternate name dialogs.
      */
     private void cleanSelectedArtists ()
     {
@@ -1144,6 +1233,7 @@ public class ArtistsWindow
     
     /*
      * Merge all the alternate artists that were selected by the user into the selected primary.
+     * This is called from the set alternate name proceed button handler.
      */
     private void mergeAlternatesToPrimary ()
     {
@@ -1153,17 +1243,17 @@ public class ArtistsWindow
          * Get the primary artist (the one that should be selected).
          */
         @SuppressWarnings("unchecked")
-        HashMap<String, String> artistsRowData = 
-                (HashMap<String, String>) altSelectTableView.getSelectedRow();
+        HashMap<String, String> rowData = (HashMap<String, String>) setAltSelectTableView.getSelectedRow();
         
         /*
          * Proceed if a primary was selected.
          */
-        if (artistsRowData != null)
+        if (rowData != null)
         { 
-            String primaryArtist = artistsRowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
-            int primaryTableIndex = Integer.parseInt(artistsRowData.get(MAP_PRIMARY_ARTIST));
-            artistLogger.debug("primary artist '" + primaryArtist + "' selected, index " + primaryTableIndex);
+            String primaryArtist = rowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
+            int primaryTableIndex = Integer.parseInt(rowData.get(MAP_PRIMARY_ARTIST));
+            artistLogger.debug("primary artist '" + primaryArtist + "' selected, index " 
+                    + primaryTableIndex);
             
             /*
              * Remove the primary from the displayed artists, leaving just the alternates.
@@ -1213,35 +1303,26 @@ public class ArtistsWindow
                  * Transfer the alternate to the primary.
                  */
                 XMLHandler.transferArtistToPrimary(altCorr, primaryIdx, altIdx);
+
+                /*
+                 * If we have an automatic artist override for the primary, remove the alternate from 
+                 * the override.
+                 */
+                if (userPrefs.getArtistOverridePrimaryName(altArtist, 
+                        ArtistAlternateNameOverride.OverrideType.AUTOMATIC) != null)
+                {
+                    userPrefs.removeArtistOverride(primaryArtist, altArtist);
+                }
                 
                 /*
-                 * Add a manual override preference.
+                 * Otherwise add an artist manual override.
                  */
-                userPrefs.addArtistManualOverride(primaryArtist, altArtist);
+                else
+                {
+                    userPrefs.addArtistOverride(primaryArtist, altArtist, 
+                            ArtistAlternateNameOverride.OverrideType.MANUAL);
+                }
             }
-            
-            /*
-             * Write the preferences.
-             */
-            try
-            {
-                userPrefs.writePreferences();
-            }
-            catch (IOException e)
-            {
-                MainWindow.logException(artistLogger, e);
-                throw new InternalErrorException(true, e.getMessage());
-            }
-            
-            /*
-             * Update the main window labels to get the updated number of artists.
-             */
-            Utilities.updateMainWindowLabels(userPrefs.getXMLFileName());
-            
-            /*
-             * Find the primary artist correlator again. It could have changed during the above loop.
-             */
-            primaryIdx = ArrayList.binarySearch(artistCorrs, primaryCorr, artistCorrs.getComparator());
             
             /*
              * Get the current table data, containing all the artist rows.
@@ -1251,17 +1332,13 @@ public class ArtistsWindow
                     (List<HashMap<String, String>>) artistsTableView.getTableData();
             
             /*
-             * Update the displayed data for the primary artist.
+             * Access primary artist objects and update the primary in the list of displayed artists.
              */
-            ArtistCorrelator primaryArtistCorr = artistCorrs.get(primaryIdx);
+            ArtistCorrelator primaryArtistCorr = XMLHandler.findArtistCorrelator(primaryArtist);
             Artist primaryArtistObj = XMLHandler.getArtists().get(primaryArtistCorr.getArtistKey());
+            
             HashMap<String, String> primaryRowData = primaryArtistObj.toDisplayMap();
             artistRows.update(primaryTableIndex, primaryRowData);
-            
-            /*
-             * Update the artist count label.
-             */
-            numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + XMLHandler.getNumberOfArtists());
             
             /*
              * Now we want to remove the alternate artists from the full table view of artists.
@@ -1286,11 +1363,9 @@ public class ArtistsWindow
             }
             
             /*
-             * Save the updated table data, clear any selection, and repaint the table.
+             * Update the preferences and window data.
              */
-            altSelectTableView.setTableData(artistRows);
-            artistsTableView.clearSelection();
-            artistsTableView.repaint(true);
+            updatePrefsAndWindowData(artistRows);
         }
         
         /*
@@ -1303,27 +1378,10 @@ public class ArtistsWindow
     }
     
     /*
-     * Undo selected manual overrides. This is called for the delete button on the review overrides
-     * dialog.
+     * Remove one or more alternate artists from a selected primary.
      */
-    private void undoManualOverrides ()
+    private void removeAlternatesFromPrimary ()
     {
-        artistLogger.trace("undoManualOverrides: " + this.hashCode());
-        
-        /*
-         * Get the manual overrides.
-         */
-        Map<String, List<String>> manualOverrides = userPrefs.getManualOverrides();
-        
-        /*
-         * Get the selected paths. These could have been set or changed by the user.
-         */
-        ImmutableList<Path> selectedPaths = manualOverridesTreeView.getSelectedPaths();
-        
-        /*
-         * Get the invalid overrides list.
-         */
-        ArrayList<String> invalidManualOverrides = XMLHandler.getInvalidManualOverrides();
         
         /*
          * Get the current table data, containing all the artist rows.
@@ -1331,196 +1389,193 @@ public class ArtistsWindow
         @SuppressWarnings("unchecked") 
         List<HashMap<String, String>> artistRows = 
                 (List<HashMap<String, String>>) artistsTableView.getTableData();
-
+        
         /*
-         * Walk through the selected paths.
+         * Get the selected alternate artists.
          */
-        boolean overridesChanged = false;
-        for (Path selected : selectedPaths)
+        @SuppressWarnings("unchecked") 
+        Sequence<HashMap<String, String>> selectedRows = 
+                (Sequence<HashMap<String, String>>) removeAltSelectTableView.getSelectedRows();
+        
+        /*
+         * Loop through the selected alternates.
+         */
+        boolean needWarning = false;
+        for (int index = 0; index < selectedRows.getLength(); index++)
         {
-            Integer[] selectedArray = selected.toArray();
-            TreePath selectedPath = new TreePath(artistLogger, selectedArray);
             
             /*
-             * Get the artist name from the override paths map.
+             * Get the alternate artist name.
              */
-            String selectedArtist = overridePaths.get(selectedPath);
-
+            HashMap<String, String> artistRowData = selectedRows.get(index);
+            String altArtist = artistRowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
+            
             /*
-             * Loop through the manual overrides. We use an iterator instead of foreach so
-             * we can safely remove primary artists.
+             * We can't allow an alternate artist that has the same normalized name as the primary
+             * to be removed. For example primary = "Beatles" and alternate = "The Beatles". Doing
+             * so is chaos because the correlator list is sorted by normalized name, and depends on
+             * such automatic alternates naturally finding the primary.
+             * 
+             * So detect this and set a flag to warn the user when we're done with all alternates,
+             * then continue the loop without processing such an alternate.
              */
-            Iterator<String> manualOverridesIter = manualOverrides.iterator();
-            while (manualOverridesIter.hasNext())
+            ArtistNames primaryNames = new ArtistNames(primaryForRemoval);
+            String primaryNormalized = primaryNames.normalizeName();
+            ArtistNames altNames = new ArtistNames(altArtist);
+            String altNormalized = altNames.normalizeName();
+            
+            if (primaryNormalized.equals(altNormalized))
             {
-                String primaryArtist = manualOverridesIter.next();
-                
-                boolean primaryDeleted = false;
-                
-                /*
-                 * If this primary is to be deleted, remove from the invalid manual overrides. 
-                 * Set a flag so we also remove all alternates.
-                 */
-                if (selectedArtist.equals(primaryArtist))
-                {
-                    invalidManualOverrides.remove(selectedArtist);
-                    overridesChanged = true;
-                    primaryDeleted = true;
-                }
-                
-                /*
-                 * Loop through the alternates for this primary, using an iterator for 
-                 * safe deletes.
-                 */
-                boolean foundAlternate = false;
-                List<String> altArtists = manualOverrides.get(primaryArtist);
-                Iterator<String> altArtistsIter = altArtists.iterator();
-                while (altArtistsIter.hasNext())
-                {
-                    String altArtist = altArtistsIter.next();
-                    
-                    /*
-                     * Process an alternate to be deleted.
-                     */
-                    if (primaryDeleted == true || selectedArtist.equals(altArtist))
-                    {
-                        foundAlternate = true;
-                        
-                        /*
-                         * Fix the database by transferring the alternate to become its own
-                         * standalone artist.
-                         */
-                        XMLHandler.transferArtistFromPrimary(primaryArtist, altArtist);
-                        
-                        /*
-                         * Remove this alternate from the alternates list and replace the list 
-                         * in the primary. Also remove it from the invalid manual overrides.
-                         */
-                        altArtistsIter.remove();
-                        manualOverrides.put(primaryArtist, altArtists);
-                        invalidManualOverrides.remove(selectedArtist);
-                        overridesChanged = true;
-                        
-                        /*
-                         * Access alternate artist objects, so we can add this artist to the list
-                         * of artists being displayed.
-                         */
-                        ArtistCorrelator altArtistCorr = XMLHandler.findArtistCorrelator(altArtist);
-                        Artist altArtistObj = XMLHandler.getArtists().get(altArtistCorr.getArtistKey());
-                        
-                        /*
-                         * Add this alternate to the list of displayed artists.
-                         */
-                        HashMap<String, String> rowData = altArtistObj.toDisplayMap();
-                        artistRows.add(rowData);
-                        
-                        /*
-                         * If we've handled the one matching alternate, exit the alternates loop.
-                         */
-                        if (primaryDeleted == false)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                /*
-                 * If the primary was deleted, remove it from the overrides list. This had
-                 * to wait until we were done processing all alternates.
-                 */
-                if (primaryDeleted == true)
-                {
-                    manualOverridesIter.remove();
-                }
-                
-                /*
-                 * If we found something, we need to update the displayed primary artist, since one
-                 * or more alternates were removed.
-                 */
-                if (foundAlternate == true)
-                {
-                    
-                    /*
-                     * We need to update the primary artist in the list of displayed artists. But this
-                     * is ugly: we have no way to find primaries other than searching the entire list.
-                     */
-                    int index = 0;
-                    boolean foundPrimary = false;
-                    for (HashMap<String, String> rowData : artistRows)
-                    {
-                        String artistName = 
-                                rowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
-                        if (artistName.equals(primaryArtist))
-                        {
-                            foundPrimary = true;
-                            break;
-                        }
-                        
-                        index++;
-                    }
-                    
-                    /*
-                     * Update this primary if we found it in the list. Which should always happen.
-                     */
-                    if (foundPrimary == true)
-                    {
-                        
-                        /*
-                         * Access primary artist objects, so we can update this artist in the list
-                         * of displayed artists.
-                         */
-                        ArtistCorrelator primaryArtistCorr = 
-                                XMLHandler.findArtistCorrelator(primaryArtist);
-                        Artist primaryArtistObj = 
-                                XMLHandler.getArtists().get(primaryArtistCorr.getArtistKey());
-                        
-                        /*
-                         * Update this primary.
-                         */
-                        HashMap<String, String> primaryRowData = primaryArtistObj.toDisplayMap();
-                        artistRows.update(index, primaryRowData);
-                    }
-
-                    /*
-                     * Break out of the overrides loop.
-                     */
-                    break;
-                }
+                needWarning = true;
+                continue;
             }
+            
+            /*
+             * Fix the database by transferring the alternate to become its own standalone artist.
+             */
+            XMLHandler.transferArtistFromPrimary(primaryForRemoval, altArtist);
+            
+            /*
+             * If we have a manual artist override for the primary, remove the alternate from the override.
+             */
+            if (userPrefs.getArtistOverridePrimaryName(altArtist, 
+                    ArtistAlternateNameOverride.OverrideType.MANUAL) != null)
+            {
+                userPrefs.removeArtistOverride(primaryForRemoval, altArtist);
+            }
+            
+            /*
+             * Otherwise add an artist automatic override.
+             */
+            else
+            {
+                userPrefs.addArtistOverride(primaryForRemoval, altArtist, 
+                        ArtistAlternateNameOverride.OverrideType.AUTOMATIC);
+            }
+            
+            /*
+             * Access alternate artist objects, so we can add this artist to the list
+             * of artists being displayed.
+             */
+            ArtistCorrelator altArtistCorr = XMLHandler.findArtistCorrelator(altArtist);
+            Artist altArtistObj = XMLHandler.getArtists().get(altArtistCorr.getArtistKey());
+            
+            /*
+             * Add this alternate to the list of displayed artists.
+             */
+            HashMap<String, String> rowData = altArtistObj.toDisplayMap();
+            artistRows.add(rowData);
         }
         
         /*
-         * Update the preferences if we made any changes.
+         * Get the index of the primary in the artist rows.
          */
-        if (overridesChanged == true)
+        int index = findPrimaryRowIndex(artistRows, primaryForRemoval);
+        
+        /*
+         * Access primary artist objects and update the primary in the list of displayed artists.
+         */
+        ArtistCorrelator primaryArtistCorr = XMLHandler.findArtistCorrelator(primaryForRemoval);
+        Artist primaryArtistObj = XMLHandler.getArtists().get(primaryArtistCorr.getArtistKey());
+        
+        HashMap<String, String> primaryRowData = primaryArtistObj.toDisplayMap();
+        artistRows.update(index, primaryRowData);
+        
+        /*
+         * Update the preferences and window data.
+         */
+        updatePrefsAndWindowData(artistRows);
+        
+        /*
+         * Issue a warning if we found any alternates we couldn't process.
+         */
+        if (needWarning == true)
         {
-            try
+            Alert.alert(MessageType.INFO, StringConstants.ALERT_CANT_REMOVE_ALTERNATE, artistsWindow);
+        }
+    }
+    
+    /*
+     * Find the row in the table of artists that contains a given primary.
+     */
+    private int findPrimaryRowIndex (List<HashMap<String, String>> artistRows, String primaryArtist)
+    {
+        int index = 0;
+        
+        /*
+         * This is ugly: we have no way to find primaries other than searching the entire list.
+         */
+        boolean foundPrimary = false;
+        for (HashMap<String, String> rowData : artistRows)
+        {
+            String artistName = rowData.get(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue());
+            if (artistName.equals(primaryArtist))
             {
-                userPrefs.writePreferences();
-            }
-            catch (IOException e)
-            {
-                MainWindow.logException(artistLogger, e);
-                throw new InternalErrorException(true, e.getMessage());
+                foundPrimary = true;
+                break;
             }
             
-            /*
-             * Update the main window labels to get the updated number of artists.
-             */
-            Utilities.updateMainWindowLabels(userPrefs.getXMLFileName());
-            
-            /*
-             * Update the artist count label.
-             */
-            numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + XMLHandler.getNumberOfArtists());
-            
-            /*
-             * Save the updated table data and resort it.
-             */
-            artistsTableView.setTableData(artistRows);
+            index++;
+        }
+        
+        return (foundPrimary == true) ? index : -1;
+    }
+    
+    /*
+     * Update the preferences and main/artists window data when artist overrides have been changed.
+     */
+    private void updatePrefsAndWindowData (List<HashMap<String, String>> artistRows)
+    {
+        
+        /*
+         * Write the user preferences.
+         */
+        try
+        {
+            userPrefs.writePreferences();
+        }
+        catch (IOException e)
+        {
+            MainWindow.logException(artistLogger, e);
+            throw new InternalErrorException(true, e.getMessage());
+        }
+        
+        /*
+         * Update the main window labels to get the updated number of artists.
+         */
+        Utilities.updateMainWindowLabels(userPrefs.getXMLFileName());
+        
+        /*
+         * Update the artist count label.
+         */
+        numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + XMLHandler.getNumberOfArtists());
+        
+        /*
+         * Save the updated table data.
+         */
+        artistsTableView.setTableData(artistRows);
+        
+        /*
+         * Resort the table according to the current sort. I'm assuming there is only one entry
+         * (if any) in the sort dictionary. If there is no current sort, then sort by the name.
+         */
+        TableView.SortDictionary sort = artistsTableView.getSort();
+        if (sort.getLength() > 0)
+        {
+            Dictionary.Pair<String, SortDirection> dict = artistsTableView.getSort().get(0);
+            artistsTableView.setSort(dict.key, dict.value);
+        }
+        else
+        {
             artistsTableView.setSort(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue(), 
                     SortDirection.ASCENDING);
         }
+        
+        /*
+         * Clear the selection and repaint the table.
+         */
+        artistsTableView.clearSelection();
+        artistsTableView.repaint(true);
     }
 
     /*
@@ -1621,9 +1676,12 @@ public class ArtistsWindow
         doneButton = 
                 (PushButton) windowSerializer.getNamespace().get("doneButton");
         components.add(doneButton);
-        altNameButton = 
-                (PushButton) windowSerializer.getNamespace().get("altNameButton");
-        components.add(altNameButton);
+        setAltNameButton = 
+                (PushButton) windowSerializer.getNamespace().get("setAltNameButton");
+        components.add(setAltNameButton);
+        removeAltNameButton = 
+                (PushButton) windowSerializer.getNamespace().get("removeAltNameButton");
+        components.add(removeAltNameButton);
         reviewOverridesButton = 
                 (PushButton) windowSerializer.getNamespace().get("reviewOverridesButton");
         components.add(reviewOverridesButton);
@@ -1652,113 +1710,164 @@ public class ArtistsWindow
     }
 
     /*
-     * Initialize alternate name selection dialog BXML variables and collect the components
+     * Initialize set alternate name selection dialog BXML variables and collect the components
      * to be skinned.
      */
-    private void initializeAltNameSelectionDialogBxmlVariables(List<Component> components)
+    private void initializeSetAltNameSelectionDialogBxmlVariables(List<Component> components)
             throws IOException, SerializationException
     {
-        uiLogger.trace("initializeAltNameSelectionDialogBxmlVariables: " + this.hashCode());
+        uiLogger.trace("initializeSetAltNameSelectionDialogBxmlVariables: " + this.hashCode());
 
         BXMLSerializer dialogSerializer = new BXMLSerializer();
 
-        altNameSelectionDialog = (Dialog) dialogSerializer.
-                readObject(getClass().getResource("artistAltNameSelectionDialog.bxml"));
+        setAltNameSelectionDialog = (Dialog) dialogSerializer.
+                readObject(getClass().getResource("artistSetAltNameSelectionDialog.bxml"));
         
-        altSelectLabelsBorder = 
-                (Border) dialogSerializer.getNamespace().get("altSelectLabelsBorder");
-        components.add(altSelectLabelsBorder);
-        altSelectLabelsBoxPane = 
-                (BoxPane) dialogSerializer.getNamespace().get("altSelectLabelsBoxPane");
-        components.add(altSelectLabelsBoxPane);
+        setAltSelectLabelsBorder = 
+                (Border) dialogSerializer.getNamespace().get("setAltSelectLabelsBorder");
+        components.add(setAltSelectLabelsBorder);
+        setAltSelectLabelsBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("setAltSelectLabelsBoxPane");
+        components.add(setAltSelectLabelsBoxPane);
         
         /*
          * Don't add this to the components list because we want to set the text red, instead
          * of the skin color.
          */
-        altSelectWarningLabel = 
-                (Label) dialogSerializer.getNamespace().get("altSelectWarningLabel");
+        setAltSelectWarningLabel = 
+                (Label) dialogSerializer.getNamespace().get("setAltSelectWarningLabel");
         
-        altSelectInstructionsLabel = 
-                (Label) dialogSerializer.getNamespace().get("altSelectInstructionsLabel");
-        components.add(altSelectInstructionsLabel);
-        altSelectTableBorder = 
-                (Border) dialogSerializer.getNamespace().get("altSelectTableBorder");
-        components.add(altSelectTableBorder);
-        altSelectTableScrollPane = 
-                (ScrollPane) dialogSerializer.getNamespace().get("altSelectTableScrollPane");
-        components.add(altSelectTableScrollPane);
-        altSelectTableView = 
-                (TableView) dialogSerializer.getNamespace().get("altSelectTableView");
-        components.add(altSelectTableView);
+        setAltSelectInstructionsLabel = 
+                (Label) dialogSerializer.getNamespace().get("setAltSelectInstructionsLabel");
+        components.add(setAltSelectInstructionsLabel);
+        setAltSelectTableBorder = 
+                (Border) dialogSerializer.getNamespace().get("setAltSelectTableBorder");
+        components.add(setAltSelectTableBorder);
+        setAltSelectTableScrollPane = 
+                (ScrollPane) dialogSerializer.getNamespace().get("setAltSelectTableScrollPane");
+        components.add(setAltSelectTableScrollPane);
+        setAltSelectTableView = 
+                (TableView) dialogSerializer.getNamespace().get("setAltSelectTableView");
+        components.add(setAltSelectTableView);
 
         /*
          * This doesn't need to be added to the components list because it's a 
          * subcomponent.
          */
-        altSelectTableColumnArtist =
-                (TableView.Column) dialogSerializer.getNamespace().get("altSelectTableColumnArtist");
+        setAltSelectTableColumnArtist =
+                (TableView.Column) dialogSerializer.getNamespace().get("setAltSelectTableColumnArtist");
 
-        altSelectButtonBorder = 
-                (Border) dialogSerializer.getNamespace().get("altSelectButtonBorder");
-        components.add(altSelectButtonBorder);
-        altSelectButtonBoxPane =
-                (BoxPane) dialogSerializer.getNamespace().get("altSelectButtonBoxPane");
-        components.add(altSelectButtonBoxPane);
-        altSelectCancelButton = 
-                (PushButton) dialogSerializer.getNamespace().get("altSelectCancelButton");
-        components.add(altSelectCancelButton);
-        altSelectProceedButton = 
-                (PushButton) dialogSerializer.getNamespace().get("altSelectProceedButton");
-        components.add(altSelectProceedButton);
+        setAltSelectButtonBorder = 
+                (Border) dialogSerializer.getNamespace().get("setAltSelectButtonBorder");
+        components.add(setAltSelectButtonBorder);
+        setAltSelectButtonBoxPane =
+                (BoxPane) dialogSerializer.getNamespace().get("setAltSelectButtonBoxPane");
+        components.add(setAltSelectButtonBoxPane);
+        setAltSelectCancelButton = 
+                (PushButton) dialogSerializer.getNamespace().get("setAltSelectCancelButton");
+        components.add(setAltSelectCancelButton);
+        setAltSelectProceedButton = 
+                (PushButton) dialogSerializer.getNamespace().get("setAltSelectProceedButton");
+        components.add(setAltSelectProceedButton);
     }
 
     /*
-     * Initialize manual overrides dialog BXML variables and collect the static
-     * components to be skinned.
+     * Initialize remove alternate name selection dialog BXML variables and collect the components
+     * to be skinned.
      */
-    private void initializeManualOverridesDialogBxmlVariables(List<Component> components)
+    private void initializeRemoveAltNameSelectionDialogBxmlVariables(List<Component> components)
             throws IOException, SerializationException
     {
-        uiLogger.trace("initializeManualOverridesDialogBxmlVariables: " + this.hashCode());
+        uiLogger.trace("initializeRemoveAltNameSelectionDialogBxmlVariables: " + this.hashCode());
 
         BXMLSerializer dialogSerializer = new BXMLSerializer();
 
-        manualOverridesDialog = (Dialog) dialogSerializer.
-                readObject(getClass().getResource("artistManualOverridesDialog.bxml"));
+        removeAltNameSelectionDialog = (Dialog) dialogSerializer.
+                readObject(getClass().getResource("artistRemoveAltNameSelectionDialog.bxml"));
+        
+        removeAltSelectLabelsBorder = 
+                (Border) dialogSerializer.getNamespace().get("removeAltSelectLabelsBorder");
+        components.add(removeAltSelectLabelsBorder);
+        removeAltSelectLabelsBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("removeAltSelectLabelsBoxPane");
+        components.add(removeAltSelectLabelsBoxPane);
+        removeAltSelectInstructionsLabel = 
+                (Label) dialogSerializer.getNamespace().get("removeAltSelectInstructionsLabel");
+        components.add(removeAltSelectInstructionsLabel);
+        removeAltSelectTableBorder = 
+                (Border) dialogSerializer.getNamespace().get("removeAltSelectTableBorder");
+        components.add(removeAltSelectTableBorder);
+        removeAltSelectTableScrollPane = 
+                (ScrollPane) dialogSerializer.getNamespace().get("removeAltSelectTableScrollPane");
+        components.add(removeAltSelectTableScrollPane);
+        removeAltSelectTableView = 
+                (TableView) dialogSerializer.getNamespace().get("removeAltSelectTableView");
+        components.add(removeAltSelectTableView);
 
-        manualOverridesLabelsBorder = 
-                (Border) dialogSerializer.getNamespace().get("manualOverridesLabelsBorder");
-        components.add(manualOverridesLabelsBorder);
-        manualOverridesLabelsBoxPane = 
-                (BoxPane) dialogSerializer.getNamespace().get("manualOverridesLabelsBoxPane");
-        components.add(manualOverridesLabelsBoxPane);
-        manualOverridesInstructionsLabel = 
-                (Label) dialogSerializer.getNamespace().get("manualOverridesInstructionsLabel");
-        components.add(manualOverridesInstructionsLabel);
-        manualOverridesInfoLabel = 
-                (Label) dialogSerializer.getNamespace().get("manualOverridesInfoLabel");
-        components.add(manualOverridesInfoLabel);
-        manualOverridesTreeBorder = 
-                (Border) dialogSerializer.getNamespace().get("manualOverridesTreeBorder");
-        components.add(manualOverridesTreeBorder);
-        manualOverridesTreeScrollPane = 
-                (ScrollPane) dialogSerializer.getNamespace().get("manualOverridesTreeScrollPane");
-        components.add(manualOverridesTreeScrollPane);
-        manualOverridesTreeView = 
-                (TreeView) dialogSerializer.getNamespace().get("manualOverridesTreeView");
-        components.add(manualOverridesTreeView);
-        manualOverridesButtonBorder = 
-                (Border) dialogSerializer.getNamespace().get("manualOverridesButtonBorder");
-        components.add(manualOverridesButtonBorder);
-        manualOverridesButtonBoxPane =
-                (BoxPane) dialogSerializer.getNamespace().get("manualOverridesButtonBoxPane");
-        components.add(manualOverridesButtonBoxPane);
-        manualOverridesDoneButton = 
-                (PushButton) dialogSerializer.getNamespace().get("manualOverridesDoneButton");
-        components.add(manualOverridesDoneButton);
-        manualOverridesDeleteButton = 
-                (PushButton) dialogSerializer.getNamespace().get("manualOverridesDeleteButton");
-        components.add(manualOverridesDeleteButton);
+        /*
+         * This doesn't need to be added to the components list because it's a 
+         * subcomponent.
+         */
+        removeAltSelectTableColumnArtist =
+                (TableView.Column) dialogSerializer.getNamespace().get("removeAltSelectTableColumnArtist");
+
+        removeAltSelectButtonBorder = 
+                (Border) dialogSerializer.getNamespace().get("removeAltSelectButtonBorder");
+        components.add(removeAltSelectButtonBorder);
+        removeAltSelectButtonBoxPane =
+                (BoxPane) dialogSerializer.getNamespace().get("removeAltSelectButtonBoxPane");
+        components.add(removeAltSelectButtonBoxPane);
+        removeAltSelectCancelButton = 
+                (PushButton) dialogSerializer.getNamespace().get("removeAltSelectCancelButton");
+        components.add(removeAltSelectCancelButton);
+        removeAltSelectProceedButton = 
+                (PushButton) dialogSerializer.getNamespace().get("removeAltSelectProceedButton");
+        components.add(removeAltSelectProceedButton);
+    }
+
+    /*
+     * Initialize artist overrides dialog BXML variables and collect the static
+     * components to be skinned.
+     */
+    private void initializeArtistOverridesDialogBxmlVariables(List<Component> components)
+            throws IOException, SerializationException
+    {
+        uiLogger.trace("initializeArtistOverridesDialogBxmlVariables: " + this.hashCode());
+
+        BXMLSerializer dialogSerializer = new BXMLSerializer();
+
+        artistOverridesDialog = (Dialog) dialogSerializer.
+                readObject(getClass().getResource("artistOverridesDialog.bxml"));
+
+        artistOverridesLabelBorder = 
+                (Border) dialogSerializer.getNamespace().get("artistOverridesLabelBorder");
+        components.add(artistOverridesLabelBorder);
+        artistOverridesLabelBoxPane = 
+                (BoxPane) dialogSerializer.getNamespace().get("artistOverridesLabelBoxPane");
+        components.add(artistOverridesLabelBoxPane);
+        artistOverridesManualLabel = 
+                (Label) dialogSerializer.getNamespace().get("artistOverridesManualLabel");
+        components.add(artistOverridesManualLabel);
+        artistOverridesAutomaticLabel = 
+                (Label) dialogSerializer.getNamespace().get("artistOverridesAutomaticLabel");
+        components.add(artistOverridesAutomaticLabel);
+        artistOverridesTreeBorder = 
+                (Border) dialogSerializer.getNamespace().get("artistOverridesTreeBorder");
+        components.add(artistOverridesTreeBorder);
+        artistOverridesTreeScrollPane = 
+                (ScrollPane) dialogSerializer.getNamespace().get("artistOverridesTreeScrollPane");
+        components.add(artistOverridesTreeScrollPane);
+        artistOverridesTreeView = 
+                (TreeView) dialogSerializer.getNamespace().get("artistOverridesTreeView");
+        components.add(artistOverridesTreeView);
+        artistOverridesButtonBorder = 
+                (Border) dialogSerializer.getNamespace().get("artistOverridesButtonBorder");
+        components.add(artistOverridesButtonBorder);
+        artistOverridesButtonBoxPane =
+                (BoxPane) dialogSerializer.getNamespace().get("artistOverridesButtonBoxPane");
+        components.add(artistOverridesButtonBoxPane);
+        artistOverridesDoneButton = 
+                (PushButton) dialogSerializer.getNamespace().get("artistOverridesDoneButton");
+        components.add(artistOverridesDoneButton);
     }
 }

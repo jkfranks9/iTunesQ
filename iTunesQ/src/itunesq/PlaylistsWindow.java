@@ -7,7 +7,6 @@ import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
-import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.wtk.Border;
 import org.apache.pivot.wtk.BoxPane;
@@ -162,8 +161,7 @@ public class PlaylistsWindow
         /*
          * Register the tracks window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.PLAYLISTS, windowElements);
+        skins.registerWindowElements(Skins.Window.PLAYLISTS, components);
 
         /*
          * Skin the playlists window.

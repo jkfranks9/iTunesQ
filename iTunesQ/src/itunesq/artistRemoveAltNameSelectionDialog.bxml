@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Dialog modal="false"
+    styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}" 
+    xmlns:bxml="http://pivot.apache.org/bxml"
+    xmlns="org.apache.pivot.wtk">
+
+    <!-- Lay out the window elements in a single column table pane. -->
+    <TablePane styles="{verticalSpacing:10, padding:10}">
+        <columns>
+            <TablePane.Column width="1*" />
+        </columns>
+
+        <!-- Instructions row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="removeAltSelectLabelsBorder">
+                <BoxPane bxml:id="removeAltSelectLabelsBoxPane" orientation="vertical"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <Label bxml:id="removeAltSelectInstructionsLabel"
+                        styles="{horizontalAlignment:'center', verticalAlignment:'center'}" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- TableView elements row. -->
+        <TablePane.Row height="4*">
+            <Border bxml:id="removeAltSelectTableBorder">
+                <ScrollPane bxml:id="removeAltSelectTableScrollPane" 
+                    horizontalScrollBarPolicy="fill_to_capacity"
+                    verticalScrollBarPolicy="fill_to_capacity">
+                    <TableView bxml:id="removeAltSelectTableView" selectMode="single"
+                        styles="{includeTrailingVerticalGridLine:true}">
+                        <columns>
+                            <TableView.Column bxml:id="removeAltSelectTableColumnArtist" width="1*" />
+                        </columns>
+                    </TableView>
+                </ScrollPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- Button elements row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="removeAltSelectButtonBorder">
+                <BoxPane bxml:id="removeAltSelectButtonBoxPane" orientation="horizontal"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <PushButton bxml:id="removeAltSelectCancelButton" />
+                    <PushButton bxml:id="removeAltSelectProceedButton" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+    </TablePane>
+</Dialog>

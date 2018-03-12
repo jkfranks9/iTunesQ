@@ -1,8 +1,8 @@
 package itunesq;
 
 /**
- * Class that represents an internal error in the application. This is a 
- * runtime exception.
+ * Class that represents an internal error in the application. This is a runtime
+ * exception.
  * 
  * @author Jon
  *
@@ -10,35 +10,35 @@ package itunesq;
 public class InternalErrorException extends RuntimeException
 {
 
-    //---------------- Class variables -------------------------------------
-	
-	private boolean fatal;
+    // ---------------- Class variables -------------------------------------
 
-    //---------------- Private variables -----------------------------------
+    private boolean fatal;
 
-	private static final long serialVersionUID = -1902550162137484780L;
-	
-	/**
-	 * Class constructor.
-	 * 
-	 * @param fatal true if the error should end the application
-	 * @param message error message
-	 */
-	public InternalErrorException (boolean fatal, String message)
-	{
-		super(message);
-		this.fatal = fatal;
-	}
+    // ---------------- Private variables -----------------------------------
 
-    //---------------- Getters and setters ---------------------------------
-	
-	/**
-	 * Gets the fatal error indicator.
-	 * 
-	 * @return true if the application should end
-	 */
-	public boolean getFatal ()
-	{
-		return fatal;
-	}
+    private static final long serialVersionUID = -1902550162137484780L;
+
+    /**
+     * Class constructor.
+     * 
+     * @param fatal true if the error should end the application
+     * @param message error message
+     */
+    public InternalErrorException(boolean fatal, String message)
+    {
+        super(message);
+        this.fatal = fatal;
+    }
+
+    // ---------------- Getters and setters ---------------------------------
+
+    /**
+     * Gets the fatal error indicator.
+     * 
+     * @return true if the application should end
+     */
+    public boolean getFatal()
+    {
+        return fatal;
+    }
 }

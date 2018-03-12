@@ -101,12 +101,6 @@ public final class XMLHandler
      * Number of ignored playlists.
      */
     private static Integer playlistIgnoredCount = 0;
-    
-    /*
-     * List of artists saved as alternate name manual overrides that no longer exist, due to a
-     * changed or updated XML file.
-     */
-    private static ArrayList<String> invalidManualOverrides = null;
 
     // ---------------- Private variables -----------------------------------
 
@@ -219,18 +213,6 @@ public final class XMLHandler
     public static Map<Integer, Artist> getArtists()
     {
         return artists;
-    }
-    
-    /**
-     * Gets the manual override invalid indicator. This means one or more
-     * artists saved as alternate name manual overrides no longer exist, due
-     * to a changed or updated iTunes XML file.
-     * 
-     * @return manual override invalid indicator
-     */
-    public static ArrayList<String> getInvalidManualOverrides ()
-    {
-        return invalidManualOverrides;
     }
 
     // ---------------- Public methods --------------------------------------
@@ -527,12 +509,10 @@ public final class XMLHandler
         lookForArtistAlternateNames();
         
         /*
-         * Verify that all artists contained in alternate name manual overrides still exist.
-         * Any that are not are collected into a list that is shown as a warning to the user 
-         * when artists are displayed.
+         * Verify that all artists contained in alternate name overrides still exist.
          */
-        artistLogger.info("verifying artist alternate name manual overrides");
-        verifyManualOverrides();
+        artistLogger.info("verifying artist alternate name overrides");
+        verifyArtistOverrides();
 
         /*
          * Gather playlists.
@@ -1287,91 +1267,151 @@ public final class XMLHandler
     }
     
     /*
-     * Verify that artist names contained in any manual overrides are still valid. The iTunes
-     * XML file could have been changed or updated.
+     * Verify that artist names contained in any artist overrides are still valid. The iTunes
+     * XML file could have been changed or updated. Fix the overrides for any invalid ones found.
      */
-    private static void verifyManualOverrides ()
+    private static void verifyArtistOverrides ()
     {
-        artistLogger.trace("verifyManualOverrides");
+        artistLogger.trace("verifyArtistOverrides");
         
+        /*
+         * We need a search correlator to look up artists in the database.
+         */
         ArtistCorrelator searchCorr = new ArtistCorrelator();
         
         /*
-         * Initialize the list of invalid names.
+         * Get the artist overrides from the preferences.
          */
-        if (invalidManualOverrides == null)
-        {
-            invalidManualOverrides = new ArrayList<String>();
-        }
-        else
-        {
-            invalidManualOverrides.clear();
-        }
+        List<ArtistAlternateNameOverride> artistOverrides = userPrefs.getArtistOverrides();
+        boolean prefsUpdated = false;
         
         /*
-         * Get the manual overrides from the preferences.
+         * Loop through all overrides to verify the artists still exist.
          */
-        Map<String, List<String>> manualOverrides = userPrefs.getManualOverrides();
-        
-        /*
-         * Loop through all primary and alternate artists to verify they still exist. If not,
-         * add them to the invalid list.
-         */
-        for (String primaryArtist : manualOverrides)
+        Iterator<ArtistAlternateNameOverride> artistOverridesIter = artistOverrides.iterator();
+        while (artistOverridesIter.hasNext())
         {
-            int primaryIdx;
+            ArtistAlternateNameOverride override = artistOverridesIter.next();
             
+            int primaryIdx;
+            String primaryArtist = override.getPrimaryArtist();
+
             /*
              * The primary artists always exist in the database, so we search for them there.
              */
             ArtistNames primaryTemp = new ArtistNames(primaryArtist);
             searchCorr.setNormalizedName(primaryTemp.normalizeName());
+            
+            /*
+             * If the primary from the override doesn't exist in the database, remove the entire
+             * override and iterate the loop.
+             */
             if ((primaryIdx = ArrayList.binarySearch(artistCorrelators, 
                     searchCorr, artistCorrelators.getComparator())) < 0)
             {
-                invalidManualOverrides.add(primaryArtist);
                 artistLogger.debug("found invalid primary artist " + primaryArtist);
+                
+                artistOverridesIter.remove();
+                prefsUpdated = true;
+                continue;
             }
+
+            /*
+             * The primary from the override exists in the database. Check the alternates from the 
+             * override.
+             */
+            List<String> alternateArtists = override.getAlternateArtists();
             
             /*
-             * Check the alternates from the override.
+             * If for some reason we have no alternate artists, remove the entire override.
              */
-            List<String> alternateArtists = manualOverrides.get(primaryArtist);
-            for (String alternateArtist : alternateArtists)
+            if (alternateArtists.getLength() == 0)
             {
+                artistLogger.debug("found empty primary artist " + primaryArtist);
+                
+                artistOverridesIter.remove();
+                prefsUpdated = true;
+                continue;
+            }
+            
+            Iterator<String> alternateArtistsIter = alternateArtists.iterator();
+            while (alternateArtistsIter.hasNext())
+            {
+                String alternateArtist = alternateArtistsIter.next();
                 
                 /*
-                 * If we found the primary, then we want to look for this alternate in the primary's
-                 * alternate list. It should not exist in its own right in the database.
+                 * Look for this alternate in the primary's alternate list if the override type is
+                 * manual.
                  */
-                if (primaryIdx >= 0)
+                boolean altInvalid = false;
+                if (override.getOverrideType() == ArtistAlternateNameOverride.OverrideType.MANUAL)
                 {
                     ArtistCorrelator primaryCorr = artistCorrelators.get(primaryIdx);
                     Artist primaryArtistObj = artists.get(primaryCorr.getArtistKey());
                     ArtistNames primaryNames = primaryArtistObj.getArtistNames();
                     Map<String, ArtistTrackData> altNames = primaryNames.getAltNames();
+
+                    /*
+                     * If the alternate from the override doesn't exist, flag it.
+                     */
                     if (!altNames.containsKey(alternateArtist))
                     {
-                        invalidManualOverrides.add(alternateArtist);
-                        artistLogger.debug("found invalid alternate artist " + alternateArtist);
+                        altInvalid = true;
                     }
                 }
                 
                 /*
-                 * If we did not find the primary, then this alternate (if it exists) will be in
-                 * the database, since there was no primary to add it to as an alternate.
+                 * Look for this alternate in the database if the override type is automatic.
                  */
                 else
                 {
                     ArtistNames altTemp = new ArtistNames(alternateArtist);
                     searchCorr.setNormalizedName(altTemp.normalizeName());
+
+                    /*
+                     * If the alternate from the override doesn't exist, flag it.
+                     */
                     if (ArrayList.binarySearch(artistCorrelators, searchCorr, 
                             artistCorrelators.getComparator()) < 0)
                     {
-                        invalidManualOverrides.add(alternateArtist);
-                        artistLogger.debug("found invalid alternate artist " + alternateArtist);
+                        altInvalid = true;
                     }
                 }
+                
+                /*
+                 * If the alternate is invalid remove it from the override.
+                 */
+                if (altInvalid == true)
+                {
+                    artistLogger.debug("found invalid alternate artist " + alternateArtist);
+
+                    alternateArtistsIter.remove();
+                    prefsUpdated = true;
+                    
+                    /*
+                     * Remove the entire override if it's now empty.
+                     */
+                    if (alternateArtists.getLength() == 0)
+                    {
+                        artistOverridesIter.remove();
+                    }
+                }
+            }
+        }
+        
+        /*
+         * Write the user preferences if the overrides were updated.
+         */
+        if (prefsUpdated == true)
+        {
+            try
+            {
+                userPrefs.writePreferences();
+            }
+            catch (IOException e)
+            {
+                MainWindow.logException(artistLogger, e);
+                throw new InternalErrorException(true, e.getMessage());
             }
         }
     }
@@ -1391,7 +1431,7 @@ public final class XMLHandler
      * list looking for those flags and trying to find the primary artist. If so, we then process
      * the name with the "featuring" tag as an alternate for the primary.
      * 
-     * Similar logic is used for alternate name manual overrides set by the user. We have the same 
+     * Similar logic is used for artist overrides set by the user. We have the same 
      * out of order problem detailed above.
      */
     private static void lookForArtistAlternateNames ()
@@ -1451,11 +1491,6 @@ public final class XMLHandler
         ArtistCorrelator primaryArtistCorr = artistCorrelators.get(primaryIdx);
         Artist primaryArtistObj = artists.get(primaryArtistCorr.getArtistKey());
         ArtistNames primaryArtistNames = primaryArtistObj.getArtistNames();
-
-        artistLogger.debug("adding alternate artist name '" + altArtistCorr.getDisplayName()
-                + "', normalized '" + altArtistCorr.getNormalizedName() + "' to primary '"
-                + primaryArtistCorr.getDisplayName() + ", normalized '"
-                + primaryArtistCorr.getNormalizedName());
 
         /*
          * Add the alternate name to the primary artist.

@@ -31,6 +31,7 @@ public class StringConstants
     public static final String PLAYLIST_NUMBER = "Number of Playlists: ";
     public static final String PREFS_RESET = "Reset to Defaults";
     public static final String PREFERENCES = "Preferences";
+    public static final String PROCEED = "Proceed";
     public static final String QUERY_PLAYLISTS = "Query Playlists";
     public static final String QUERY_TRACKS = "Query Tracks";
     public static final String SAVE = "Save";
@@ -48,27 +49,28 @@ public class StringConstants
     /*
      * ArtistsWindow constants.
      */
-    public static final String ARTISTS_ALTNAME_BUTTON = "Set Alternate Name";
-    public static final String ARTISTS_ALTNAME_BUTTON_TIP = "Manually set artist alternate name.";
-    public static final String ARTISTS_ALTNAME_PROCEED_BUTTON = "Proceed";
     public static final String ARTISTS_ALTSELECT_INSTRUCTIONS = 
             "Select the primary artist with which to combine the others.";
     public static final String ARTISTS_ALTSELECT_WARNING = 
             "Do you want to proceed? You have a lot of selections or dissimilar names.";
-    public static final String ARTISTS_INSTRUCTIONS = 
-            "To manually combine artists select two or more rows and press " + ARTISTS_ALTNAME_BUTTON + ".";
-    public static final String ARTISTS_MANUAL_OVERRIDES_DELETE_BUTTON = "Delete";
-    public static final String ARTISTS_MANUAL_OVERRIDES_DELETE_BUTTON_TIP = 
-            "Delete selected artists from the saved manual overrides.";
-    public static final String ARTISTS_MANUAL_OVERRIDES_INFO = 
-            "Any artists that are no longer valid are already highlighted.";
-    public static final String ARTISTS_MANUAL_OVERRIDES_INSTRUCTIONS = 
-            "To remove artists from the saved manual overrides, select them and press " 
-            + ARTISTS_MANUAL_OVERRIDES_DELETE_BUTTON + ".";
     public static final String ARTISTS_NUM_ARTISTS = "Number of Artists: ";
-    public static final String ARTISTS_REVIEW_OVERRIDES_BUTTON = "Review Manual Overrides";
+    public static final String ARTISTS_REMOVE_ALTNAME_BUTTON = "Remove Alternate Name";
+    public static final String ARTISTS_REMOVE_ALTNAME_BUTTON_TIP = "Manually remove artist alternate name.";
+    public static final String ARTISTS_REMOVE_INSTRUCTIONS = 
+            "Select artists you want to remove as alternate names.";
+    public static final String ARTISTS_REVIEW_OVERRIDES_AUTOMATIC = 
+            ArtistAlternateNameOverride.OverrideType.AUTOMATIC.toString()
+            + " overrides indicate automatically set alternate names that have been removed.";
+    public static final String ARTISTS_REVIEW_OVERRIDES_BUTTON = "Review Artist Overrides";
     public static final String ARTISTS_REVIEW_OVERRIDES_BUTTON_TIP = 
-            "Review alternate name manual overrides.";
+            "Review artist alternate name overrides.";
+    public static final String ARTISTS_REVIEW_OVERRIDES_MANUAL = 
+            ArtistAlternateNameOverride.OverrideType.MANUAL.toString()
+            + " overrides indicate manually set alternate names that have been added.";
+    public static final String ARTISTS_SET_ALTNAME_BUTTON = "Set Alternate Name";
+    public static final String ARTISTS_SET_ALTNAME_BUTTON_TIP = "Manually set artist alternate name.";
+    public static final String ARTISTS_SET_INSTRUCTIONS = 
+            "Select one or more artists to manually modify alternate artist names.";
 
     /*
      * FindDuplicatesDialog constants.
@@ -348,18 +350,19 @@ public class StringConstants
     public static final String SKIN_NAME_DUSKY = "Dusky Gray";
     public static final String SKIN_NAME_PUMPKIN = "Pumpkin Patch";
     public static final String SKIN_NAME_SEASIDE = "Seaside Daze";
-    public static final String SKIN_WINDOW_ALTNAMES = "Alternate Names";
-    public static final String SKIN_WINDOW_ALTNAMESELECTION = "Alternate Name Selection";
+    public static final String SKIN_WINDOW_ALT_NAMES = "Alternate Names";
+    public static final String SKIN_WINDOW_ARTIST_OVERRIDES = "Artist Overrides";
     public static final String SKIN_WINDOW_ARTISTS = "Artists";
-    public static final String SKIN_WINDOW_FAMILYPLAYLISTS = "Family Expansion Playlists";
-    public static final String SKIN_WINDOW_FILESAVE = "File Save";
-    public static final String SKIN_WINDOW_FINDDUPS = "Find Duplicates";
+    public static final String SKIN_WINDOW_FAMILY_PLAYLISTS = "Family Expansion Playlists";
+    public static final String SKIN_WINDOW_FILE_SAVE = "File Save";
+    public static final String SKIN_WINDOW_FIND_DUPLICATES = "Find Duplicates";
     public static final String SKIN_WINDOW_MAIN = "iTunes Query Tool";
-    public static final String SKIN_WINDOW_MANUALOVERRIDES = "Manual Overrides";
     public static final String SKIN_WINDOW_PLAYLISTS = "Playlists";
     public static final String SKIN_WINDOW_PREFERENCES = "Preferences";
-    public static final String SKIN_WINDOW_SKINPREVIEW = "Skin Preview";
-    public static final String SKIN_WINDOW_TRACKINFO = "Track Details";
+    public static final String SKIN_WINDOW_REMOVE_ALT_NAME_SELECTION = "Remove Alternate Name Selection";
+    public static final String SKIN_WINDOW_SET_ALT_NAME_SELECTION = "Set Alternate Name Selection";
+    public static final String SKIN_WINDOW_SKIN_PREVIEW = "Skin Preview";
+    public static final String SKIN_WINDOW_TRACK_INFO = "Track Details";
     public static final String SKIN_WINDOW_TRACKS = "Tracks";
 
     /*
@@ -405,15 +408,15 @@ public class StringConstants
     /*
      * Alert constants. These are last so they can reference other elements such as buttons.
      */
+    public static final String ALERT_CANT_REMOVE_ALTERNATE =
+            "One or more alternate names you selected to be removed could not be processed, "
+            + "because the names are too similar and would result in chaos.";
     public static final String ALERT_FATAL_ERROR =
             "A fatal error has occurred. The application will now close.";
     public static final String ALERT_FILE_IS_DIRECTORY = "The file you specified is a directory.";
     public static final String ALERT_FILE_NOT_WRITABLE = "The file you specified is not writable.";
     public static final String ALERT_FILTER_ERROR = "Filter error: ";
     public static final String ALERT_FILTER_TOO_FEW_ROWS = "You need at least one filter row.";
-    public static final String ALERT_INVALID_MANUAL_OVERRIDES = 
-            "One or more manual override artists are not valid. Press " + ARTISTS_REVIEW_OVERRIDES_BUTTON
-            + " to review your saved overrides.";
     public static final String ALERT_LOG_HISTORY_VALUE =
             "You must specify a positive numeric value for the log history.";
     public static final String ALERT_NO_ALTERNATE_NAMES =

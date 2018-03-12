@@ -2,90 +2,90 @@
 
 <itq:MenuBars maximized="true"
     styles="{padding:{top:5, left:5, bottom:5, right:5}, showWindowControls:false, backgroundColor:5}"
-    xmlns:bxml="http://pivot.apache.org/bxml"
-    xmlns:itq="itunesq"
+    xmlns:bxml="http://pivot.apache.org/bxml" 
+    xmlns:itq="itunesq" 
     xmlns="org.apache.pivot.wtk">
 
-	<!-- Define the menu bar. -->
+    <!-- Define the menu bar. -->
     <menuBar>
-		<MenuBar bxml:id="menuBarHolder">
-    
-			<!-- Create the file browser sheet for file open. -->
-			<bxml:define>
-		    	<FileBrowserSheet bxml:id="fileBrowserSheet"/>
-			</bxml:define>
-    
-			<!-- Create the preferences sheet. -->
-			<bxml:define>
-			    <Sheet bxml:id="preferencesSheet"/>
-			</bxml:define>
-        
-			<!-- File menu. -->
-	    	<MenuBar.Item bxml:id="fileMenu">
- 		       	<Menu bxml:id="fileMenuItems">
- 		           	<Menu.Section>
- 		               	<Menu.Item bxml:id="fileMenuOpen" action="fileOpen"/>
-	    	            <Menu.Item bxml:id="fileMenuSave" action="fileSave"/>
-    	    	        <Menu.Item bxml:id="fileMenuExit" action="exit"/>
-        	    	</Menu.Section>
-  		      	</Menu>
-	    	</MenuBar.Item>
-            
-		 	<!-- Edit menu. -->
-    		<MenuBar.Item bxml:id="editMenu">
-        		<Menu bxml:id="editMenuItems">
-            		<Menu.Section>
-                		<Menu.Item bxml:id="editMenuPreferences" action="preferences"/>
-		            </Menu.Section>
-    		    </Menu>
-	    	</MenuBar.Item>
-		</MenuBar>
+        <MenuBar bxml:id="menuBarHolder">
+
+            <!-- Create the file browser sheet for file open. -->
+            <bxml:define>
+                <FileBrowserSheet bxml:id="fileBrowserSheet" />
+            </bxml:define>
+
+            <!-- Create the preferences sheet. -->
+            <bxml:define>
+                <Sheet bxml:id="preferencesSheet" />
+            </bxml:define>
+
+            <!-- File menu. -->
+            <MenuBar.Item bxml:id="fileMenu">
+                <Menu bxml:id="fileMenuItems">
+                    <Menu.Section>
+                        <Menu.Item bxml:id="fileMenuOpen" action="fileOpen" />
+                        <Menu.Item bxml:id="fileMenuSave" action="fileSave" />
+                        <Menu.Item bxml:id="fileMenuExit" action="exit" />
+                    </Menu.Section>
+                </Menu>
+            </MenuBar.Item>
+
+            <!-- Edit menu. -->
+            <MenuBar.Item bxml:id="editMenu">
+                <Menu bxml:id="editMenuItems">
+                    <Menu.Section>
+                        <Menu.Item bxml:id="editMenuPreferences" action="preferences" />
+                    </Menu.Section>
+                </Menu>
+            </MenuBar.Item>
+        </MenuBar>
     </menuBar>
-    
+
     <!-- Lay out the window elements in a single column table pane. -->
     <TablePane styles="{verticalSpacing:10, padding:10}">
         <columns>
-            <TablePane.Column width="1*"/>
+            <TablePane.Column width="1*" />
         </columns>
-            
-        <!-- Informational elements row. -->        
+
+        <!-- Informational elements row. -->
         <TablePane.Row height="1*">
-           	<Border bxml:id="infoBorder">
-           	    <BoxPane bxml:id="infoBoxPane"  orientation="horizontal">
-	                <Label bxml:id="numArtistsLabel" styles="{font:{bold:true}, padding:5}"/>
-                    <Label bxml:id="instructionsLabel" styles="{font:{bold:true}, padding:5}"/>
-	       		</BoxPane>
-	       	</Border>
-	    </TablePane.Row>
-            
+            <Border bxml:id="infoBorder">
+                <BoxPane bxml:id="infoBoxPane" orientation="horizontal">
+                    <Label bxml:id="numArtistsLabel" styles="{font:{bold:true}, padding:5}" />
+                    <Label bxml:id="instructionsLabel" styles="{font:{bold:true}, padding:5}" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+
         <!-- Artist elements row. -->
         <TablePane.Row height="10*">
             <Border bxml:id="artistsBorder">
                 <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
-                  	verticalScrollBarPolicy="fill_to_capacity">
-                        
+                    verticalScrollBarPolicy="fill_to_capacity">
+
                     <!-- Table containing all the artists. -->
                     <TableView bxml:id="artistsTableView" selectMode="single"
                         styles="{includeTrailingVerticalGridLine:true}">
                     </TableView>
 
                     <columnHeader>
-                        <TableViewHeader bxml:id="artistsTableViewHeader" tableView="$artistsTableView" 
-                          	sortMode="single_column"
-                            styles="{includeTrailingVerticalGridLine:true}"/>
+                        <TableViewHeader bxml:id="artistsTableViewHeader" tableView="$artistsTableView"
+                            sortMode="single_column" styles="{includeTrailingVerticalGridLine:true}" />
                     </columnHeader>
                 </ScrollPane>
             </Border>
         </TablePane.Row>
-            
+
         <!-- Action elements (buttons) row. -->
         <TablePane.Row height="1*">
             <Border bxml:id="actionBorder">
                 <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-               	    <PushButton bxml:id="doneButton"/>
-                    <PushButton bxml:id="altNameButton"/>
-                    <PushButton bxml:id="reviewOverridesButton"/>
+                    <PushButton bxml:id="doneButton" />
+                    <PushButton bxml:id="setAltNameButton" />
+                    <PushButton bxml:id="removeAltNameButton" />
+                    <PushButton bxml:id="reviewOverridesButton" />
                 </BoxPane>
             </Border>
         </TablePane.Row>

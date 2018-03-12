@@ -152,8 +152,7 @@ public class FiltersWindow
         /*
          * Now register the filters window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.FILTERS, windowElements);
+        skins.registerWindowElements(Skins.Window.FILTERS, components);
 
         /*
          * Skin the filters window.
@@ -500,9 +499,8 @@ public class FiltersWindow
                     /*
                      * Register the new components and skin them.
                      */
-                    Map<Skins.Element, List<Component>> windowElements =
-                            skins.mapComponentsToSkinElements(rowComponents);
-                    skins.registerDynamicWindowElements(Skins.Window.FILTERS, windowElements);
+                    Map<Skins.Element, List<Component>> windowElements = 
+                            skins.registerDynamicWindowElements(Skins.Window.FILTERS, rowComponents);
                     skins.skinMe(Skins.Window.FILTERS, windowElements);
 
                     filtersWindow.repaint();
@@ -555,7 +553,8 @@ public class FiltersWindow
                         /*
                          * Remove the table row.
                          */
-                        Sequence<TablePane.Row> removedRows = filterTablePane.getRows().remove(filterRowIndex, 1);
+                        Sequence<TablePane.Row> removedRows = 
+                                filterTablePane.getRows().remove(filterRowIndex, 1);
 
                         /*
                          * Get the remaining rows.
@@ -679,9 +678,7 @@ public class FiltersWindow
                     /*
                      * Register the new components and skin them.
                      */
-                    Map<Skins.Element, List<Component>> windowElements = 
-                            skins.mapComponentsToSkinElements(rowComponents);
-                    skins.registerDynamicWindowElements(Skins.Window.FILTERS, windowElements);
+                    skins.registerDynamicWindowElements(Skins.Window.FILTERS, rowComponents);
                     skins.skinMe(Skins.Window.FILTERS);
 
                     filtersWindow.repaint();
@@ -818,7 +815,8 @@ public class FiltersWindow
 
         BXMLSerializer windowSerializer = new BXMLSerializer();
 
-        filtersWindow = (Window) windowSerializer.readObject(getClass().getResource("filtersWindow.bxml"));
+        filtersWindow =
+                (Window) windowSerializer.readObject(getClass().getResource("filtersWindow.bxml"));
 
         /*
          * Initialize the menu bar.

@@ -176,7 +176,7 @@ public class FindDuplicatesDialog
         /*
          * Set the window title.
          */
-        findDuplicatesDialog.setTitle(Skins.Window.FINDDUPLICATES.getDisplayValue());
+        findDuplicatesDialog.setTitle(Skins.Window.FIND_DUPLICATES.getDisplayValue());
 
         /*
          * Get the skins singleton.
@@ -186,13 +186,12 @@ public class FindDuplicatesDialog
         /*
          * Register the find duplicates dialog skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.FINDDUPLICATES, windowElements);
+        skins.registerWindowElements(Skins.Window.FIND_DUPLICATES, components);
 
         /*
          * Skin the find duplicates dialog.
          */
-        skins.skinMe(Skins.Window.FINDDUPLICATES);
+        skins.skinMe(Skins.Window.FIND_DUPLICATES);
 
         /*
          * Open the find duplicates dialog.

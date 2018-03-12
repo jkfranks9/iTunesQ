@@ -58,11 +58,11 @@ import org.apache.pivot.wtk.Window;
 import org.apache.pivot.wtk.WindowStateListener;
 import org.slf4j.LoggerFactory;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that represents the Apache Pivot application for the iTunes Query 
- * Tool.
+ * Class that represents the Apache Pivot application for the iTunes Query Tool.
  * <p>
  * This application operates on the XML file containing iTunes library tracks
  * and playlists. The XML file is exported by the iTunes application. As such,
@@ -75,6 +75,8 @@ import ch.qos.logback.classic.Logger;
  * <li>show duplicate tracks using exact or fuzzy match criteria</li>
  * <li>show all playlists in the library as a tree</li>
  * <li>show all artists in the library, along with associated data</li>
+ * <li>allow automatic and manual artist alternate names, along with user
+ * overrides</li>
  * <li>query tracks using a collection of filters</li>
  * <li>compare two or more playlists</li>
  * <li>expand a playlist into a family of tracks or additional playlists</li>
@@ -83,8 +85,8 @@ import ch.qos.logback.classic.Logger;
  * </ul>
  * <p>
  * This is the main class for the application. The <code>startup</code> method
- * is called when the application starts. Its primary job is to manage the 
- * Pivot UI.
+ * is called when the application starts. Its primary job is to manage the Pivot
+ * UI.
  * 
  * @author Jon
  * @see <a href="http://pivot.apache.org/">Apache Pivot</a>
@@ -93,41 +95,42 @@ import ch.qos.logback.classic.Logger;
 public class MainWindow implements Application, Application.UncaughtExceptionHandler, DialogCloseListener
 {
 
-    //---------------- Class variables -------------------------------------
+    // ---------------- Class variables -------------------------------------
 
     private static DiagTrigger diagTrigger = null;
     private static final String DIAG_TRIGGER_PROPERTY_KEY = "diag-trigger";
-    
+
     /*
      * Diagnostic trigger, to enable breakpoints based on item names, or special logging.
      */
     public enum DiagTrigger
     {
-        NONE("none"),
-        TRACK("track"),
-        PLAYLIST("playlist"),
-        ARTIST("artist"),
-        SKIN_LOGGING("skin"),
-        LOGGER_LOGGING("logger");
-        
+        NONE("none"), 
+        TRACK("track"), 
+        PLAYLIST("playlist"), 
+        ARTIST("artist"), 
+        SKIN_LOGGING("skin"), 
+        LOGGER_LOGGING("logger"), 
+        FORCE_LOGLEVEL("loglevel");
+
         private String displayValue;
-        
+
         /*
          * Constructor.
          */
-        private DiagTrigger (String s)
+        private DiagTrigger(String s)
         {
             displayValue = s;
         }
-        
+
         /*
          * Get the display value.
          */
-        public String getDisplayValue ()
+        public String getDisplayValue()
         {
             return displayValue;
         }
-        
+
         /*
          * Perform a reverse lookup of the <code>enum</code> from the display value.
          */
@@ -135,11 +138,11 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         {
             return lookup.get(value);
         }
-        
+
         /*
          * Reverse lookup capability to get the enum based on its display value.
          */
-        private static final Map<String, DiagTrigger> lookup = new HashMap<String, DiagTrigger>();      
+        private static final Map<String, DiagTrigger> lookup = new HashMap<String, DiagTrigger>();
         static
         {
             for (DiagTrigger value : DiagTrigger.values())
@@ -274,7 +277,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         PlaylistCollection.initializeLogging();
         PlaylistTree.initializeLogging();
         XMLHandler.initializeLogging();
-        
+
         /*
          * Initialize variables.
          */
@@ -282,26 +285,26 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
 
         logger.trace("MainWindow constructor: " + this.hashCode());
     }
-    
-    //---------------- Getters and setters ---------------------------------
-    
+
+    // ---------------- Getters and setters ---------------------------------
+
     /**
      * Gets the diagnostic trigger.
      * 
      * @return diagnostic trigger
      */
-    public static DiagTrigger getDiagTrigger ()
+    public static DiagTrigger getDiagTrigger()
     {
         return diagTrigger;
     }
-    
+
     /**
      * Gets the diagnostic trigger data value.
      * 
-     * @return diagnostic trigger data value, or a string that should not
-     * match anything if the trigger value could not be obtained
+     * @return diagnostic trigger data value, or a string that should not match
+     * anything if the trigger value could not be obtained
      */
-    public static String getDiagTriggerValue ()
+    public static String getDiagTriggerValue()
     {
         return (diagTriggerValue != null) ? diagTriggerValue : "__NON_MATCHING__";
     }
@@ -346,11 +349,11 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         {
             diagLogger.info("Pivot version: " + pivotVersion.toString());
         }
-        
+
         /*
          * Set the diag trigger if the property is set. This lets us create breakpoints based on the 
-         * names of items like tracks or artists. Ignore any errors by setting the trigger to "none"
-         * if a bogus value was specified.
+         * names of items like tracks or artists, or perform other special diagnostic processing. 
+         * Ignore any errors by setting the trigger to "none" if a bogus value was specified.
          */
         String diagProperty = properties.get(DIAG_TRIGGER_PROPERTY_KEY);
         if (diagProperty != null)
@@ -360,6 +363,20 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
             {
                 diagTrigger = DiagTrigger.NONE;
             }
+        }
+
+        /*
+         * Collect the diag trigger value if needed for the type.
+         */
+        switch (diagTrigger)
+        {
+        case NONE:
+        case SKIN_LOGGING:
+        case LOGGER_LOGGING:
+            break;
+
+        default:
+            getDiagTriggerData();
         }
 
         /*
@@ -387,6 +404,25 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          * Log the current preferences.
          */
         userPrefs.logPreferences("startup");
+
+        /*
+         * If the force log level diag trigger is set, implement it. We have to wait until the 
+         * preferences are read before we override the log level.
+         * 
+         * Note that we don't save the preferences, although that will probably happen somewhere
+         * down the line. Not to worry since this is just the developer trying to debug something.
+         */
+        if (diagTrigger == DiagTrigger.FORCE_LOGLEVEL)
+        {
+            String[] loglevelVals = diagTriggerValue.split(":");
+            Logging.Dimension dimension = Logging.Dimension.getEnum(loglevelVals[0]);
+            Level level = Level.toLevel(loglevelVals[1]);
+            if (dimension != null)
+            {
+                userPrefs.setGlobalLogLevel(false);
+                userPrefs.setLogLevel(dimension, level);
+            }
+        }
 
         /*
          * Set the log levels from any existing preferences.
@@ -431,14 +467,14 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          */
         if ((xmlFileName = userPrefs.getXMLFileName()) != null)
         {
-            xmlFileExists = true; 
+            xmlFileExists = true;
         }
-        
+
         /*
          * Gray out the main buttons until the XML file is successfully processed.
          */
         updateMainButtonsState(false);
-        
+
         /*
          * Set the activity indicator size.
          */
@@ -475,8 +511,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         /*
          * Register the main window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.MAIN, windowElements);
+        skins.registerWindowElements(Skins.Window.MAIN, components);
 
         /*
          * Skin the main window.
@@ -494,20 +529,6 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          */
         logger.info("opening main window");
         mainWindow.open(display);
-        
-        /*
-         * Collect the diag trigger value if needed for the type.
-         */
-        switch (diagTrigger)
-        {
-        case NONE:  
-        case SKIN_LOGGING:
-        case LOGGER_LOGGING:
-            break;
-          
-        default:
-            getDiagTriggerData(skins);
-        }
 
         /*
          * We have an XML file name, so read and process it.
@@ -520,20 +541,20 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         if (xmlFileName != null)
         {
             logger.info("using XML file '" + xmlFileName + "'");
-            
+
             Utilities.updateFromXMLFile(xmlFileName, mainWindow);
         }
     }
-    
+
     /**
      * Sets the main window activity indicator active or inactive.
      * 
      * @param value true or false
      */
-    public static void updateActivityIndicator (boolean value)
+    public static void updateActivityIndicator(boolean value)
     {
         activityIndicator.setActive(value);
-        
+
         /*
          * We use the activity indicator going inactive as the trigger to enable the main window
          * buttons.
@@ -543,13 +564,13 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
             updateMainButtonsState(true);
         }
     }
-    
+
     /**
      * Enables or disables the main window buttons.
      * 
      * @param state true or false
      */
-    public static void updateMainButtonsState (boolean state)
+    public static void updateMainButtonsState(boolean state)
     {
         viewTracksButton.setEnabled(state);
         viewPlaylistsButton.setEnabled(state);
@@ -650,7 +671,8 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
             /*
              * For non-fatal errors, alert the user, but stay active.
              */
-            if (exception instanceof InternalErrorException && ((InternalErrorException) exception).getFatal() == false)
+            if (exception instanceof InternalErrorException
+                    && ((InternalErrorException) exception).getFatal() == false)
             {
                 Alert.alert(MessageType.ERROR, StringConstants.ALERT_NON_FATAL_ERROR, window);
 
@@ -1099,20 +1121,20 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         {
         }
     }
-    
+
     /*
      * Get the diag trigger data from a secret file.
      */
-    private void getDiagTriggerData (Skins skins)
+    private void getDiagTriggerData()
     {
         logger.trace("getDiagTriggerData: " + this.hashCode());
-        
+
         /*
          * Create the file name we expect to find, based on the type of diag trigger.
          */
         String diagTriggerFilename = saveDirectory + "/diag-trigger/" + diagTrigger.getDisplayValue();
         BufferedReader reader = null;
-        
+
         /*
          * Create a reader to read the file.
          */
@@ -1130,7 +1152,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          */
         if (reader != null)
         {
-            
+
             /*
              * We expect only a single line in the file, containing the data, so that's all we read.
              */
@@ -1162,19 +1184,21 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
      * Initialize BXML variables and collect the list of components to be
      * skinned.
      */
-    private void initializeBxmlVariables(List<Component> components) 
+    private void initializeBxmlVariables(List<Component> components)
             throws IOException, SerializationException
     {
         logger.trace("initializeBxmlVariables: " + this.hashCode());
 
         BXMLSerializer windowSerializer = new BXMLSerializer();
 
-        mainWindow = (Window) windowSerializer.readObject(getClass().getResource("mainWindow.bxml"));
+        mainWindow = 
+                (Window) windowSerializer.readObject(getClass().getResource("mainWindow.bxml"));
 
         /*
          * Initialize the menu bar.
          */
-        MenuBars menuBar = (MenuBars) mainWindow;
+        MenuBars menuBar = 
+                (MenuBars) mainWindow;
         menuBar.initializeMenuBxmlVariables(windowSerializer, components, false);
 
         infoBorder = 

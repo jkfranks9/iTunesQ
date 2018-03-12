@@ -5,15 +5,17 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
+import java.util.Comparator;
+import java.util.Iterator;
 
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.slf4j.LoggerFactory;
+
+import com.cedarsoftware.util.io.JsonReader;
+import com.cedarsoftware.util.io.JsonWriter;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -24,7 +26,7 @@ import ch.qos.logback.classic.Logger;
  * @author Jon
  *
  */
-public final class Preferences implements Serializable
+public final class Preferences
 {
 
     /*
@@ -69,7 +71,7 @@ public final class Preferences implements Serializable
      * - maximum log file history 
      * - global log level flag 
      * - log levels
-     * - manual alternate artist overrides
+     * - artist alternate name overrides
      */
     private String xmlFileName;
     private List<BypassPreference> bypassPrefs;
@@ -85,12 +87,12 @@ public final class Preferences implements Serializable
     private Map<String, Level> logLevels;
     
     /*
-     * The manual alternate artist overrides are special. They need to be saved, which is why they're
+     * The artist alternate name overrides are special. They need to be saved, which is why they're
      * here. But they are not part of the Edit -> Preferences window. Instead, they are saved when a
-     * user sets a manual override from the artists display window, and used during XML processing to
+     * user creates an override from the artists display window, and used during XML processing to
      * properly set up the artists database.
      */
-    private Map<String, List<String>> manualOverrides;
+    private List<ArtistAlternateNameOverride> artistOverrides;
 
     /*
      * Default save directory for things like preferences and log files.
@@ -116,14 +118,13 @@ public final class Preferences implements Serializable
     /*
      * Serialized file name suffix.
      */
-    private static transient final String PREFS_SUFFIX = ".ser";
+    private static transient final String PREFS_SUFFIX = ".json";
 
     /*
      * Other variables.
      */
-    private transient Logger logger = null;
-
-    private static final long serialVersionUID = -543909365447180812L;
+    private transient Logger uiLogger = null;
+    private transient Logger artistLogger = null;
 
     /*
      * Constructor. Making it private prevents instantiation by any other class.
@@ -145,11 +146,18 @@ public final class Preferences implements Serializable
 
         maxLogHistory = InternalConstants.DEFAULT_MAX_HISTORY;
 
-        logLevels = new HashMap<String, Level>();
         globalLogLevel = true;
+        logLevels = new HashMap<String, Level>();
         
-        manualOverrides = new HashMap<String, List<String>>();
-        manualOverrides.setComparator(String.CASE_INSENSITIVE_ORDER);
+        artistOverrides = new ArrayList<ArtistAlternateNameOverride>();
+        artistOverrides.setComparator(new Comparator<ArtistAlternateNameOverride>()
+        {
+            @Override
+            public int compare(ArtistAlternateNameOverride o1, ArtistAlternateNameOverride o2)
+            {
+                return o1.compareTo(o2);
+            }
+        });
     }
 
     // ---------------- Getters and setters ---------------------------------
@@ -391,13 +399,13 @@ public final class Preferences implements Serializable
     }
     
     /**
-     * Gets the artist alternate name manual overrides.
+     * Gets the artist alternate name overrides.
      * 
-     * @return artist alternate name manual overrides
+     * @return artist alternate name overrides
      */
-    public Map<String, List<String>> getManualOverrides ()
+    public List<ArtistAlternateNameOverride> getArtistOverrides ()
     {
-        return manualOverrides;
+        return artistOverrides;
     }
 
     /**
@@ -439,7 +447,7 @@ public final class Preferences implements Serializable
      */
     public void replaceBypassPrefs(List<BypassPreference> bypassPrefs)
     {
-        logger.trace("replaceBypassPrefs: " + this.hashCode());
+        uiLogger.trace("replaceBypassPrefs: " + this.hashCode());
 
         if (bypassPrefs == null)
         {
@@ -460,7 +468,7 @@ public final class Preferences implements Serializable
      */
     public void replaceIgnoredPrefs(List<String> ignoredPrefs)
     {
-        logger.trace("replaceIgnoredPrefs: " + this.hashCode());
+        uiLogger.trace("replaceIgnoredPrefs: " + this.hashCode());
 
         if (ignoredPrefs == null)
         {
@@ -481,7 +489,7 @@ public final class Preferences implements Serializable
      */
     public void replaceTrackColumnsFullView(List<List<String>> trackColumnsPrefs)
     {
-        logger.trace("replaceTrackColumnsFullView: " + this.hashCode());
+        uiLogger.trace("replaceTrackColumnsFullView: " + this.hashCode());
 
         if (trackColumnsPrefs == null)
         {
@@ -502,7 +510,7 @@ public final class Preferences implements Serializable
      */
     public void replaceTrackColumnsDuplicatesView(List<List<String>> trackColumnsPrefs)
     {
-        logger.trace("replaceTrackColumnsDuplicatesView: " + this.hashCode());
+        uiLogger.trace("replaceTrackColumnsDuplicatesView: " + this.hashCode());
 
         if (trackColumnsPrefs == null)
         {
@@ -523,7 +531,7 @@ public final class Preferences implements Serializable
      */
     public void replaceTrackColumnsFilteredView(List<List<String>> trackColumnsPrefs)
     {
-        logger.trace("replaceTrackColumnsFilteredView: " + this.hashCode());
+        uiLogger.trace("replaceTrackColumnsFilteredView: " + this.hashCode());
 
         if (trackColumnsPrefs == null)
         {
@@ -544,7 +552,7 @@ public final class Preferences implements Serializable
      */
     public void replaceTrackColumnsPlaylistView(List<List<String>> trackColumnsPrefs)
     {
-        logger.trace("replaceTrackColumnsPlaylistView: " + this.hashCode());
+        uiLogger.trace("replaceTrackColumnsPlaylistView: " + this.hashCode());
 
         if (trackColumnsPrefs == null)
         {
@@ -559,59 +567,124 @@ public final class Preferences implements Serializable
     }
     
     /**
-     * Adds an artist alternate name manual override.
+     * Adds an artist alternate name override.
+     * 
+     * @param primaryArtist primary artist name
+     * @param alternateArtist alternate artist name
+     * @param type artist override type
+     */
+    public void addArtistOverride (String primaryArtist, String alternateArtist,
+            ArtistAlternateNameOverride.OverrideType type)
+    {
+        artistLogger.trace("addArtistOverride: " + this.hashCode());
+        
+        boolean foundPrimary = false;        
+
+        /*
+         * If we already have an override for this primary, just add the alternate.
+         */
+        for (ArtistAlternateNameOverride override : artistOverrides)
+        {
+            if (primaryArtist.equals(override.getPrimaryArtist()) && type == override.getOverrideType())
+            {
+                artistLogger.debug("adding alternate '" + alternateArtist + "' to primary override'" 
+                        + primaryArtist + "', type " + type);
+                
+                override.addAlternateArtist(alternateArtist);
+                foundPrimary = true;
+                break;
+            }
+        }
+        
+        /*
+         * If we did not find an override for the primary, build and add a new override.
+         */
+        if (foundPrimary == false)
+        {
+            artistLogger.debug("adding new override type " + type
+                    + ", alternate '" + alternateArtist + "', primary '" + primaryArtist + "'");
+            
+            ArtistAlternateNameOverride override = new ArtistAlternateNameOverride(primaryArtist, type);
+            override.addAlternateArtist(alternateArtist);
+            artistOverrides.add(override);
+        }
+    }
+
+    /**
+     * Removes an artist alternate name override.
      * 
      * @param primaryArtist primary artist name
      * @param alternateArtist alternate artist name
      */
-    public void addArtistManualOverride (String primaryArtist, String alternateArtist)
+    public void removeArtistOverride (String primaryArtist, String alternateArtist)
     {
-        logger.trace("addArtistManualOverride: " + this.hashCode());
-        
-        List<String> alternateNames;
-        if (manualOverrides.containsKey(primaryArtist))
+        uiLogger.trace("removeArtistOverride: " + this.hashCode());
+
+        /*
+         * Find the primary and remove the alternate.
+         */
+        Iterator<ArtistAlternateNameOverride> artistOverridesIter = artistOverrides.iterator();
+        while (artistOverridesIter.hasNext())
         {
-            alternateNames = manualOverrides.get(primaryArtist);
+            ArtistAlternateNameOverride override = artistOverridesIter.next();
+            
+            if (primaryArtist.equals(override.getPrimaryArtist()))
+            {
+                artistLogger.debug("removing alternate '" + alternateArtist + "' from primary override '"
+                        + primaryArtist + "', type " + override.getOverrideType());
+                override.removeAlternateArtist(alternateArtist);
+                
+                /*
+                 * Delete the override if we just removed the last alternate.
+                 */
+                if (override.getNumAlternateArtists() == 0)
+                {
+                    artistOverridesIter.remove();
+                }
+                
+                break;
+            }
         }
-        else
-        {
-            alternateNames = new ArrayList<String>();
-        }
-        alternateNames.add(alternateArtist);
-        manualOverrides.put(primaryArtist, alternateNames);
     }
     
     /**
      * Gets the primary artist name associated with an alternate artist if
-     * a manual override exists.
+     * an artist override of the same type exists.
      * 
-     * @param alternateArtist alternate artist display name to check for a 
-     * manual override
+     * @param alternateArtist alternate artist display name to check for an
+     * artist override
+     * @param type artist override type
      * @return primary artist normalized name for the alternate artist, or null
-     * if a manual override was not found
+     * if an artist override of the same type was not found
      */
-    public String getManualOverridePrimaryName (String alternateArtist)
+    public String getArtistOverridePrimaryName (String alternateArtist, 
+            ArtistAlternateNameOverride.OverrideType type)
     {
-        logger.trace("getManualOverridePrimaryName: " + this.hashCode());
+        uiLogger.trace("getArtistOverridePrimaryName: " + this.hashCode());
         
         String result = null;
-        
-        for (String primaryName : manualOverrides)
+
+        for (ArtistAlternateNameOverride override : artistOverrides)
         {
-            for (String alternateName : manualOverrides.get(primaryName))
+            List<String> altNames = override.getAlternateArtists();
+
+            for (String alternateName : altNames)
             {
                 if (alternateName.equals(alternateArtist))
                 {
-                    
-                    /*
-                     * We found a match, but we need to return a normalized name.
-                     */
-                    ArtistNames temp = new ArtistNames(primaryName);
-                    result = new String(temp.normalizeName());
-                    break;
+                    if (type == override.getOverrideType())
+                    {
+
+                        /*
+                         * We found a match, but we need to return a normalized name.
+                         */
+                        ArtistNames temp = new ArtistNames(override.getPrimaryArtist());
+                        result = new String(temp.normalizeName());
+                        break;
+                    }
                 }
             }
-            
+
             if (result != null)
             {
                 break;
@@ -713,7 +786,12 @@ public final class Preferences implements Serializable
          * Create a UI logger.
          */
         String className = getClass().getSimpleName();
-        logger = (Logger) LoggerFactory.getLogger(className + "_UI");
+        uiLogger = (Logger) LoggerFactory.getLogger(className + "_UI");
+
+        /*
+         * Create an artist logger.
+         */
+        artistLogger = (Logger) LoggerFactory.getLogger(className + "_Artist");
 
         /*
          * Get the logging object singleton.
@@ -721,11 +799,12 @@ public final class Preferences implements Serializable
         Logging logging = Logging.getInstance();
 
         /*
-         * Register our logger.
+         * Register our loggers.
          */
-        logging.registerLogger(Logging.Dimension.UI, logger);
+        logging.registerLogger(Logging.Dimension.UI, uiLogger);
+        logging.registerLogger(Logging.Dimension.ARTIST, artistLogger);
 
-        logger.trace("initializeLogging: " + this.hashCode());
+        uiLogger.trace("initializeLogging: " + this.hashCode());
     }
 
     /**
@@ -736,7 +815,7 @@ public final class Preferences implements Serializable
      */
     public void updatePreferences(Preferences prefs)
     {
-        logger.info("updating preferences");
+        uiLogger.info("updating preferences");
 
         if (prefs == null)
         {
@@ -752,16 +831,34 @@ public final class Preferences implements Serializable
         {
             replaceIgnoredPrefs(prefs.ignoredPrefs);
         }
-        this.trackColumnsFullView = prefs.trackColumnsFullView;
-        this.trackColumnsDuplicatesView = prefs.trackColumnsDuplicatesView;
-        this.trackColumnsFilteredView = prefs.trackColumnsFilteredView;
-        this.trackColumnsPlaylistView = prefs.trackColumnsPlaylistView;
+        if (prefs.trackColumnsFullView != null)
+        {
+            this.trackColumnsFullView = prefs.trackColumnsFullView;
+        }
+        if (prefs.trackColumnsDuplicatesView != null)
+        {
+            this.trackColumnsDuplicatesView = prefs.trackColumnsDuplicatesView;
+        }
+        if (prefs.trackColumnsFilteredView != null)
+        {
+            this.trackColumnsFilteredView = prefs.trackColumnsFilteredView;
+        }
+        if (prefs.trackColumnsPlaylistView != null)
+        {
+            this.trackColumnsPlaylistView = prefs.trackColumnsPlaylistView;
+        }
         this.showRemoteTracks = prefs.showRemoteTracks;
         this.skinName = prefs.skinName;
         this.maxLogHistory = prefs.maxLogHistory;
         this.globalLogLevel = prefs.globalLogLevel;
-        this.logLevels = prefs.logLevels;
-        this.manualOverrides = prefs.manualOverrides;
+        if (prefs.logLevels != null)
+        {
+            this.logLevels = prefs.logLevels;
+        }
+        if (prefs.artistOverrides != null)
+        {
+            this.artistOverrides = prefs.artistOverrides;
+        }
     }
 
     /**
@@ -777,16 +874,16 @@ public final class Preferences implements Serializable
             throws IOException, ClassNotFoundException
     {
         Preferences prefs = null;
-        logger.info("reading preferences from '" + prefsFile + "'");
+        uiLogger.info("reading preferences from '" + prefsFile + "'");
 
         FileInputStream prefsInputStream = null;
-        ObjectInputStream input = null;
+        JsonReader reader = null;
 
         try
         {
             prefsInputStream = new FileInputStream(prefsFile);
-            input = new ObjectInputStream(prefsInputStream);
-            prefs = (Preferences) input.readObject();
+            reader = new JsonReader(prefsInputStream);
+            prefs = (Preferences) reader.readObject();
         }
         catch (FileNotFoundException e)
         {
@@ -794,9 +891,9 @@ public final class Preferences implements Serializable
         }
         finally
         {
-            if (input != null)
+            if (reader != null)
             {
-                input.close();
+                reader.close();
             }
             if (prefsInputStream != null)
             {
@@ -816,22 +913,22 @@ public final class Preferences implements Serializable
     public void writePreferences() 
             throws IOException
     {
-        logger.info("writing preferences to '" + prefsFile + "'");
+        uiLogger.info("writing preferences to '" + prefsFile + "'");
 
         FileOutputStream prefsOutputStream = null;
-        ObjectOutputStream output = null;
+        JsonWriter writer = null;
 
         try
         {
             prefsOutputStream = new FileOutputStream(prefsFile);
-            output = new ObjectOutputStream(prefsOutputStream);
-            output.writeObject(this);
+            writer = new JsonWriter(prefsOutputStream);
+            writer.write(this);
         }
         finally
         {
-            if (output != null)
+            if (writer != null)
             {
-                output.close();
+                writer.close();
             }
             if (prefsOutputStream != null)
             {
@@ -1031,17 +1128,19 @@ public final class Preferences implements Serializable
         }
         
         /*
-         * Artist alternate name manual overrides.
+         * Artist alternate name overrides.
          */
-        Map<String, List<String>> inManualOverrides = manualOverrides;
-        if (inManualOverrides != null && inManualOverrides.getCount() > 0)
+        List<ArtistAlternateNameOverride> inArtistOverrides = artistOverrides;
+        if (inArtistOverrides != null && inArtistOverrides.getLength() > 0)
         {
-            output.append(String.format("%2d", ++itemNum) + ") " + "Manual artist overrides:" + lineSeparator);
+            output.append(String.format("%2d", ++itemNum) + ") " + "Artist overrides:" + lineSeparator);
             
-            for (String primaryName : manualOverrides)
+            for (ArtistAlternateNameOverride override : artistOverrides)
             {
+                String primaryName = override.getPrimaryArtist();
                 output.append(indent + primaryName + lineSeparator);
-                for (String alternateName : manualOverrides.get(primaryName))
+                List<String> altNames = override.getAlternateArtists();
+                for (String alternateName : altNames)
                 {
                     output.append(indent + listPrefix + alternateName + lineSeparator);
                 }

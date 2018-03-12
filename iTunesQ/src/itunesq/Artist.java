@@ -105,11 +105,6 @@ public class Artist
         String artistName = track.getArtist();
 
         /*
-         * The artist name could possibly be an alternate, so see if it needs to be saved.
-         */
-        artistNames.checkAndSaveAlternateName(artistName, track.getRemote(), artistLogger);
-
-        /*
          * Update the local or remote track counts and total time.
          */
         if (track.getRemote() == false)
@@ -122,6 +117,11 @@ public class Artist
             artistTrackData.incrementNumRemoteTracks(1);
             artistTrackData.incrementTotalRemoteTime(track.getDuration());
         }
+
+        /*
+         * The artist name could possibly be an alternate, so see if it needs to be saved.
+         */
+        artistNames.checkAndSaveAlternateName(artistName, track, artistLogger);
     }
 
     /**

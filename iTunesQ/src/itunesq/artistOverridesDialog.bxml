@@ -9,38 +9,37 @@
         <columns>
             <TablePane.Column width="1*" />
         </columns>
-
+        
         <!-- Info row. -->
         <TablePane.Row height="1*">
-            <Border bxml:id="manualOverridesLabelsBorder">
-                <BoxPane bxml:id="manualOverridesLabelsBoxPane" orientation="vertical"
+            <Border bxml:id="artistOverridesLabelBorder">
+                <BoxPane bxml:id="artistOverridesLabelBoxPane" orientation="vertical"
                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                    <Label bxml:id="manualOverridesInstructionsLabel"
+                    <Label bxml:id="artistOverridesManualLabel"
                         styles="{horizontalAlignment:'center', verticalAlignment:'center'}" />
-                    <Label bxml:id="manualOverridesInfoLabel"
+                    <Label bxml:id="artistOverridesAutomaticLabel"
                         styles="{horizontalAlignment:'center', verticalAlignment:'center'}" />
                 </BoxPane>
             </Border>
-        </TablePane.Row>
+        </TablePane.Row>        
 
         <!-- TreeView elements row. -->
         <TablePane.Row height="4*">
-            <Border bxml:id="manualOverridesTreeBorder">
-                <ScrollPane bxml:id="manualOverridesTreeScrollPane"
+            <Border bxml:id="artistOverridesTreeBorder">
+                <ScrollPane bxml:id="artistOverridesTreeScrollPane"
                     horizontalScrollBarPolicy="fill_to_capacity" 
                     verticalScrollBarPolicy="fill_to_capacity">
-                    <TreeView bxml:id="manualOverridesTreeView" />
+                    <TreeView bxml:id="artistOverridesTreeView" />
                 </ScrollPane>
             </Border>
         </TablePane.Row>
 
         <!-- Button elements row. -->
         <TablePane.Row height="1*">
-            <Border bxml:id="manualOverridesButtonBorder">
-                <BoxPane bxml:id="manualOverridesButtonBoxPane" orientation="horizontal"
+            <Border bxml:id="artistOverridesButtonBorder">
+                <BoxPane bxml:id="artistOverridesButtonBoxPane" orientation="horizontal"
                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                    <PushButton bxml:id="manualOverridesDoneButton" />
-                    <PushButton bxml:id="manualOverridesDeleteButton" />
+                    <PushButton bxml:id="artistOverridesDoneButton" />
                 </BoxPane>
             </Border>
         </TablePane.Row>

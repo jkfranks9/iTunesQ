@@ -671,8 +671,7 @@ public class PreferencesWindow
         /*
          * Now register the preferences window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.PREFERENCES, windowElements);
+        skins.registerWindowElements(Skins.Window.PREFERENCES, components);
 
         /*
          * Skin the preferences window.
@@ -736,8 +735,7 @@ public class PreferencesWindow
                  * Register the new components and skin them.
                  */
                 Map<Skins.Element, List<Component>> windowElements = 
-                        skins.mapComponentsToSkinElements(rowComponents);
-                skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
+                        skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, rowComponents);
                 skins.skinMe(Skins.Window.PREFERENCES, windowElements);
 
                 preferencesSheet.repaint();
@@ -1022,13 +1020,12 @@ public class PreferencesWindow
                 /*
                  * Set the window title.
                  */
-                skinPreviewDialog.setTitle(Skins.Window.SKINPREVIEW.getDisplayValue());
+                skinPreviewDialog.setTitle(Skins.Window.SKIN_PREVIEW.getDisplayValue());
 
                 /*
                  * Register the preview dialog skin elements.
                  */
-                Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-                skins.registerWindowElements(Skins.Window.SKINPREVIEW, windowElements);
+                skins.registerWindowElements(Skins.Window.SKIN_PREVIEW, components);
 
                 /*
                  * Save the current skin name so we can restore it after we've
@@ -1045,7 +1042,7 @@ public class PreferencesWindow
                 /*
                  * Skin the preview dialog.
                  */
-                skins.skinMe(Skins.Window.SKINPREVIEW);
+                skins.skinMe(Skins.Window.SKIN_PREVIEW);
 
                 /*
                  * Restore the current skin elements.
@@ -1508,8 +1505,7 @@ public class PreferencesWindow
                      * Register the new components and skin them.
                      */
                     Map<Skins.Element, List<Component>> windowElements = 
-                            skins.mapComponentsToSkinElements(rowComponents);
-                    skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
+                            skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, rowComponents);
                     skins.skinMe(Skins.Window.PREFERENCES, windowElements);
 
                     preferencesSheet.repaint();
@@ -1725,8 +1721,7 @@ public class PreferencesWindow
                      * Register the new components and skin them.
                      */
                     Map<Skins.Element, List<Component>> windowElements = 
-                            skins.mapComponentsToSkinElements(rowComponents);
-                    skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, windowElements);
+                            skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, rowComponents);
                     skins.skinMe(Skins.Window.PREFERENCES, windowElements);
 
                     preferencesSheet.repaint();

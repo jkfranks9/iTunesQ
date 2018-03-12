@@ -25,7 +25,6 @@ import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
 import org.apache.pivot.collections.List;
-import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.wtk.Alert;
 import org.apache.pivot.wtk.Border;
@@ -302,7 +301,7 @@ public class FileSaveDialog
         /*
          * Set the window title.
          */
-        fileSaveDialog.setTitle(Skins.Window.FILESAVE.getDisplayValue());
+        fileSaveDialog.setTitle(Skins.Window.FILE_SAVE.getDisplayValue());
 
         /*
          * Get the skins singleton.
@@ -312,13 +311,12 @@ public class FileSaveDialog
         /*
          * Register the file save dialog skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.FILESAVE, windowElements);
+        skins.registerWindowElements(Skins.Window.FILE_SAVE, components);
 
         /*
          * Skin the file save dialog.
          */
-        skins.skinMe(Skins.Window.FILESAVE);
+        skins.skinMe(Skins.Window.FILE_SAVE);
 
         /*
          * Open the file save dialog.

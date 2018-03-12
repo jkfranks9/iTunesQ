@@ -285,8 +285,7 @@ public class TracksWindow
         /*
          * Register the tracks window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.TRACKS, windowElements);
+        skins.registerWindowElements(Skins.Window.TRACKS, components);
 
         /*
          * Skin the tracks window.
@@ -378,18 +377,17 @@ public class TracksWindow
         /*
          * Set the window title.
          */
-        trackInfoDialog.setTitle(Skins.Window.TRACKINFO.getDisplayValue());
+        trackInfoDialog.setTitle(Skins.Window.TRACK_INFO.getDisplayValue());
 
         /*
          * Register the window elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.TRACKINFO, windowElements);
+        skins.registerWindowElements(Skins.Window.TRACK_INFO, components);
 
         /*
          * Skin the track info dialog.
          */
-        skins.skinMe(Skins.Window.TRACKINFO);
+        skins.skinMe(Skins.Window.TRACK_INFO);
 
         /*
          * Open the track info dialog. There is no close button, so the user has

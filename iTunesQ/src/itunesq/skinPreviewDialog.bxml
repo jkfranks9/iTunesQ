@@ -1,59 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <Dialog bxml:id="dialog" modal="false"
-	styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}"
+    styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}" 
     xmlns:bxml="http://pivot.apache.org/bxml"
     xmlns="org.apache.pivot.wtk">
-        
+
     <!-- Lay out the window elements in a single column table pane. -->
-   	<TablePane bxml:id="mainTablePane"
-   		styles="{verticalSpacing:10, padding:10}">
-       	<columns>
-           	<TablePane.Column width="1*"/>
-       	</columns>
+    <TablePane bxml:id="mainTablePane" styles="{verticalSpacing:10, padding:10}">
+        <columns>
+            <TablePane.Column width="1*" />
+        </columns>
 
-		<!-- Text elements row. -->
-       	<TablePane.Row height="1*">
-       		<Border bxml:id="previewTextBorder">
-           		<BoxPane bxml:id="previewTextBoxPane" orientation="horizontal"
-           		    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-           			<Label bxml:id="previewTextLabel"
-               			styles="{horizontalAlignment:'center', verticalAlignment:'center'}"/>
-               		<TextInput bxml:id="previewTextInput"/>
-           		</BoxPane>
-           	</Border>
-       	</TablePane.Row>
+        <!-- Text elements row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="previewTextBorder">
+                <BoxPane bxml:id="previewTextBoxPane" orientation="horizontal"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <Label bxml:id="previewTextLabel"
+                        styles="{horizontalAlignment:'center', verticalAlignment:'center'}" />
+                    <TextInput bxml:id="previewTextInput" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
 
-		<!-- TableView elements row. -->
-       	<TablePane.Row height="4*">
-       		<Border bxml:id="previewTableBorder">
-       			<ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
-       				<TableView bxml:id="previewTableView" selectMode="single">
-       					<columns>
-       						<TableView.Column bxml:id="previewTableColumnWeekday" name="weekday"/>
-       						<TableView.Column bxml:id="previewTableColumnColor" name="color"/>
-       						<TableView.Column bxml:id="previewTableColumnMood" name="mood"/>
-       					</columns>
-       				</TableView>
-        			
-       				<columnHeader>
-       					<TableViewHeader bxml:id="previewTableViewHeader" tableView="$previewTableView" 
-                           	sortMode="single_column"
-                            styles="{includeTrailingVerticalGridLine:true}"/>
-       				</columnHeader>        			        			
-       			</ScrollPane>
-           	</Border>
-       	</TablePane.Row>
+        <!-- TableView elements row. -->
+        <TablePane.Row height="4*">
+            <Border bxml:id="previewTableBorder">
+                <ScrollPane horizontalScrollBarPolicy="fill_to_capacity">
+                    <TableView bxml:id="previewTableView" selectMode="single">
+                        <columns>
+                            <TableView.Column bxml:id="previewTableColumnWeekday" name="weekday" />
+                            <TableView.Column bxml:id="previewTableColumnColor" name="color" />
+                            <TableView.Column bxml:id="previewTableColumnMood" name="mood" />
+                        </columns>
+                    </TableView>
 
-		<!-- Button elements row. -->
-       	<TablePane.Row height="1*">
-       		<Border bxml:id="previewButtonBorder">
-           		<BoxPane bxml:id="previewButtonBoxPane" orientation="horizontal"
-       		   	    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-           		   	<PushButton bxml:id="previewButton"
-           		      	ButtonPressListener.buttonPressed="dialog.close()"/>
-           		</BoxPane>
-           	</Border>
-       	</TablePane.Row>
-   	</TablePane>
+                    <columnHeader>
+                        <TableViewHeader bxml:id="previewTableViewHeader" tableView="$previewTableView"
+                            sortMode="single_column" styles="{includeTrailingVerticalGridLine:true}" />
+                    </columnHeader>
+                </ScrollPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- Button elements row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="previewButtonBorder">
+                <BoxPane bxml:id="previewButtonBoxPane" orientation="horizontal"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <PushButton bxml:id="previewButton"
+                        ButtonPressListener.buttonPressed="dialog.close()" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+    </TablePane>
 </Dialog>

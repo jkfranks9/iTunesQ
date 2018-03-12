@@ -53,9 +53,9 @@ public class ArtistNames
         FEATURING("featuring"),
         
         /**
-         * artist is part of a user manual override
+         * artist is part of an artist override
          */
-        MANUAL_OVERRIDE("manual override");
+        ARTIST_OVERRIDE("artist override");
         
         private String displayValue;
         
@@ -207,16 +207,17 @@ public class ArtistNames
         {
             if (displayName.toLowerCase().contains(MainWindow.getDiagTriggerValue()))
             {
-                artistLogger.info("DIAG TRIGGER HIT!");
+                artistLogger.info("matchArtist diag trigger hit!");
             }
         }
         
         /*
          * Loop control variables.
          */
-        final int loopControlFeatOrWith     = 1;
-        final int loopControlSwitch         = 2;
-        final int loopControlManualOverride = 3;
+        int controlVal = 0;
+        final int loopControlArtistOverride = ++controlVal;
+        final int loopControlFeatOrWith     = ++controlVal;
+        final int loopControlSwitch         = ++controlVal;
 
         /*
          * Protect the normalized name from modification.
@@ -232,10 +233,10 @@ public class ArtistNames
          * 
          * That leaves the following left to do:
          * 
+         * - handle any artist overrides
          * - scan for "feat." and remove the substring, so that say, "ABC feat. Q" matches "ABC"
          * - scan for "with" and remove the substring, so that say, "XYZ with Amy" matches "XYZ"
          * - switch the terms around if we have an "&", so that say, "ABC & XYZ" matches "XYZ & ABC"
-         * - handle any user manual overrides
          * 
          * NOTE: I'm making the assumption that a given artist can't have both "feat." and "with". I
          * wouldn't know how to handle that anyway.
@@ -278,7 +279,52 @@ public class ArtistNames
                 /*
                  * The loop control ensures we progress through the various checks without duplication. 
                  */
-                if (loopControl < loopControlFeatOrWith)
+                if (loopControl < loopControlArtistOverride)
+                {
+                    loopControl = loopControlArtistOverride;
+                    
+                    /*
+                     * If an automatic artist override exists, we do NOT want this artist to be an
+                     * alternate for the primary from the override, so just return the negative index.
+                     * 
+                     * NOTE: this means we never do post-processing for automatic overrides.
+                     */
+                    String autoPrimary = userPrefs.getArtistOverridePrimaryName(displayName,
+                            ArtistAlternateNameOverride.OverrideType.AUTOMATIC);
+                    if (autoPrimary != null)
+                    {
+                        artistLogger.debug("found automatic override for '" + displayName
+                                + "', primary '" + autoPrimary + "'");
+                        break;
+                    }
+                    
+                    /*
+                     * Check for an artist manual override. We're looking for the primary artist for an
+                     * alternate name.
+                     */
+                    String primaryName = userPrefs.getArtistOverridePrimaryName(displayName,
+                            ArtistAlternateNameOverride.OverrideType.MANUAL);
+                    if (primaryName != null)
+                    {
+                        artistToCheck = primaryName;
+                        artistLogger.debug("now checking for '" + artistToCheck + "' (artist override)");
+
+                        /*
+                         * Set the post-processing type to "artist override" for potential post-processing.
+                         */
+                        postProcessType = PostProcessType.ARTIST_OVERRIDE;
+                    }
+
+                    /*
+                     * The name doesn't match the above checks, so make sure we don't search again
+                     * on the next iteration, since we made no changes to the name.
+                     */
+                    else
+                    {
+                        performSearch = false;
+                    }
+                }
+                else if (loopControl < loopControlFeatOrWith)
                 {
                     loopControl = loopControlFeatOrWith;
 
@@ -327,35 +373,6 @@ public class ArtistNames
                         modifiedArtist = changed.toString();
                         artistToCheck = modifiedArtist;
                         artistLogger.debug("now checking for '" + artistToCheck + "'");
-                    }
-
-                    /*
-                     * The name doesn't match the above checks, so make sure we don't search again
-                     * on the next iteration, since we made no changes to the name.
-                     */
-                    else
-                    {
-                        performSearch = false;
-                    }
-                }
-                else if (loopControl < loopControlManualOverride)
-                {
-                    loopControl = loopControlManualOverride;
-                    
-                    /*
-                     * Check for a manual override. We're looking for the primary artist for an
-                     * alternate name.
-                     */
-                    String primaryName = userPrefs.getManualOverridePrimaryName(displayName);
-                    if (primaryName != null)
-                    {
-                        artistToCheck = primaryName;
-                        artistLogger.debug("now checking for '" + artistToCheck + "' (manual override)");
-
-                        /*
-                         * Set the post-processing type to "manual override" for potential post-processing.
-                         */
-                        postProcessType = PostProcessType.MANUAL_OVERRIDE;
                     }
 
                     /*
@@ -420,10 +437,14 @@ public class ArtistNames
             break;
 
         /*
-         * This artist is a manual override type, so we need to get the associated primary.
+         * This artist is an artist override type, so we need to get the associated primary.
+         * 
+         * NOTE: We never do post-processing for automatic overrides. As we're building the
+         * database, if we find an automatic override we just treat the artist as unique.
          */    
-        case MANUAL_OVERRIDE:
-            artistToCheck = normalizeName(userPrefs.getManualOverridePrimaryName(displayName));
+        case ARTIST_OVERRIDE:
+            artistToCheck = normalizeName(userPrefs.getArtistOverridePrimaryName(displayName,
+                    ArtistAlternateNameOverride.OverrideType.MANUAL));
             break;
             
         case NONE:
@@ -455,15 +476,19 @@ public class ArtistNames
      * if so.
      * 
      * @param artistName artist name to check
-     * @param remoteTrack true if the track containing this artist is a
-     * remote-only track
+     * @param track track object that references this artist
      * @param artistLogger logger to use
      */
-    public void checkAndSaveAlternateName(String artistName, boolean remoteTrack, Logger artistLogger)
+    public void checkAndSaveAlternateName(String artistName, Track track, Logger artistLogger)
     {
         if (artistName == null)
         {
             throw new IllegalArgumentException("artistName argument is null");
+        }
+        
+        if (track == null)
+        {
+            throw new IllegalArgumentException("track argument is null");
         }
         
         if (artistLogger == null)
@@ -472,6 +497,17 @@ public class ArtistNames
         }
 
         artistLogger.trace("checkAndSaveAlternateName: " + this.hashCode());
+        
+        /*
+         * If we have a diag trigger artist value, allow for a breakpoint if the artist matches.
+         */
+        if (MainWindow.getDiagTrigger() == MainWindow.DiagTrigger.ARTIST)
+        {
+            if (displayName.toLowerCase().contains(MainWindow.getDiagTriggerValue()))
+            {
+                artistLogger.info("checkAndSaveAlternateName diag trigger hit!");
+            }
+        }
 
         /*
          * We have nothing to do if the name matches the display name.
@@ -500,11 +536,29 @@ public class ArtistNames
              */
             if (foundName == true)
             {
+                
+                /*
+                 * Get the existing track data and remote control.
+                 */
                 ArtistTrackData artistTrackData = altNames.get(artistName);
                 ArtistTrackData.RemoteArtistControl remoteControl = artistTrackData.getRemoteArtistControl();
+                
+                /*
+                 * Increment the track and time totals.
+                 */
+                if (track.getRemote() == false)
+                {
+                    artistTrackData.incrementNumLocalTracks(1);
+                    artistTrackData.incrementTotalLocalTime(track.getDuration());
+                }
+                else
+                {
+                    artistTrackData.incrementNumRemoteTracks(1);
+                    artistTrackData.incrementTotalRemoteTime(track.getDuration());
+                }
 
                 /*
-                 * If the control is already remote + local we have nothing to do.
+                 * If the control is already remote + local we have nothing else to do.
                  */
                 if (remoteControl != ArtistTrackData.RemoteArtistControl.REMOTE_AND_LOCAL)
                 {
@@ -515,7 +569,7 @@ public class ArtistNames
                      * Change the control to remote + local if it's currently remote-only and this
                      * is a local track, or if it's currently no remote and this is a remote track.
                      */
-                    if (remoteTrack != remoteControlIsRemote)
+                    if (track.getRemote() != remoteControlIsRemote)
                     {
                         remoteControl = ArtistTrackData.RemoteArtistControl.REMOTE_AND_LOCAL;
                         artistTrackData.setRemoteArtistControl(remoteControl);
@@ -532,11 +586,33 @@ public class ArtistNames
              */
             else
             {
+                
+                /*
+                 * Create a new track data object and initialize the track and time totals.
+                 */
                 ArtistTrackData artistTrackData = new ArtistTrackData();
-                ArtistTrackData.RemoteArtistControl remoteControl = (remoteTrack == false) ? 
+                if (track.getRemote() == false)
+                {
+                    artistTrackData.setNumLocalTracks(1);
+                    artistTrackData.setTotalLocalTime(track.getDuration());
+                }
+                else
+                {
+                    artistTrackData.setNumRemoteTracks(1);
+                    artistTrackData.setTotalRemoteTime(track.getDuration());
+                }                
+                
+                /*
+                 * Set the remote control.
+                 */
+                ArtistTrackData.RemoteArtistControl remoteControl = (track.getRemote() == false) ? 
                         ArtistTrackData.RemoteArtistControl.NO_REMOTE : 
                         ArtistTrackData.RemoteArtistControl.REMOTE;
                 artistTrackData.setRemoteArtistControl(remoteControl);
+                
+                /*
+                 * Add the new alternate artist with its updated track data.
+                 */
                 altNames.put(artistName, artistTrackData);
                 artistLogger.debug("added alternate artist '" + artistName 
                         + "' with remote artist control "

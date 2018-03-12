@@ -241,24 +241,23 @@ public class QueryPlaylistsWindow
         /*
          * Set the window title.
          */
-        queryPlaylistsWindow.setTitle(Skins.Window.QUERYPLAYLISTS.getDisplayValue());
+        queryPlaylistsWindow.setTitle(Skins.Window.QUERY_PLAYLISTS.getDisplayValue());
 
         /*
          * Now register the query playlists window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.QUERYPLAYLISTS, windowElements);
+        skins.registerWindowElements(Skins.Window.QUERY_PLAYLISTS, components);
 
         /*
          * Skin the query playlists window.
          */
-        skins.skinMe(Skins.Window.QUERYPLAYLISTS);
+        skins.skinMe(Skins.Window.QUERY_PLAYLISTS);
 
         /*
          * Push the skinned window onto the skins window stack. It gets popped
          * from our done button press handler.
          */
-        skins.pushSkinnedWindow(Skins.Window.QUERYPLAYLISTS);
+        skins.pushSkinnedWindow(Skins.Window.QUERY_PLAYLISTS);
 
         /*
          * Open the query playlists window.
@@ -666,10 +665,9 @@ public class QueryPlaylistsWindow
                     /*
                      * Register the new components and skin them.
                      */
-                    Map<Skins.Element, List<Component>> windowElements = skins
-                            .mapComponentsToSkinElements(rowComponents);
-                    skins.registerDynamicWindowElements(Skins.Window.QUERYPLAYLISTS, windowElements);
-                    skins.skinMe(Skins.Window.QUERYPLAYLISTS, windowElements);
+                    Map<Skins.Element, List<Component>> windowElements = 
+                            skins.registerDynamicWindowElements(Skins.Window.QUERY_PLAYLISTS, rowComponents);
+                    skins.skinMe(Skins.Window.QUERY_PLAYLISTS, windowElements);
 
                     /*
                      * Enable or disable the 'some' button based on the current
@@ -1512,24 +1510,23 @@ public class QueryPlaylistsWindow
         /*
          * Set the window title.
          */
-        familyPlaylistsWindow.setTitle(Skins.Window.FAMILYPLAYLISTS.getDisplayValue());
+        familyPlaylistsWindow.setTitle(Skins.Window.FAMILY_PLAYLISTS.getDisplayValue());
 
         /*
          * Register the family playlists window skin elements.
          */
-        Map<Skins.Element, List<Component>> windowElements = skins.mapComponentsToSkinElements(components);
-        skins.registerWindowElements(Skins.Window.FAMILYPLAYLISTS, windowElements);
+        skins.registerWindowElements(Skins.Window.FAMILY_PLAYLISTS, components);
 
         /*
          * Skin the family playlists window.
          */
-        skins.skinMe(Skins.Window.FAMILYPLAYLISTS);
+        skins.skinMe(Skins.Window.FAMILY_PLAYLISTS);
 
         /*
          * Push the skinned window onto the skins window stack. It gets popped
          * from our done button press handler.
          */
-        skins.pushSkinnedWindow(Skins.Window.FAMILYPLAYLISTS);
+        skins.pushSkinnedWindow(Skins.Window.FAMILY_PLAYLISTS);
         
         /*
          * Open the family playlists window.

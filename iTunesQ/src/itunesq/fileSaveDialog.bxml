@@ -1,43 +1,41 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<Dialog modal="true"
-	styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}"
-    xmlns:bxml="http://pivot.apache.org/bxml"
+<Dialog modal="true" styles="{padding:{top:5, left:5, bottom:5, right:5}, backgroundColor:5}"
+    xmlns:bxml="http://pivot.apache.org/bxml" 
     xmlns="org.apache.pivot.wtk">
-        
+
     <!-- Lay out the window elements in a single column table pane. -->
-   	<TablePane bxml:id="fileSaveTablePane"
-   		styles="{verticalSpacing:10, padding:10}">
-    		
-       	<columns>
-           	<TablePane.Column width="1*"/>
-       	</columns>
+    <TablePane bxml:id="fileSaveTablePane" styles="{verticalSpacing:10, padding:10}">
 
-		<!-- File save elements row. -->
-       	<TablePane.Row height="4*">
-       		<Border bxml:id="fileSaveDetailsBorder">
-           		<BoxPane bxml:id="fileSaveDetailsBoxPane" orientation="vertical"
-           		    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-               		<Separator bxml:id="fileSaveDetailsFileSeparator"/>
-           			<Label bxml:id="fileSaveDetailsLabel"
-               			styles="{horizontalAlignment:'center', verticalAlignment:'center'}"/>
-               		<TextInput bxml:id="fileSaveDetailsTextInput"/>
-               		<Separator bxml:id="fileSaveDetailsPrintSeparator"/>
-               		<Checkbox bxml:id="fileSaveDetailsPrintCheckbox"/>
-               		<Separator bxml:id="fileSaveDetailsOptionsSeparator"/>
-               		<Checkbox bxml:id="fileSaveDetailsLimitCheckbox"/>
-           		</BoxPane>
-           	</Border>
-       	</TablePane.Row>
+        <columns>
+            <TablePane.Column width="1*" />
+        </columns>
 
-		<!-- Button elements row. -->
-       	<TablePane.Row height="1*">
-       		<Border bxml:id="fileSaveButtonBorder">
-           		<BoxPane bxml:id="fileSaveButtonBoxPane" orientation="horizontal"
-       		   	    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-           		   	<PushButton bxml:id="fileSaveDoneButton"/>
-           		</BoxPane>
-           	</Border>
-       	</TablePane.Row>
-   	</TablePane>
+        <!-- File save elements row. -->
+        <TablePane.Row height="4*">
+            <Border bxml:id="fileSaveDetailsBorder">
+                <BoxPane bxml:id="fileSaveDetailsBoxPane" orientation="vertical"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <Separator bxml:id="fileSaveDetailsFileSeparator" />
+                    <Label bxml:id="fileSaveDetailsLabel"
+                        styles="{horizontalAlignment:'center', verticalAlignment:'center'}" />
+                    <TextInput bxml:id="fileSaveDetailsTextInput" />
+                    <Separator bxml:id="fileSaveDetailsPrintSeparator" />
+                    <Checkbox bxml:id="fileSaveDetailsPrintCheckbox" />
+                    <Separator bxml:id="fileSaveDetailsOptionsSeparator" />
+                    <Checkbox bxml:id="fileSaveDetailsLimitCheckbox" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+
+        <!-- Button elements row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="fileSaveButtonBorder">
+                <BoxPane bxml:id="fileSaveButtonBoxPane" orientation="horizontal"
+                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+                    <PushButton bxml:id="fileSaveDoneButton" />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+    </TablePane>
 </Dialog>
