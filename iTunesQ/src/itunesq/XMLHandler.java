@@ -432,6 +432,8 @@ public final class XMLHandler
 
         /*
          * Locate the following <date> element for the date key.
+         * 
+         * NOTE: This is optional.
          */
         if (dateKey != null)
         {
@@ -453,10 +455,6 @@ public final class XMLHandler
                 handleJDOMError(dateKey,
                         "could not find <" + ELEM_DATE + "> element after '" + KEY_DATE + "' key");
             }
-        }
-        else
-        {
-            handleJDOMError("could not find '" + KEY_DATE + "' key");
         }
 
         /*
@@ -910,7 +908,7 @@ public final class XMLHandler
                             break;
 
                         case "Year":
-                            trackObj.setYear(nextIntValue(trackChildIter, keyValue));
+                            trackObj.setYear(nextYearValue(trackChildIter, keyValue));
                             break;
 
                         case "Date Modified":
@@ -1204,10 +1202,6 @@ public final class XMLHandler
 
                     case "Playlist Persistent ID":
                         playlistObj.setPersistentID(nextStringValue(playlistChildIter, keyValue));
-                        break;
-
-                    case "Folder":
-                        playlistObj.setIsFolder(nextBooleanValue(playlistChildIter, keyValue));
                         break;
 
                     case "Parent Persistent ID":
@@ -1591,7 +1585,7 @@ public final class XMLHandler
                          * collection we will return.
                          */
                         Integer playlistTrackID =
-                                new Integer(nextIntValue(playlistTrackAttrsIter, keyValue));
+                                Integer.valueOf(nextIntValue(playlistTrackAttrsIter, keyValue));
                         playlistTracks.add(playlistTrackID);
                     }
                     else
@@ -1765,6 +1759,46 @@ public final class XMLHandler
         }
 
         return date;
+    }
+
+    /*
+     * See getNextStringValue() for more information.
+     * 
+     * The year can be an integer such as 1953, or a string such as "2/9/1975" or "2012-08-14T07:00:00Z".
+     * We convert the string variants into an integer for consistency, ignoring all but the year.
+     */
+    private static int nextYearValue(Iterator<Element> trackChildIter, String keyName)
+    {
+    	int returnVal = 0;
+    	
+        Element nextTrackAttr = trackChildIter.next();
+        switch (nextTrackAttr.getName())
+        {
+        case ELEM_INTEGER:
+        	returnVal = Integer.valueOf(nextTrackAttr.getTextTrim());
+        	break;
+        	
+        case ELEM_STRING:
+    		String year = nextTrackAttr.getTextTrim();
+    		
+    		if (year.indexOf('/') != -1)
+    		{
+        		String str[] = year.split("/");
+            	returnVal = Integer.parseInt(str[2]);    			
+    		}
+    		else if (year.indexOf('-') != -1)
+    		{
+    			returnVal = Integer.valueOf(year.substring(0, 4));
+    		}
+    		
+        	break;
+        	
+        default:
+            handleJDOMError(nextTrackAttr, "expected <" + ELEM_INTEGER + "> or <" + ELEM_STRING
+            		+ "> element not found after '" + keyName + "' key");
+        }
+
+        return returnVal;
     }
 
     /*

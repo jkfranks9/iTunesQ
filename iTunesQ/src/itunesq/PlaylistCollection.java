@@ -134,22 +134,23 @@ public final class PlaylistCollection
                  * Also, increment or decrement the number of ignored playlists accordingly.
                  */
                 boolean playlistCountModified = false;
+                int contentCount = playlistObj.getFolderContentCount();
 
                 if (playlistIgnored == true)
                 {
                     XMLHandler.removePlaylistName(playlistName);
-                    if (playlistObj.getIsFolder() == true)
+                    if (contentCount > 0)
                     {
-                        XMLHandler.incrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
+                        XMLHandler.incrementPlaylistIgnoredCount(contentCount);
                         playlistCountModified = true;
                     }
                 }
                 else
                 {
                     XMLHandler.addPlaylistName(playlistName);
-                    if (playlistObj.getIsFolder() == true)
+                    if (contentCount > 0)
                     {
-                        XMLHandler.decrementPlaylistIgnoredCount(playlistObj.getFolderContentCount());
+                        XMLHandler.decrementPlaylistIgnoredCount(contentCount);
                         playlistCountModified = true;
                     }
                 }
@@ -297,7 +298,7 @@ public final class PlaylistCollection
              * - Folder playlists (covered by the playlists in the folder)
              * - Ignored playlists
              */
-            if (playlistObj.getIsFolder() == false && playlistObj.getIgnored() == false)
+            if (playlistObj.getFolderContentCount() == 0 && playlistObj.getIgnored() == false)
             {
 
                 /*

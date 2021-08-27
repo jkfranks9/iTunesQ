@@ -1357,8 +1357,9 @@ public class QueryPlaylistsWindow
                      */
                     Playlist playlistObj = 
                             XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlist));
+                    String parentID = playlistObj.getParentPersistentID();
                     
-                    if (playlistObj.getParentPersistentID().equals(inputPlaylistObj.getPersistentID()))
+                    if (parentID != null && parentID.equals(inputPlaylistObj.getPersistentID()))
                     {
                         continue;
                     }

@@ -113,7 +113,7 @@ public final class PlaylistTree
                  * It may have been added already when we found a vanilla playlist with this one
                  * as parent.
                  */
-                if (playlistObj.getIsFolder() == true)
+                if (playlistObj.getFolderContentCount() > 0)
                 {
                     TreeBranch playlist = new TreeBranch(playlistObj.getName());
                     playlist.setUserData(playlistObj.getPersistentID());
@@ -197,7 +197,7 @@ public final class PlaylistTree
                  * Create a node or branch to represent this playlist and a branch to represent the parent.
                  */
                 TreeNode node;
-                if (playlistObj.getIsFolder() == false)
+                if (playlistObj.getFolderContentCount() == 0)
                 {
                     node = new TreeNode(playlistObj.getName());
                 }

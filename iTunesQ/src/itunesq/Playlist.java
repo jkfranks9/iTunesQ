@@ -54,7 +54,6 @@ public class Playlist
     private String plName;
     private String plPersistentID;
     private String plParentPersistentID;
-    private boolean plIsFolder;
     private int plFolderContentCount;
     private List<Integer> plTracks;
 
@@ -66,7 +65,6 @@ public class Playlist
      */
     public Playlist()
     {
-        plIsFolder = false;
         plIgnored = false;
         plBypassed = false;
     }
@@ -131,26 +129,6 @@ public class Playlist
     public void setParentPersistentID(String parentPersistentID)
     {
         this.plParentPersistentID = parentPersistentID;
-    }
-
-    /**
-     * Gets the playlist folder indicator.
-     * 
-     * @return playlist folder indicator
-     */
-    public boolean getIsFolder()
-    {
-        return plIsFolder;
-    }
-
-    /**
-     * Sets the playlist folder indicator.
-     * 
-     * @param isFolder playlist folder indicator
-     */
-    public void setIsFolder(boolean isFolder)
-    {
-        this.plIsFolder = isFolder;
     }
 
     /**
