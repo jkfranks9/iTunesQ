@@ -68,6 +68,7 @@ public class PreferencesWindow
     private boolean filteredTrackColumnsUpdated;
     private boolean playlistTrackColumnsUpdated;
     private boolean showRemoteTracksUpdated;
+    private boolean duplicateTrackExclusionsUpdated;
     private boolean skinPrefsUpdated;
     private boolean logLevelPrefsUpdated;
     private boolean saveDirectoryUpdated;
@@ -100,8 +101,9 @@ public class PreferencesWindow
     /*
      * ... second tab.
      */
-    @BXML private Label columnPrefsBorderLabel = null;
     @BXML private Border columnPrefsBorder = null;
+    @BXML private BoxPane columnPrefsBoxPane = null;
+    @BXML private Label columnPrefsBorderLabel = null;
     @BXML private TablePane columnPrefsTablePane = null;
     @BXML private BoxPane fullColumnPrefsBoxPane = null;
     @BXML private Label fullColumnPrefsLabel = null;
@@ -155,6 +157,10 @@ public class PreferencesWindow
     @BXML private BoxPane remoteTracksBoxPane = null;
     @BXML private Label remoteTracksLabel = null;
     @BXML private Checkbox remoteTracksCheckbox = null;
+    @BXML private Border duplicateTrackExclusionsBorder = null;
+    @BXML private BoxPane duplicateTrackExclusionsBoxPane = null;
+    @BXML private Label duplicateTrackExclusionsBorderLabel = null;
+    @BXML private TablePane duplicateTrackExclusionsTablePane = null;
     @BXML private Border tab2ResetBorder = null;
     @BXML private BoxPane tab2ResetBoxPane = null;
     @BXML private PushButton tab2ResetButton = null;
@@ -162,6 +168,7 @@ public class PreferencesWindow
     /*
      * ... third tab.
      */
+    @BXML private Border miscPrefsBorder = null;
     @BXML private BoxPane miscPrefsBoxPane = null;
     @BXML private Label skinPrefsBorderLabel = null;
     @BXML private Border skinPrefsBorder = null;
@@ -176,12 +183,13 @@ public class PreferencesWindow
     @BXML private BoxPane logHistoryPrefsBoxPane = null;
     @BXML private TextInput logHistoryPrefsTextInput = null;
     @BXML private PushButton skinPrefsButton = null;
-    @BXML private Label logLevelPrefsBorderLabel = null;
     @BXML private Border logLevelPrefsBorder = null;
-    @BXML private TablePane logLevelPrefsTablePane = null;
     @BXML private BoxPane logLevelPrefsBoxPane = null;
-    @BXML private Spinner logLevelPrefsSpinner = null;
-    @BXML private Checkbox logLevelPrefsCheckbox = null;
+    @BXML private Label logLevelPrefsBorderLabel = null;
+    @BXML private TablePane logLevelPrefsTablePane = null;
+    @BXML private BoxPane globalLogLevelPrefsBoxPane = null;
+    @BXML private Spinner globalLogLevelPrefsSpinner = null;
+    @BXML private Checkbox globalLogLevelPrefsCheckbox = null;
     @BXML private BoxPane uiLogLevelPrefsBoxPane = null;
     @BXML private Label uiLogLevelPrefsLabel = null;
     @BXML private Spinner uiLogLevelPrefsSpinner = null;
@@ -354,13 +362,6 @@ public class PreferencesWindow
         remoteTracksLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
 
         /*
-         * Set the spacing of the miscellaneous preferences row elements.
-         */
-        Map<String, Object> boxStyles = new HashMap<String, Object>();
-        boxStyles.put("spacing", InternalConstants.PREFS_MISC_ELEMENT_SPACING);
-        miscPrefsBoxPane.setStyles(boxStyles);
-
-        /*
          * Set the widths of the log level preferences labels.
          */
         uiLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
@@ -447,6 +448,31 @@ public class PreferencesWindow
         remoteTracksCheckbox.setSelected(userPrefs.getShowRemoteTracks());
 
         /*
+         * Add duplicate track exclusions rows if such preferences exist. This
+         * populates the component list with table row components.
+         */
+        List<String> duplicateTrackExclusionsPrefs = userPrefs.getDuplicateTrackExclusions();
+
+        if (duplicateTrackExclusionsPrefs != null && duplicateTrackExclusionsPrefs.getLength() > 0)
+        {
+            for (String duplicateTrackExclusionPref : duplicateTrackExclusionsPrefs)
+            {
+                TablePane.Row newRow = createDuplicateTrackExclusionsPrefsTableRow(duplicateTrackExclusionPref, components);
+                duplicateTrackExclusionsTablePane.getRows().add(newRow);
+            }
+        }
+
+        /*
+         * No duplicate track exclusions preferences exist, so add an empty duplicate 
+         * track exclusions row.
+         */
+        else
+        {
+            TablePane.Row newRow = createDuplicateTrackExclusionsPrefsTableRow(null, components);
+            duplicateTrackExclusionsTablePane.getRows().add(newRow);
+        }
+
+        /*
          * Set up the third tab.
          */
 
@@ -488,7 +514,7 @@ public class PreferencesWindow
         /*
          * Initialize the log level spinners.
          */
-        setupLogLevelSpinner(Logging.Dimension.ALL, logLevelPrefsSpinner);
+        setupLogLevelSpinner(Logging.Dimension.ALL, globalLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.UI, uiLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.XML, xmlLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.TRACK, trackLogLevelPrefsSpinner);
@@ -502,19 +528,19 @@ public class PreferencesWindow
          */
         if (userPrefs.getGlobalLogLevel() == true)
         {
-            logLevelPrefsCheckbox.setSelected(true);
+            globalLogLevelPrefsCheckbox.setSelected(true);
             toggleDimensionalLogLevelWidgets(false);
         }
         else
         {
-            logLevelPrefsCheckbox.setSelected(false);
+            globalLogLevelPrefsCheckbox.setSelected(false);
             toggleDimensionalLogLevelWidgets(true);
         }
 
         /*
          * Set the global log level checkbox text.
          */
-        logLevelPrefsCheckbox.setButtonData(StringConstants.PREFS_GLOBAL);
+        globalLogLevelPrefsCheckbox.setButtonData(StringConstants.PREFS_GLOBAL);
 
         /*
          * Reset the updated indicators.
@@ -526,6 +552,7 @@ public class PreferencesWindow
         filteredTrackColumnsUpdated = false;
         playlistTrackColumnsUpdated = false;
         showRemoteTracksUpdated = false;
+        duplicateTrackExclusionsUpdated = false;
         skinPrefsUpdated = false;
         saveDirectoryUpdated = false;
         logHistoryPrefsUpdated = false;
@@ -603,6 +630,9 @@ public class PreferencesWindow
         remoteTracksLabel.setText(StringConstants.PREFS_SHOW_REMOTE_TRACKS);
         remoteTracksLabel.setTooltipText(StringConstants.PREFS_SHOW_REMOTE_TRACKS_TIP);
         remoteTracksLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        duplicateTrackExclusionsBorderLabel.setText(StringConstants.PREFS_DUPLICATE_EXCLUSIONS_BORDER);
+        duplicateTrackExclusionsBorderLabel.setTooltipText(StringConstants.PREFS_DUPLICATE_EXCLUSIONS_TIP);
+        duplicateTrackExclusionsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         tab2ResetButton.setButtonData(StringConstants.PREFS_RESET);
         tab2ResetButton.setTooltipText(StringConstants.PREFS_TAB2_RESET_TIP);
         tab2ResetButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
@@ -623,10 +653,10 @@ public class PreferencesWindow
         logLevelPrefsBorderLabel.setText(StringConstants.PREFS_LOG_LEVEL_BORDER);
         logLevelPrefsBorderLabel.setTooltipText(StringConstants.PREFS_LOG_LEVEL_TIP);
         logLevelPrefsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
-        logLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
-        logLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
-        logLevelPrefsCheckbox.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
-        logLevelPrefsCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        globalLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
+        globalLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        globalLogLevelPrefsCheckbox.setTooltipText(StringConstants.PREFS_GLOBAL_LOG_LEVEL_TIP);
+        globalLogLevelPrefsCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         uiLogLevelPrefsLabel.setText(StringConstants.PREFS_UI_LOG_LEVEL);
         uiLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_UI_LOG_LEVEL_TIP);
         uiLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
@@ -820,7 +850,7 @@ public class PreferencesWindow
                  * Set the global log level checkbox to selected, and grey out
                  * all the dimensional log level widgets.
                  */
-                logLevelPrefsCheckbox.setSelected(true);
+                globalLogLevelPrefsCheckbox.setSelected(true);
                 toggleDimensionalLogLevelWidgets(false);
 
                 /*
@@ -829,7 +859,7 @@ public class PreferencesWindow
                 Sequence<String> levelNames = logging.getLogLevelValues();
                 int index = levelNames.indexOf(logging.getDefaultLogLevel().toString());
 
-                logLevelPrefsSpinner.setSelectedIndex(index);
+                globalLogLevelPrefsSpinner.setSelectedIndex(index);
                 uiLogLevelPrefsSpinner.setSelectedIndex(index);
                 xmlLogLevelPrefsSpinner.setSelectedIndex(index);
                 trackLogLevelPrefsSpinner.setSelectedIndex(index);
@@ -1222,6 +1252,16 @@ public class PreferencesWindow
                     Utilities.updateMainWindowLabels(userPrefs.getXMLFileName());
                 }
 
+                if (duplicateTrackExclusionsUpdated == true)
+                {
+                    logger.info("updating duplicate track exclusions preferences");
+
+                    prefsUpdated = true;
+
+                    List<String> duplicateTrackExclusions = collectDuplicateTrackExclusions();
+                    userPrefs.replaceDuplicateTrackExclusions(duplicateTrackExclusions);
+                }
+
                 /*
                  * Third tab.
                  */
@@ -1296,9 +1336,9 @@ public class PreferencesWindow
                     /*
                      * Set the preferences from the user's choices.
                      */
-                    userPrefs.setGlobalLogLevel(logLevelPrefsCheckbox.isSelected());
+                    userPrefs.setGlobalLogLevel(globalLogLevelPrefsCheckbox.isSelected());
 
-                    String levelPref = (String) logLevelPrefsSpinner.getSelectedItem();
+                    String levelPref = (String) globalLogLevelPrefsSpinner.getSelectedItem();
                     userPrefs.setLogLevel(Logging.Dimension.ALL, Level.toLevel(levelPref));
 
                     levelPref = (String) uiLogLevelPrefsSpinner.getSelectedItem();
@@ -1424,13 +1464,25 @@ public class PreferencesWindow
          * Create the include children checkbox. Set the selected box according
          * to any provided playlist preference object.
          */
-        Checkbox includeChildren = new Checkbox(StringConstants.PREFS_BYPASS_INCLUDE);
+        Checkbox includeChildren = new Checkbox(StringConstants.BYPASS_INCLUDE);
         includeChildren.setTooltipText(StringConstants.PREFS_BYPASS_INCLUDE_TIP);
         includeChildren.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         if (bypassPref != null)
         {
             includeChildren.setSelected((bypassPref.getIncludeChildren()));
         }
+
+        /*
+         * Listener to handle the include children checkbox.
+         */
+        includeChildren.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                bypassPrefsUpdated = true;
+            }
+        });
 
         /*
          * Create the set of buttons:
@@ -1778,6 +1830,215 @@ public class PreferencesWindow
                          * Remove the table row.
                          */
                         ignoredPrefsTablePane.getRows().remove(playlistPrefsRowIndex, 1);
+
+                        preferencesSheet.repaint();
+                    }
+                }
+
+                return false;
+            }
+        });
+
+        /*
+         * Button press listener for the - button.
+         */
+        minusButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                minusButtonYCoordinate = button.getY();
+            }
+        });
+
+        /*
+         * Assemble the new row.
+         */
+        newRow.add(textLabel);
+        components.add(textLabel);
+        newRow.add(text);
+        components.add(text);
+        newRow.add(plusButton);
+        components.add(plusButton);
+        newRow.add(minusButton);
+        components.add(minusButton);
+
+        return newRow;
+    }
+
+    /*
+     * Create and add a duplicate track exclusions preferences row.
+     */
+    private TablePane.Row createDuplicateTrackExclusionsPrefsTableRow(String duplicateTrackExclusionPref, List<Component> components)
+    {
+        logger.trace("createDuplicateTrackExclusionsPrefsTableRow: " + this.hashCode());
+
+        /*
+         * New table row object.
+         */
+        TablePane.Row newRow = new TablePane.Row();
+
+        /*
+         * Create the label for the text box.
+         */
+        Label textLabel = new Label();
+        textLabel.setText(StringConstants.PREFS_DUPLICATE_EXCLUSIONS_NAME);
+
+        /*
+         * Create the text input box. Add the exclusion name if we were provided
+         * a duplicate track exclusion preference object.
+         */
+        TextInput text = new TextInput();
+        if (duplicateTrackExclusionPref != null)
+        {
+            text.setText(duplicateTrackExclusionPref);
+        }
+
+        /*
+         * Add a text input listener so we can indicate the duplicate track exclusions 
+         * preferences have been updated when the user inserts an exclusion name in the text
+         * box.
+         */
+        text.getTextInputContentListeners().add(new TextInputContentListener.Adapter()
+        {
+            @Override
+            public void textInserted(TextInput textInput, int index, int count)
+            {
+            	duplicateTrackExclusionsUpdated = true;
+            }
+        });
+
+        /*
+         * Create the set of buttons:
+         * 
+         * '+' = insert a new row after this one 
+         * '-' = delete this row
+         */
+        PushButton plusButton = new PushButton();
+        plusButton.setButtonData("+");
+        plusButton.setTooltipText(StringConstants.PREFS_DUPLICATE_EXCLUSIONS_PLUS_BUTTON);
+        plusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+
+        PushButton minusButton = new PushButton();
+        minusButton.setButtonData("-");
+        minusButton.setTooltipText(StringConstants.PREFS_DUPLICATE_EXCLUSIONS_MINUS_BUTTON);
+        minusButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+
+        /*
+         * We need the ability to insert and remove duplicate track exclusions 
+         * preference rows based on the specific table rows where the + and - 
+         * buttons exist. But this a bit of a complex dance. The buttonPressed() 
+         * method does not provide a means to know on which row the button exists.
+         * So we need a ComponentMouseButtonListener to get that function. However, 
+         * based on the hierarchy of listener calls, and the bubbling up of events
+         * through the component hierarchy, the buttonPressed() method gets
+         * called before the mouseClick() method. :(
+         * 
+         * So the buttonPressed() method just records the Y coordinate of the
+         * button in a class variable, which is relative to its parent
+         * component, which is the TablePane.
+         * 
+         * Then the mouseClick() method gets the parent, uses the recorded Y
+         * coordinate to get the table row, then uses that information to insert
+         * a new row, or delete the current one.
+         */
+
+        /*
+         * Mouse click listener for the + button.
+         */
+        plusButton.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
+        {
+            @Override
+            public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
+            {
+                Object parent = component.getParent();
+                if (parent instanceof TablePane)
+                {
+                    TablePane tablePane = (TablePane) parent;
+                    int duplicateTrackExclusionPrefsRowIndex = tablePane.getRowAt(plusButtonYCoordinate);
+                    logger.info("plus button pressed for duplicate track exclusion pref index " 
+                            + duplicateTrackExclusionPrefsRowIndex);
+
+                    /*
+                     * Add the table row and collect the components that need to
+                     * be skinned.
+                     */
+                    List<Component> rowComponents = new ArrayList<Component>();
+                    TablePane.Row tableRow = createDuplicateTrackExclusionsPrefsTableRow(null, rowComponents);
+                    duplicateTrackExclusionsTablePane.getRows().insert(tableRow, duplicateTrackExclusionPrefsRowIndex + 1);
+
+                    /*
+                     * Request focus for the text input on the newly added row.
+                     */
+                    for (Component rowComponent : tableRow)
+                    {
+                        if (rowComponent instanceof TextInput)
+                        {
+                            rowComponent.requestFocus();
+                        }
+                    }
+
+                    /*
+                     * Register the new components and skin them.
+                     */
+                    Map<Skins.Element, List<Component>> windowElements = 
+                            skins.registerDynamicWindowElements(Skins.Window.PREFERENCES, rowComponents);
+                    skins.skinMe(Skins.Window.PREFERENCES, windowElements);
+
+                    preferencesSheet.repaint();
+                }
+
+                return false;
+            }
+        });
+
+        /*
+         * Button press listener for the + button.
+         */
+        plusButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                plusButtonYCoordinate = button.getY();
+            }
+        });
+
+        /*
+         * Mouse click listener for the - button.
+         */
+        minusButton.getComponentMouseButtonListeners().add(new ComponentMouseButtonListener.Adapter()
+        {
+            @Override
+            public boolean mouseClick(Component component, Mouse.Button button, int x, int y, int count)
+            {
+                Object parent = component.getParent();
+                if (parent instanceof TablePane)
+                {
+                	duplicateTrackExclusionsUpdated = true;
+
+                    TablePane tablePane = (TablePane) parent;
+                    int duplicateTrackExclusionPrefsRowIndex = tablePane.getRowAt(minusButtonYCoordinate);
+                    logger.info("minus button pressed for duplicate track exclusion pref index " 
+                            + duplicateTrackExclusionPrefsRowIndex);
+
+                    /*
+                     * Get the number of rows and make sure we don't go below
+                     * one row.
+                     */
+                    int numRows = tablePane.getRows().getLength();
+                    if (numRows <= 1)
+                    {
+                        Alert.alert(MessageType.ERROR, StringConstants.ALERT_DUPLICATE_TRACK_EXCLUSIONS_TOO_FEW_ROWS,
+                                component.getWindow());
+                    }
+                    else
+                    {
+
+                        /*
+                         * Remove the table row.
+                         */
+                    	duplicateTrackExclusionsTablePane.getRows().remove(duplicateTrackExclusionPrefsRowIndex, 1);
 
                         preferencesSheet.repaint();
                     }
@@ -2586,6 +2847,40 @@ public class PreferencesWindow
     }
 
     /*
+     * Collect the entered duplicate track exclusions preferences and update them.
+     */
+    private List<String> collectDuplicateTrackExclusions()
+    {
+        logger.trace("collectDuplicateTrackExclusions: " + this.hashCode());
+
+        /*
+         * Indexes into the row elements.
+         * 
+         * IMPORTANT: These must match the design of the row. See
+         * preferencesWindow.bxml for the column definition, and
+         * createDuplicateTrackExclusionsPrefsTableRow() for the logic to create a row.
+         */
+        final int textIndex = 1;
+
+        /*
+         * Iterate through the duplicate track exclusions preferences table rows.
+         */
+        List<String> duplicateTrackExclusionsPrefs = new ArrayList<String>();
+        TablePane.RowSequence rows = duplicateTrackExclusionsTablePane.getRows();
+        for (TablePane.Row row : rows)
+        {
+
+            /*
+             * Add this duplicate track exclusion to the collection.
+             */
+            TextInput text = (TextInput) row.get(textIndex);
+            duplicateTrackExclusionsPrefs.add(text.getText());
+        }
+
+        return duplicateTrackExclusionsPrefs;
+    }
+
+    /*
      * We have a large number of checkboxes to deal with. So do the brute force
      * initialization here so it doesn't clutter up displayPreferences().
      */
@@ -3122,11 +3417,11 @@ public class PreferencesWindow
     {
         logger.trace("initializeLogLevelStuff: " + this.hashCode());
 
-        logLevelPrefsSpinner = 
-                (Spinner) prefsWindowSerializer.getNamespace().get("logLevelPrefsSpinner");
-        components.add(logLevelPrefsSpinner);
+        globalLogLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("globalLogLevelPrefsSpinner");
+        components.add(globalLogLevelPrefsSpinner);
 
-        logLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
+        globalLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
             @Override
             public void selectedIndexChanged(Spinner spinner, int previousSelectedIndex)
@@ -3140,11 +3435,11 @@ public class PreferencesWindow
             }
         });
 
-        logLevelPrefsCheckbox = 
-                (Checkbox) prefsWindowSerializer.getNamespace().get("logLevelPrefsCheckbox");
-        components.add(logLevelPrefsCheckbox);
+        globalLogLevelPrefsCheckbox = 
+                (Checkbox) prefsWindowSerializer.getNamespace().get("globalLogLevelPrefsCheckbox");
+        components.add(globalLogLevelPrefsCheckbox);
 
-        logLevelPrefsCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        globalLogLevelPrefsCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
@@ -3385,12 +3680,15 @@ public class PreferencesWindow
         /*
          * Second tab.
          */
-        columnPrefsBorderLabel = 
-                (Label) prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
-        components.add(columnPrefsBorderLabel);
         columnPrefsBorder = 
                 (Border) prefsWindowSerializer.getNamespace().get("columnPrefsBorder");
         components.add(columnPrefsBorder);
+        columnPrefsBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("columnPrefsBoxPane");
+        components.add(columnPrefsBoxPane);
+        columnPrefsBorderLabel = 
+                (Label) prefsWindowSerializer.getNamespace().get("columnPrefsBorderLabel");
+        components.add(columnPrefsBorderLabel);
         columnPrefsTablePane = 
                 (TablePane) prefsWindowSerializer.getNamespace().get("columnPrefsTablePane");
         components.add(columnPrefsTablePane);
@@ -3430,6 +3728,18 @@ public class PreferencesWindow
         remoteTracksCheckbox =
                 (Checkbox) prefsWindowSerializer.getNamespace().get("remoteTracksCheckbox");
         components.add(remoteTracksCheckbox);
+        duplicateTrackExclusionsBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("duplicateTrackExclusionsBorder");
+        components.add(duplicateTrackExclusionsBorder);
+        duplicateTrackExclusionsBoxPane = 
+                (BoxPane) prefsWindowSerializer.getNamespace().get("duplicateTrackExclusionsBoxPane");
+        components.add(duplicateTrackExclusionsBoxPane);
+        duplicateTrackExclusionsBorderLabel = 
+                (Label) prefsWindowSerializer.getNamespace().get("duplicateTrackExclusionsBorderLabel");
+        components.add(duplicateTrackExclusionsBorderLabel);
+        duplicateTrackExclusionsTablePane = 
+                (TablePane) prefsWindowSerializer.getNamespace().get("duplicateTrackExclusionsTablePane");
+        components.add(duplicateTrackExclusionsTablePane);
         tab2ResetBorder = 
                 (Border) prefsWindowSerializer.getNamespace().get("tab2ResetBorder");
         components.add(tab2ResetBorder);
@@ -3443,14 +3753,12 @@ public class PreferencesWindow
         /*
          * Third tab.
          */
-
-        /*
-         * This doesn't need to be added to the components. It's an invisible
-         * box pane. We only need it to control the spacing of the elements on
-         * the miscellaneous preferences row.
-         */
-        miscPrefsBoxPane = (BoxPane) prefsWindowSerializer.getNamespace().get("miscPrefsBoxPane");
-
+        miscPrefsBorder = 
+                (Border) prefsWindowSerializer.getNamespace().get("miscPrefsBorder");
+        components.add(miscPrefsBorder);
+        miscPrefsBoxPane = 
+        		(BoxPane) prefsWindowSerializer.getNamespace().get("miscPrefsBoxPane");
+        components.add(miscPrefsBoxPane);
         skinPrefsBorderLabel =
                 (Label) prefsWindowSerializer.getNamespace().get("skinPrefsBorderLabel");
         components.add(skinPrefsBorderLabel);
@@ -3490,18 +3798,21 @@ public class PreferencesWindow
         logHistoryPrefsTextInput =
                 (TextInput) prefsWindowSerializer.getNamespace().get("logHistoryPrefsTextInput");
         components.add(logHistoryPrefsTextInput);
-        logLevelPrefsBorderLabel =
-                (Label) prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
-        components.add(logLevelPrefsBorderLabel);
         logLevelPrefsBorder =
                 (Border) prefsWindowSerializer.getNamespace().get("logLevelPrefsBorder");
         components.add(logLevelPrefsBorder);
-        logLevelPrefsTablePane =
-                (TablePane) prefsWindowSerializer.getNamespace().get("logLevelPrefsTablePane");
-        components.add(logLevelPrefsTablePane);
         logLevelPrefsBoxPane =
                 (BoxPane) prefsWindowSerializer.getNamespace().get("logLevelPrefsBoxPane");
         components.add(logLevelPrefsBoxPane);
+        logLevelPrefsBorderLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("logLevelPrefsBorderLabel");
+        components.add(logLevelPrefsBorderLabel);
+        logLevelPrefsTablePane =
+                (TablePane) prefsWindowSerializer.getNamespace().get("logLevelPrefsTablePane");
+        components.add(logLevelPrefsTablePane);
+        globalLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("logLevelPrefsBoxPane");
+        components.add(globalLogLevelPrefsBoxPane);
         uiLogLevelPrefsBoxPane =
                 (BoxPane) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsBoxPane");
         components.add(uiLogLevelPrefsBoxPane);

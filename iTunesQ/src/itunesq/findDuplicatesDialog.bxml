@@ -42,6 +42,15 @@
                                 <Checkbox bxml:id="duplicatesSpecRatingCheckbox" />
                             </BoxPane>
                         </TablePane.Row>
+
+                        <TablePane.Row height="1*">
+                            <BoxPane bxml:id="duplicatesSpecExclusionsBoxPane" orientation="horizontal"
+                                styles="{spacing:5, padding:5, verticalAlignment:'center'}">
+                                <Checkbox bxml:id="duplicatesSpecExcludeVideoCheckbox" />
+                                <Checkbox bxml:id="duplicatesSpecExcludeLiveCheckbox" />
+                                <Checkbox bxml:id="duplicatesSpecExcludeUserCheckbox" />
+                            </BoxPane>
+                        </TablePane.Row>
                     </TablePane>
                 </BoxPane>
             </Border>

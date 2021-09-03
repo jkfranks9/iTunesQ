@@ -62,11 +62,6 @@ public class InternalConstants
     public static final int PREFS_LOG_LEVEL_SPINNER_WIDTH = 70;
 
     /*
-     * Spacing of the elements on the miscellaneous preferences row.
-     */
-    public static final int PREFS_MISC_ELEMENT_SPACING = 90;
-
-    /*
      * Width of the skin spinner on the preferences window.
      */
     public static final int PREFS_SKIN_SPINNER_WIDTH = 120;

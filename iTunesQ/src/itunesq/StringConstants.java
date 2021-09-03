@@ -21,9 +21,13 @@ public class StringConstants
     /*
      * Constants used in multiple places.
      */
+    public static final String BYPASS_INCLUDE = "Include Children?";
     public static final String CANCEL = "Cancel";
     public static final String DONE = "Done";
     public static final String EDIT = "Edit";
+    public static final String EXCLUDE_BYPASSED = "Exclude Bypassed Playlists?";
+    public static final String EXCLUDE_BYPASSED_TIP = 
+            "Check to exclude bypassed playlists from the list of results.";
     public static final String EXIT = "Exit";
     public static final String FILE = "File";
     public static final String OPEN = "Open";
@@ -79,6 +83,9 @@ public class StringConstants
     public static final String FIND_DUPLICATES_ARTIST = "Same Artist";
     public static final String FIND_DUPLICATES_DURATION = "Same Duration";
     public static final String FIND_DUPLICATES_EXACT = "Exact Match";
+    public static final String FIND_DUPLICATES_EXCLUDE_LIVE = "Exclude Live";
+    public static final String FIND_DUPLICATES_EXCLUDE_USER = "Exclude User";
+    public static final String FIND_DUPLICATES_EXCLUDE_VIDEO = "Exclude Video";
     public static final String FIND_DUPLICATES_KIND = "Same Kind";
     public static final String FIND_DUPLICATES_NOT_ARTIST = "Different Artist";
     public static final String FIND_DUPLICATES_RATING = "Same Rating";
@@ -200,7 +207,6 @@ public class StringConstants
      */
     public static final String PREFS_BYPASS_BORDER =
             "Bypass Track Playlist Info For These Playlists";
-    public static final String PREFS_BYPASS_INCLUDE = "Include Children?";
     public static final String PREFS_BYPASS_INCLUDE_TIP =
             "Should counts also be bypassed for children playlists?";
     public static final String PREFS_BYPASS_MINUS_BUTTON =
@@ -212,6 +218,14 @@ public class StringConstants
             + "But you can indicate that certain playlists, and optionally their children, "
             + "should be bypassed." + lineSeparator
             + "Bypassed playlists are not counted when filtering tracks based on the playlist count.";
+    public static final String PREFS_DUPLICATE_EXCLUSIONS_BORDER = "Duplicate tracks album keyword exclusions";
+    public static final String PREFS_DUPLICATE_EXCLUSIONS_MINUS_BUTTON = "Remove this duplicate track exclusion.";
+    public static final String PREFS_DUPLICATE_EXCLUSIONS_NAME = "Exclusion Name";
+    public static final String PREFS_DUPLICATE_EXCLUSIONS_PLUS_BUTTON = "Add a new duplicate track exclusion.";
+    public static final String PREFS_DUPLICATE_EXCLUSIONS_TIP = 
+    		"Specify keywords for album names that you want to exclude when showing duplicate tracks." + lineSeparator
+            + "For example, album names including 'anthology' probably contain live tracks or alternate versions "
+            + "that you want to not be considered duplicates.";
     public static final String PREFS_IGNORED_BORDER = "Ignore The Following Playlists";
     public static final String PREFS_IGNORED_MINUS_BUTTON =
             "Remove this playlist from the ignored list.";
@@ -315,16 +329,16 @@ public class StringConstants
     /*
      * QueryPlaylistsWindow constants.
      */
+    public static final String QUERY_PLAYLIST_BYPASS_INCLUDE_TIP =
+            "Should child playlists also be included or excluded?";
     public static final String QUERY_PLAYLIST_COMPARE_ALL = "(show all)";
     public static final String QUERY_PLAYLIST_COMPARE_BORDER =
             "Enter Two Or More Playlists To Compare";
     public static final String QUERY_PLAYLIST_COMPARE_ONE = "(show one)";
     public static final String QUERY_PLAYLIST_COMPARE_SOME = "(show some)";
+    public static final String QUERY_PLAYLIST_COMPARE_RECURSIVE = "(show recursive)";
     public static final String QUERY_PLAYLIST_FAMILY =
             "Enter Playlist To Expand With Family Playlists";
-    public static final String QUERY_PLAYLIST_FAMILY_BYPASS = "Exclude Bypassed Playlists?";
-    public static final String QUERY_PLAYLIST_FAMILY_BYPASS_TIP = 
-            "Check to exclude bypassed playlists from the list of results.";
     public static final String QUERY_PLAYLIST_FAMILY_PLAYLISTS = "Expand Family To Playlists";
     public static final String QUERY_PLAYLIST_FAMILY_PLAYLISTS_TIP =
             "Expand the entered playlist into a list of playlists.";
@@ -333,10 +347,18 @@ public class StringConstants
             "Expand the entered playlist into a list of tracks.";
     public static final String QUERY_PLAYLIST_MINUS_BUTTON =
             "Remove this playlist from the comparison list.";
+    public static final String QUERY_PLAYLIST_RECURSIVE_COMPARE_ALL = "Compare All Playlists?";
+    public static final String QUERY_PLAYLIST_RECURSIVE_COMPARE_ALL_TIP = 
+            "Check to include all playlists except those listed.";
+    public static final String QUERY_PLAYLIST_RECURSIVE_COMPARE_BORDER =
+            "Enter Two Or More Playlists To Recursively Compare (These Are Exclusions If All Is Checked)";
     public static final String QUERY_PLAYLIST_PLUS_BUTTON = "Add a new playlist for comparison.";
     public static final String QUERY_PLAYLIST_SHOW_ALL_BUTTON = "Show All";
     public static final String QUERY_PLAYLIST_SHOW_ALL_BUTTON_TIP =
             "Show tracks belonging to all of the above playlists.";
+    public static final String QUERY_PLAYLIST_SHOW_BUTTON = "Show";
+    public static final String QUERY_PLAYLIST_SHOW_BUTTON_TIP =
+            "Recursively compare all of the above playlists.";
     public static final String QUERY_PLAYLIST_SHOW_ONE_BUTTON = "Show One";
     public static final String QUERY_PLAYLIST_SHOW_ONE_BUTTON_TIP =
             "Show tracks belonging to only one of the above playlists.";
@@ -411,6 +433,8 @@ public class StringConstants
     public static final String ALERT_CANT_REMOVE_ALTERNATE =
             "One or more alternate names you selected to be removed could not be processed, "
             + "because the names are too similar and would result in chaos.";
+    public static final String ALERT_DUPLICATE_TRACK_EXCLUSIONS_TOO_FEW_ROWS =
+            "You need at least one duplicate track exclusion row.";
     public static final String ALERT_FATAL_ERROR =
             "A fatal error has occurred. The application will now close.";
     public static final String ALERT_FILE_IS_DIRECTORY = "The file you specified is a directory.";

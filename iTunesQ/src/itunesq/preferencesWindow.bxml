@@ -33,11 +33,12 @@
                             <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
                                 verticalScrollBarPolicy="fill_to_capacity">
                                 <Border bxml:id="bypassPrefsBorder">
-                                    <BoxPane bxml:id="bypassPrefsBoxPane" orientation="vertical">
+                                    <BoxPane bxml:id="bypassPrefsBoxPane" orientation="vertical"
+                                        styles="{padding:10, spacing:10}">
                                         <Label bxml:id="bypassPrefsBorderLabel" 
-                                            styles="{font:{bold:true}, padding:10}" />
+                                            styles="{font:{bold:true}}" />
                                         <TablePane bxml:id="bypassPrefsTablePane"
-                                            styles="{verticalSpacing:10, horizontalSpacing:10, padding:10}">
+                                            styles="{verticalSpacing:10, horizontalSpacing:10}">
                                             <columns>
                                                 <TablePane.Column width="1*" />
                                                 <TablePane.Column width="6*" />
@@ -56,11 +57,12 @@
                             <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
                                 verticalScrollBarPolicy="fill_to_capacity">
                                 <Border bxml:id="ignoredPrefsBorder">
-                                    <BoxPane bxml:id="ignoredPrefsBoxPane" orientation="vertical">
+                                    <BoxPane bxml:id="ignoredPrefsBoxPane" orientation="vertical"
+                                        styles="{padding:10, spacing:10}">
                                         <Label bxml:id="ignoredPrefsBorderLabel" 
-                                            styles="{font:{bold:true}, padding:5}" />
+                                            styles="{font:{bold:true}}" />
                                         <TablePane bxml:id="ignoredPrefsTablePane"
-                                            styles="{verticalSpacing:10, horizontalSpacing:10, padding:10}">
+                                            styles="{verticalSpacing:10, horizontalSpacing:10}">
                                             <columns>
                                                 <TablePane.Column width="1*" />
                                                 <TablePane.Column width="6*" />
@@ -86,7 +88,7 @@
                 </FillPane>
 
                 <!-- Second tab. -->
-                <BoxPane>
+                <FillPane>
                     <TabPane.tabData>
                         <content:ButtonData text="TAB2_FILLER_REPLACED_AT_RUNTIME" />
                     </TabPane.tabData>
@@ -98,15 +100,16 @@
                         </columns>
 
                         <!-- Track column preferences row. -->
-                        <TablePane.Row height="21*">
-                            <BoxPane orientation="vertical">
-                                <Label bxml:id="columnPrefsBorderLabel" 
-                                    styles="{font:{bold:true}, padding:5}" />
-                                <Border bxml:id="columnPrefsBorder">
+                        <TablePane.Row height="2*">
+                            <Border bxml:id="columnPrefsBorder">
+	                            <BoxPane bxml:id="columnPrefsBoxPane" orientation="vertical"
+                                    styles="{padding:10, spacing:10}">
+	                                <Label bxml:id="columnPrefsBorderLabel" styles="{font:{bold:true}}" />
                                     <TablePane bxml:id="columnPrefsTablePane"
                                         styles="{verticalSpacing:10, horizontalSpacing:10}">
                                         <columns>
                                             <TablePane.Column width="3*" />
+                                            <TablePane.Column width="1*" />
                                             <TablePane.Column width="1*" />
                                             <TablePane.Column width="1*" />
                                             <TablePane.Column width="1*" />
@@ -121,9 +124,8 @@
                                         <TablePane.Row height="1*">
                                             <BoxPane bxml:id="fullColumnPrefsBoxPane"
                                                 orientation="horizontal"
-                                                styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                                <Label bxml:id="fullColumnPrefsLabel" 
-                                                    styles="{font:{bold:true}}" />
+                                                styles="{verticalAlignment:'center'}">
+                                                <Label bxml:id="fullColumnPrefsLabel" />
                                                 <Checkbox bxml:id="fullNumberCheckbox" />
                                                 <Checkbox bxml:id="fullNameCheckbox" />
                                                 <Checkbox bxml:id="fullArtistCheckbox" />
@@ -140,9 +142,8 @@
                                         <TablePane.Row height="1*">
                                             <BoxPane bxml:id="duplicatesColumnPrefsBoxPane"
                                                 orientation="horizontal"
-                                                styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                                <Label bxml:id="duplicatesColumnPrefsLabel"
-                                                    styles="{font:{bold:true}}" />
+                                                styles="{verticalAlignment:'center'}">
+                                                <Label bxml:id="duplicatesColumnPrefsLabel" />
                                                 <Checkbox bxml:id="duplicatesNumberCheckbox" />
                                                 <Checkbox bxml:id="duplicatesNameCheckbox" />
                                                 <Checkbox bxml:id="duplicatesArtistCheckbox" />
@@ -159,9 +160,8 @@
                                         <TablePane.Row height="1*">
                                             <BoxPane bxml:id="filteredColumnPrefsBoxPane"
                                                 orientation="horizontal"
-                                                styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                                <Label bxml:id="filteredColumnPrefsLabel"
-                                                    styles="{font:{bold:true}}" />
+                                                styles="{verticalAlignment:'center'}">
+                                                <Label bxml:id="filteredColumnPrefsLabel" />
                                                 <Checkbox bxml:id="filteredNumberCheckbox" />
                                                 <Checkbox bxml:id="filteredNameCheckbox" />
                                                 <Checkbox bxml:id="filteredArtistCheckbox" />
@@ -178,9 +178,8 @@
                                         <TablePane.Row height="1*">
                                             <BoxPane bxml:id="playlistColumnPrefsBoxPane"
                                                 orientation="horizontal"
-                                                styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                                <Label bxml:id="playlistColumnPrefsLabel"
-                                                    styles="{font:{bold:true}}" />
+                                                styles="{verticalAlignment:'center'}">
+                                                <Label bxml:id="playlistColumnPrefsLabel" />
                                                 <Checkbox bxml:id="playlistNumberCheckbox" />
                                                 <Checkbox bxml:id="playlistNameCheckbox" />
                                                 <Checkbox bxml:id="playlistArtistCheckbox" />
@@ -194,12 +193,12 @@
                                             </BoxPane>
                                         </TablePane.Row>
                                     </TablePane>
-                                </Border>
-                            </BoxPane>
+                                </BoxPane>
+                            </Border>
                         </TablePane.Row>
 
                         <!-- Show remote tracks row. -->
-                        <TablePane.Row height="4*">
+                        <TablePane.Row height="1*">
                             <Border bxml:id="remoteTracksBorder">
                                 <BoxPane bxml:id="remoteTracksBoxPane" orientation="horizontal"
                                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
@@ -209,8 +208,31 @@
                             </Border>
                         </TablePane.Row>
 
-                        <!-- Reset to defaults row. -->
+                        <!-- Duplicate tracks exclusions row. -->
                         <TablePane.Row height="4*">
+                            <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
+                                verticalScrollBarPolicy="fill_to_capacity">
+                                <Border bxml:id="duplicateTrackExclusionsBorder">
+                                    <BoxPane bxml:id="duplicateTrackExclusionsBoxPane" orientation="vertical"
+                                        styles="{padding:10, spacing:10}">
+                                        <Label bxml:id="duplicateTrackExclusionsBorderLabel" 
+                                            styles="{font:{bold:true}}" />
+                                        <TablePane bxml:id="duplicateTrackExclusionsTablePane"
+                                            styles="{verticalSpacing:10, horizontalSpacing:10}">
+                                            <columns>
+                                                <TablePane.Column width="1*" />
+                                                <TablePane.Column width="6*" />
+                                                <TablePane.Column width="1*" />
+                                                <TablePane.Column width="1*" />
+                                            </columns>
+                                        </TablePane>
+                                    </BoxPane>
+                                </Border>
+                            </ScrollPane>
+                        </TablePane.Row>
+
+                        <!-- Reset to defaults row. -->
+                        <TablePane.Row height="1*">
                             <Border bxml:id="tab2ResetBorder">
                                 <BoxPane bxml:id="tab2ResetBoxPane" orientation="horizontal"
                                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
@@ -219,10 +241,10 @@
                             </Border>
                         </TablePane.Row>
                     </TablePane>
-                </BoxPane>
+                </FillPane>
 
                 <!-- Third tab. -->
-                <BoxPane>
+                <FillPane>
                     <TabPane.tabData>
                         <content:ButtonData text="TAB3_FILLER_REPLACED_AT_RUNTIME" />
                     </TabPane.tabData>
@@ -234,61 +256,65 @@
                         </columns>
 
                         <!-- Miscellaneous preferences row. -->
-                        <TablePane.Row height="4*">
-                            <BoxPane bxml:id="miscPrefsBoxPane" orientation="horizontal">
-                                <BoxPane orientation="vertical">
-                                    <Label bxml:id="skinPrefsBorderLabel" 
-                                        styles="{font:{bold:true}, padding:5}" />
-                                    <Border bxml:id="skinPrefsBorder">
-                                        <BoxPane bxml:id="skinPrefsBoxPane" orientation="horizontal"
-                                            styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                            <Spinner bxml:id="skinPrefsSpinner" />
-                                            <PushButton bxml:id="skinPrefsButton" />
-                                        </BoxPane>
-                                    </Border>
-                                </BoxPane>
-                                <BoxPane orientation="vertical">
-                                    <Label bxml:id="saveDirectoryBorderLabel" 
-                                        styles="{font:{bold:true}, padding:5}" />
-                                    <Border bxml:id="saveDirectoryBorder">
-                                        <BoxPane bxml:id="saveDirectoryBoxPane" orientation="horizontal"
-                                            styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                            <TextInput bxml:id="saveDirectoryTextInput" />
-                                        </BoxPane>
-                                    </Border>
-                                </BoxPane>
-                                <BoxPane orientation="vertical">
-                                    <Label bxml:id="logHistoryPrefsBorderLabel" 
-                                        styles="{font:{bold:true}, padding:5}" />
-                                    <Border bxml:id="logHistoryPrefsBorder">
-                                        <BoxPane bxml:id="logHistoryPrefsBoxPane"
-                                            orientation="horizontal"
-                                            styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                            <TextInput bxml:id="logHistoryPrefsTextInput" />
-                                        </BoxPane>
-                                    </Border>
-                                </BoxPane>
-                            </BoxPane>
+                        <TablePane.Row height="2*">
+                            <Border bxml:id="miscPrefsBorder">
+	                            <BoxPane bxml:id="miscPrefsBoxPane" orientation="horizontal"
+	                                styles="{padding:10, spacing:90}">
+	                                <BoxPane orientation="vertical">
+	                                    <Label bxml:id="skinPrefsBorderLabel" 
+	                                        styles="{font:{bold:true}}" />
+	                                    <Border bxml:id="skinPrefsBorder">
+	                                        <BoxPane bxml:id="skinPrefsBoxPane" orientation="horizontal"
+	                                            styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+	                                            <Spinner bxml:id="skinPrefsSpinner" />
+	                                            <PushButton bxml:id="skinPrefsButton" />
+	                                        </BoxPane>
+	                                    </Border>
+	                                </BoxPane>
+	                                <BoxPane orientation="vertical">
+	                                    <Label bxml:id="saveDirectoryBorderLabel" 
+	                                        styles="{font:{bold:true}}" />
+	                                    <Border bxml:id="saveDirectoryBorder">
+	                                        <BoxPane bxml:id="saveDirectoryBoxPane" orientation="horizontal"
+	                                            styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+	                                            <TextInput bxml:id="saveDirectoryTextInput" />
+	                                        </BoxPane>
+	                                    </Border>
+	                                </BoxPane>
+	                                <BoxPane orientation="vertical">
+	                                    <Label bxml:id="logHistoryPrefsBorderLabel" 
+	                                        styles="{font:{bold:true}}" />
+	                                    <Border bxml:id="logHistoryPrefsBorder">
+	                                        <BoxPane bxml:id="logHistoryPrefsBoxPane"
+	                                            orientation="horizontal"
+	                                            styles="{spacing:5, padding:10, verticalAlignment:'center'}">
+	                                            <TextInput bxml:id="logHistoryPrefsTextInput" />
+	                                        </BoxPane>
+	                                    </Border>
+	                                </BoxPane>
+	                            </BoxPane>
+                            </Border>
                         </TablePane.Row>
 
                         <!-- Log level preferences row. -->
-                        <TablePane.Row height="12*">
-                            <BoxPane orientation="vertical">
-                                <Label bxml:id="logLevelPrefsBorderLabel" 
-                                    styles="{font:{bold:true}, padding:5}" />
-                                <Border bxml:id="logLevelPrefsBorder">
+                        <TablePane.Row height="5*">
+                            <Border bxml:id="logLevelPrefsBorder">
+	                            <BoxPane bxml:id="logLevelPrefsBoxPane" orientation="vertical"
+	                                styles="{padding:10, spacing:10}">
+	                                <Label bxml:id="logLevelPrefsBorderLabel" 
+	                                    styles="{font:{bold:true}}" />
                                     <TablePane bxml:id="logLevelPrefsTablePane" 
-                                        styles="{horizontalSpacing:10, padding:5}">
+                                        styles="{horizontalSpacing:10, verticalSpacing:10}">
                                         <columns>
                                             <TablePane.Column width="1*" />
                                         </columns>
 
                                         <TablePane.Row height="1*">
-                                            <BoxPane bxml:id="logLevelPrefsBoxPane"
+                                            <BoxPane bxml:id="globalLogLevelPrefsBoxPane"
                                                 orientation="horizontal"
-                                                styles="{spacing:5, padding:5, verticalAlignment:'center'}">
-                                                <Spinner bxml:id="logLevelPrefsSpinner" />
-                                                <Checkbox bxml:id="logLevelPrefsCheckbox" />
+                                                styles="{spacing:5, verticalAlignment:'center'}">
+                                                <Spinner bxml:id="globalLogLevelPrefsSpinner" />
+                                                <Checkbox bxml:id="globalLogLevelPrefsCheckbox" />
                                             </BoxPane>
                                         </TablePane.Row>
 
@@ -296,7 +322,7 @@
                                             <BoxPane bxml:id="uiLogLevelPrefsBoxPane"
                                                 orientation="horizontal" styles="{verticalAlignment:'center'}">
                                                 <Label bxml:id="uiLogLevelPrefsLabel" 
-                                                    styles="{font:{bold:true}, padding:5}" />
+                                                    styles="{font:{bold:true}}" />
                                                 <Spinner bxml:id="uiLogLevelPrefsSpinner" />
                                             </BoxPane>
                                         </TablePane.Row>
@@ -305,7 +331,7 @@
                                             <BoxPane bxml:id="xmlLogLevelPrefsBoxPane"
                                                 orientation="horizontal" styles="{verticalAlignment:'center'}">
                                                 <Label bxml:id="xmlLogLevelPrefsLabel" 
-                                                    styles="{font:{bold:true}, padding:5}" />
+                                                    styles="{font:{bold:true}}" />
                                                 <Spinner bxml:id="xmlLogLevelPrefsSpinner" />
                                             </BoxPane>
                                         </TablePane.Row>
@@ -314,7 +340,7 @@
                                             <BoxPane bxml:id="trackLogLevelPrefsBoxPane"
                                                 orientation="horizontal" styles="{verticalAlignment:'center'}">
                                                 <Label bxml:id="trackLogLevelPrefsLabel"
-                                                    styles="{font:{bold:true}, padding:5}" />
+                                                    styles="{font:{bold:true}}" />
                                                 <Spinner bxml:id="trackLogLevelPrefsSpinner" />
                                             </BoxPane>
                                         </TablePane.Row>
@@ -323,7 +349,7 @@
                                             <BoxPane bxml:id="playlistLogLevelPrefsBoxPane"
                                                 orientation="horizontal" styles="{verticalAlignment:'center'}">
                                                 <Label bxml:id="playlistLogLevelPrefsLabel"
-                                                    styles="{font:{bold:true}, padding:5}" />
+                                                    styles="{font:{bold:true}}" />
                                                 <Spinner bxml:id="playlistLogLevelPrefsSpinner" />
                                             </BoxPane>
                                         </TablePane.Row>
@@ -332,7 +358,7 @@
                                             <BoxPane bxml:id="artistLogLevelPrefsBoxPane"
                                                 orientation="horizontal" styles="{verticalAlignment:'center'}">
                                                 <Label bxml:id="artistLogLevelPrefsLabel"
-                                                    styles="{font:{bold:true}, padding:5}" />
+                                                    styles="{font:{bold:true}}" />
                                                 <Spinner bxml:id="artistLogLevelPrefsSpinner" />
                                             </BoxPane>
                                         </TablePane.Row>
@@ -341,17 +367,17 @@
                                             <BoxPane bxml:id="filterLogLevelPrefsBoxPane"
                                                 orientation="horizontal" styles="{verticalAlignment:'center'}">
                                                 <Label bxml:id="filterLogLevelPrefsLabel"
-                                                    styles="{font:{bold:true}, padding:5}" />
+                                                    styles="{font:{bold:true}}" />
                                                 <Spinner bxml:id="filterLogLevelPrefsSpinner" />
                                             </BoxPane>
                                         </TablePane.Row>
                                     </TablePane>
-                                </Border>
-                            </BoxPane>
+	                            </BoxPane>
+                            </Border>
                         </TablePane.Row>
 
                         <!-- Reset to defaults row. -->
-                        <TablePane.Row height="2*">
+                        <TablePane.Row height="1*">
                             <Border bxml:id="tab3ResetBorder">
                                 <BoxPane bxml:id="tab3ResetBoxPane" orientation="horizontal"
                                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
@@ -360,7 +386,7 @@
                             </Border>
                         </TablePane.Row>
                     </TablePane>
-                </BoxPane>
+                </FillPane>
             </TabPane>
         </TablePane.Row>
 

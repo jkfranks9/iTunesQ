@@ -45,6 +45,8 @@ public final class Utilities
      */
     private static final String DATE_FORMAT = "EEE, MMM dd yyyy, HH:mm:ss";
     private static final String FORMATTED_DATE = "yyyy-MM-dd'T'HH:mm:ssX";
+    private static final String FORMATTED_DATE_MILLI = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
+    private static final String FORMATTED_DATE_FILENAME = "yyyy-MM-dd-HH-mm-ss";
     private static final String MMSS_FORMAT = "%02d:%02d";
     private static final String HHMMSS_FORMAT = "%02d:%02d:%02d";
     private static final String CALENDAR_MMSS_FORMAT = "mm:ss";
@@ -75,7 +77,8 @@ public final class Utilities
     /**
      * Parses a date string into a date object.
      * 
-     * @param dateStr formatted date string
+     * @param dateStr formatted date string, with optional milliseconds 
+     * and ISO 8601 time zone
      * @return date object
      * @throws ParseException If an error occurs trying to parse the date
      * string.
@@ -83,7 +86,19 @@ public final class Utilities
     public static Date parseDate(String dateStr) 
             throws ParseException
     {
-        SimpleDateFormat dateParser = new SimpleDateFormat(new String(FORMATTED_DATE));
+    	SimpleDateFormat dateParser = null;
+    	
+    	/*
+    	 * Use the correct format based on the presence of milliseconds.
+    	 */
+    	if (dateStr.indexOf('.') == -1)
+    	{
+            dateParser = new SimpleDateFormat(new String(FORMATTED_DATE));
+    	}
+    	else
+    	{
+            dateParser = new SimpleDateFormat(new String(FORMATTED_DATE_MILLI));
+    	}
 
         return dateParser.parse(dateStr);
     }
@@ -189,7 +204,7 @@ public final class Utilities
     public static String getCurrentTimestamp()
     {
         Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat format = new SimpleDateFormat(FORMATTED_DATE);
+        SimpleDateFormat format = new SimpleDateFormat(FORMATTED_DATE_FILENAME);
         return format.format(calendar.getTime());
     }
 

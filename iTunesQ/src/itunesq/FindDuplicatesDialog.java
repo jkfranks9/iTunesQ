@@ -52,7 +52,8 @@ public class FindDuplicatesDialog
 
     private enum MatchCriteria
     {
-        EXACT, ARTIST, NOT_ARTIST, ALBUM, KIND, DURATION, YEAR, RATING
+        EXACT, ARTIST, NOT_ARTIST, ALBUM, KIND, DURATION, YEAR, RATING, 
+        EXCLUDE_VIDEO, EXCLUDE_LIVE, EXCLUDE_USER
     }
 
     private static final int NUM_MATCH_CRITERIA = MatchCriteria.values().length;
@@ -77,6 +78,10 @@ public class FindDuplicatesDialog
     @BXML private Checkbox duplicatesSpecDurationCheckbox = null;
     @BXML private Checkbox duplicatesSpecYearCheckbox = null;
     @BXML private Checkbox duplicatesSpecRatingCheckbox = null;
+    @BXML private BoxPane duplicatesSpecExclusionsBoxPane = null;
+    @BXML private Checkbox duplicatesSpecExcludeVideoCheckbox = null;
+    @BXML private Checkbox duplicatesSpecExcludeLiveCheckbox = null;
+    @BXML private Checkbox duplicatesSpecExcludeUserCheckbox = null;
     @BXML private Border duplicatesButtonBorder = null;
     @BXML private BoxPane duplicatesButtonBoxPane = null;
     @BXML private PushButton duplicatesDoneButton = null;
@@ -171,6 +176,9 @@ public class FindDuplicatesDialog
         duplicatesSpecDurationCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_DURATION);
         duplicatesSpecYearCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_YEAR);
         duplicatesSpecRatingCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_RATING);
+        duplicatesSpecExcludeVideoCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXCLUDE_VIDEO);
+        duplicatesSpecExcludeLiveCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXCLUDE_LIVE);
+        duplicatesSpecExcludeUserCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXCLUDE_USER);
         duplicatesDoneButton.setButtonData(StringConstants.DONE);
 
         /*
@@ -234,6 +242,9 @@ public class FindDuplicatesDialog
                     matchSpec.set(MatchCriteria.DURATION.ordinal(), duplicatesSpecDurationCheckbox.isSelected());
                     matchSpec.set(MatchCriteria.YEAR.ordinal(), duplicatesSpecYearCheckbox.isSelected());
                     matchSpec.set(MatchCriteria.RATING.ordinal(), duplicatesSpecRatingCheckbox.isSelected());
+                    matchSpec.set(MatchCriteria.EXCLUDE_VIDEO.ordinal(), duplicatesSpecExcludeVideoCheckbox.isSelected());
+                    matchSpec.set(MatchCriteria.EXCLUDE_LIVE.ordinal(), duplicatesSpecExcludeLiveCheckbox.isSelected());
+                    matchSpec.set(MatchCriteria.EXCLUDE_USER.ordinal(), duplicatesSpecExcludeUserCheckbox.isSelected());
                 }
                 
                 uiLogger.debug("selected match criteria: " + matchSpec.toString());
@@ -353,6 +364,9 @@ public class FindDuplicatesDialog
                     duplicatesSpecDurationCheckbox.setEnabled(false);
                     duplicatesSpecYearCheckbox.setEnabled(false);
                     duplicatesSpecRatingCheckbox.setEnabled(false);
+                    duplicatesSpecExcludeVideoCheckbox.setEnabled(false);
+                    duplicatesSpecExcludeLiveCheckbox.setEnabled(false);
+                    duplicatesSpecExcludeUserCheckbox.setEnabled(false);
                 }
                 else
                 {
@@ -363,6 +377,9 @@ public class FindDuplicatesDialog
                     duplicatesSpecDurationCheckbox.setEnabled(true);
                     duplicatesSpecYearCheckbox.setEnabled(true);
                     duplicatesSpecRatingCheckbox.setEnabled(true);
+                    duplicatesSpecExcludeVideoCheckbox.setEnabled(true);
+                    duplicatesSpecExcludeLiveCheckbox.setEnabled(true);
+                    duplicatesSpecExcludeUserCheckbox.setEnabled(true);
                 }
             }
         });
@@ -566,6 +583,58 @@ public class FindDuplicatesDialog
                     result = isEqual(track1.getCorrectedRating(), track2.getCorrectedRating());
                 }
             }
+            
+            if (matchSpec.get(MatchCriteria.EXCLUDE_VIDEO.ordinal()) == true)
+            {
+                if (result == true)
+                {
+                	result =   !(track1.getKind().contains("video")) 
+                			&& !(track2.getKind().contains("video"));
+                }            	
+            }
+            
+            if (matchSpec.get(MatchCriteria.EXCLUDE_LIVE.ordinal()) == true)
+            {
+                if (result == true)
+                {
+                	if (track1.getAlbum() != null && track2.getAlbum() != null)
+                	{
+                		result =   !(track1.getAlbum().toLowerCase().contains("live")) 
+                				&& !(track2.getAlbum().toLowerCase().contains("live"));
+                	}
+                }            	
+            }
+            
+            if (matchSpec.get(MatchCriteria.EXCLUDE_USER.ordinal()) == true)
+            {
+                if (result == true)
+                {
+                	if (track1.getAlbum() != null && track2.getAlbum() != null)
+                	{
+                    	
+                    	/*
+                    	 * Get the user preferences for duplicate track exclusions.
+                    	 */
+                        Preferences prefs = Preferences.getInstance();
+                    	List<String> duplicateTrackExclusions = prefs.getDuplicateTrackExclusions();
+                    	
+                    	/*
+                    	 * Check any user exclusions. Quit the loop if we find a false result, since that
+                    	 * means we matched an exclusion.
+                    	 */
+                    	for (String duplicateTrackExclusion : duplicateTrackExclusions)
+                    	{
+                        	result =   !(track1.getAlbum().toLowerCase().contains(duplicateTrackExclusion.toLowerCase())) 
+                        			&& !(track2.getAlbum().toLowerCase().contains(duplicateTrackExclusion.toLowerCase()));
+                    		
+                        	if (result == false)
+                        	{
+                        		break;
+                        	}
+                    	}
+                	}
+                }            	
+            }
         }
 
         trackLogger.debug("result " + result);
@@ -739,6 +808,15 @@ public class FindDuplicatesDialog
         duplicatesSpecRatingCheckbox = 
                 (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecRatingCheckbox");
         components.add(duplicatesSpecRatingCheckbox);
+        duplicatesSpecExcludeVideoCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecExcludeVideoCheckbox");
+        components.add(duplicatesSpecExcludeVideoCheckbox);
+        duplicatesSpecExcludeLiveCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecExcludeLiveCheckbox");
+        components.add(duplicatesSpecExcludeLiveCheckbox);
+        duplicatesSpecExcludeUserCheckbox = 
+                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecExcludeUserCheckbox");
+        components.add(duplicatesSpecExcludeUserCheckbox);
         duplicatesButtonBorder = 
                 (Border) dialogSerializer.getNamespace().get("duplicatesButtonBorder");
         components.add(duplicatesButtonBorder);

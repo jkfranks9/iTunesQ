@@ -64,6 +64,7 @@ public class QueryPlaylistsWindow
     private Set<PlaylistComparisonTrack> allIDs;
     private Set<PlaylistComparisonTrack> someIDs;
     private Set<PlaylistComparisonTrack> oneIDs;
+    private Set<PlaylistComparisonTrack> recursiveIDs;
 
     /*
      * BXML variables ...
@@ -81,6 +82,16 @@ public class QueryPlaylistsWindow
     @BXML private PushButton showAllButton = null;
     @BXML private PushButton showSomeButton = null;
     @BXML private PushButton showOneButton = null;
+    @BXML private Border recursiveCompareBorder = null;
+    @BXML private BoxPane recursiveCompareHolderBoxPane = null;
+    @BXML private BoxPane recursiveCheckboxesBoxPane = null;
+    @BXML private Checkbox recursiveCompareAllCheckbox = null;
+    @BXML private Checkbox recursiveExcludeBypassedCheckbox = null;
+    @BXML private BoxPane recursiveCompareBoxPane = null;
+    @BXML private Label recursiveCompareLabel = null;
+    @BXML private TablePane recursiveCompareTablePane = null;
+    @BXML private BoxPane recursiveCompareButtonsBoxPane = null;
+    @BXML private PushButton showButton = null;
     @BXML private Border familyBorder = null;
     @BXML private FillPane familyFillPane = null;
     @BXML private BoxPane familyBoxPane = null;
@@ -114,7 +125,15 @@ public class QueryPlaylistsWindow
      */
     private enum CompareType
     {
-        ALL, SOME, ONE;
+        ALL, SOME, ONE, RECURSIVE;
+    }
+
+    /*
+     * Type of playlist table.
+     */
+    private enum TableType
+    {
+        COMPARE, RECURSIVE_COMPARE;
     }
 
     /**
@@ -192,7 +211,7 @@ public class QueryPlaylistsWindow
          */
         for (int i = 0; i < 2; i++)
         {
-            TablePane.Row newRow = createPlaylistTableRow(components);
+            TablePane.Row newRow = createPlaylistTableRow(TableType.COMPARE, components);
             compareTablePane.getRows().add(newRow);
         }
 
@@ -201,6 +220,12 @@ public class QueryPlaylistsWindow
          * enabled only if more rows are added.
          */
         showSomeButton.setEnabled(false);
+
+        /*
+         * Disable the recursive compare exclude bypassed checkbox. It only gets enabled
+         * if the associated compare all checkbox is checked.
+         */
+        recursiveExcludeBypassedCheckbox.setEnabled(false);
 
         /*
          * Indicate we need to evaluate the comparison. Since that process is
@@ -214,10 +239,20 @@ public class QueryPlaylistsWindow
         evaluateComparisonNeeded = true;
 
         /*
+         * Add the initial recursive compare query playlist rows. We add 2 rows because we need at
+         * least that many to compare. This populates the component list with
+         * table row components.
+         */
+        for (int i = 0; i < 2; i++)
+        {
+            TablePane.Row newRow = createPlaylistTableRow(TableType.RECURSIVE_COMPARE, components);
+            recursiveCompareTablePane.getRows().add(newRow);
+        }
+
+        /*
          * Add widget texts.
          */
         compareLabel.setText(StringConstants.QUERY_PLAYLIST_COMPARE_BORDER);
-        familyLabel.setText(StringConstants.QUERY_PLAYLIST_FAMILY);
         showAllButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_ALL_BUTTON);
         showAllButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_ALL_BUTTON_TIP);
         showAllButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
@@ -227,11 +262,22 @@ public class QueryPlaylistsWindow
         showOneButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_ONE_BUTTON);
         showOneButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_ONE_BUTTON_TIP);
         showOneButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        recursiveCompareLabel.setText(StringConstants.QUERY_PLAYLIST_RECURSIVE_COMPARE_BORDER);
+        recursiveCompareAllCheckbox.setButtonData(StringConstants.QUERY_PLAYLIST_RECURSIVE_COMPARE_ALL);
+        recursiveCompareAllCheckbox.setTooltipText(StringConstants.QUERY_PLAYLIST_RECURSIVE_COMPARE_ALL_TIP);
+        recursiveCompareAllCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        recursiveExcludeBypassedCheckbox.setButtonData(StringConstants.EXCLUDE_BYPASSED);
+        recursiveExcludeBypassedCheckbox.setTooltipText(StringConstants.EXCLUDE_BYPASSED_TIP);
+        recursiveExcludeBypassedCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        showButton.setButtonData(StringConstants.QUERY_PLAYLIST_SHOW_BUTTON);
+        showButton.setTooltipText(StringConstants.QUERY_PLAYLIST_SHOW_BUTTON_TIP);
+        showButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        familyLabel.setText(StringConstants.QUERY_PLAYLIST_FAMILY);
         familyPlaylistsButton.setButtonData(StringConstants.QUERY_PLAYLIST_FAMILY_PLAYLISTS);
         familyPlaylistsButton.setTooltipText(StringConstants.QUERY_PLAYLIST_FAMILY_PLAYLISTS_TIP);
         familyPlaylistsButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
-        familyExcludeBypassedCheckbox.setButtonData(StringConstants.QUERY_PLAYLIST_FAMILY_BYPASS);
-        familyExcludeBypassedCheckbox.setTooltipText(StringConstants.QUERY_PLAYLIST_FAMILY_BYPASS_TIP);
+        familyExcludeBypassedCheckbox.setButtonData(StringConstants.EXCLUDE_BYPASSED);
+        familyExcludeBypassedCheckbox.setTooltipText(StringConstants.EXCLUDE_BYPASSED_TIP);
         familyExcludeBypassedCheckbox.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         familyTracksButton.setButtonData(StringConstants.QUERY_PLAYLIST_FAMILY_TRACKS);
         familyTracksButton.setTooltipText(StringConstants.QUERY_PLAYLIST_FAMILY_TRACKS_TIP);
@@ -310,7 +356,16 @@ public class QueryPlaylistsWindow
                 boolean good2Go = true;
                 if (evaluateComparisonNeeded == true)
                 {
-                    good2Go = evaluateComparison();
+
+                    /*
+                     * Collect the playlists from the window.
+                     */
+                    List<String> playlists = collectPlaylists(TableType.COMPARE);
+                    
+                    /*
+                     * Evaluate the comparison.
+                     */
+                    good2Go = evaluateComparison(playlists);
                 }
 
                 /*
@@ -349,7 +404,16 @@ public class QueryPlaylistsWindow
                 boolean good2Go = true;
                 if (evaluateComparisonNeeded == true)
                 {
-                    good2Go = evaluateComparison();
+
+                    /*
+                     * Collect the playlists from the window.
+                     */
+                    List<String> playlists = collectPlaylists(TableType.COMPARE);
+                    
+                    /*
+                     * Evaluate the comparison.
+                     */
+                    good2Go = evaluateComparison(playlists);
                 }
 
                 /*
@@ -388,7 +452,16 @@ public class QueryPlaylistsWindow
                 boolean good2Go = true;
                 if (evaluateComparisonNeeded == true)
                 {
-                    good2Go = evaluateComparison();
+
+                    /*
+                     * Collect the playlists from the window.
+                     */
+                    List<String> playlists = collectPlaylists(TableType.COMPARE);
+                    
+                    /*
+                     * Evaluate the comparison.
+                     */
+                    good2Go = evaluateComparison(playlists);
                 }
 
                 /*
@@ -399,6 +472,122 @@ public class QueryPlaylistsWindow
                     try
                     {
                         displayComparedPlaylistTracks(display, CompareType.ONE);
+                    }
+                    catch (IOException | SerializationException e)
+                    {
+                        MainWindow.logException(uiLogger, e);
+                        throw new InternalErrorException(true, e.getMessage());
+                    }
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the compare all checkbox.
+         */
+        recursiveCompareAllCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+            	
+            	/*
+            	 * Enable or disable the exclude bypassed checkbox.
+            	 */
+                if (button.isSelected())
+                {
+                	recursiveExcludeBypassedCheckbox.setEnabled(true);
+                	recursiveExcludeBypassedCheckbox.setSelected(true);
+                }
+                else
+                {
+                	recursiveExcludeBypassedCheckbox.setEnabled(false);
+                	recursiveExcludeBypassedCheckbox.setSelected(false);
+                }
+                
+                /*
+                 * Set the evaluate comparison switch true since we've changed the set of playlists.
+                 */
+                evaluateComparisonNeeded = true;
+            }
+        });
+
+        /*
+         * Listener to handle the exclude bypassed checkbox.
+         */
+        recursiveExcludeBypassedCheckbox.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                
+                /*
+                 * Set the evaluate comparison switch true since we've changed the set of playlists.
+                 */
+                evaluateComparisonNeeded = true;
+            }
+        });
+
+        /*
+         * Listener to handle the show button press.
+         */
+        showButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                uiLogger.info("show button pressed");
+
+                Display display = button.getDisplay();
+
+                /*
+                 * Evaluate the comparison of the specified playlists if needed.
+                 */
+                boolean good2Go = true;
+                if (evaluateComparisonNeeded == true)
+                {
+
+                    /*
+                     * Collect the playlists from the window.
+                     */
+                    List<String> playlists = collectPlaylists(TableType.RECURSIVE_COMPARE);
+                    
+                    /*
+                     * We need to build our own query string ... the one built by evaluateComparison() only
+                     * includes the final two playlists in the below algorithm.
+                     */
+                    StringBuilder query = new StringBuilder();
+                    boolean firstTime = true;
+                    for (String playlistName : playlists)
+                    {
+                        if (firstTime ==false)
+                        {
+                            query.append(" + ");
+                        }                    	
+                        query.append(playlistName);
+                        firstTime = false;
+                    }
+
+                    /*
+                     * Execute the recursive compare.
+                     */
+                    recursiveIDs = new HashSet<PlaylistComparisonTrack>();                    
+                    good2Go = recursiveCompare(playlists);
+
+                    /*
+                     * Save the query string constructed earlier.
+                     */
+                    queryStr = query.toString();
+                }
+
+                /*
+                 * Display tracks included in all specified playlists.
+                 */
+                if (good2Go == true)
+                {
+                    try
+                    {
+                        displayComparedPlaylistTracks(display, CompareType.RECURSIVE);
                     }
                     catch (IOException | SerializationException e)
                     {
@@ -541,7 +730,7 @@ public class QueryPlaylistsWindow
      * NOTE: This method populates the input list of components with the
      * components of a row.
      */
-    private TablePane.Row createPlaylistTableRow(List<Component> components)
+    private TablePane.Row createPlaylistTableRow(TableType tableType, List<Component> components)
     {
         uiLogger.trace("createPlaylistTableRow: " + this.hashCode());
 
@@ -593,9 +782,21 @@ public class QueryPlaylistsWindow
         });
 
         /*
+         * Create the include children checkbox for a recursive compare.
+         */
+        Checkbox includeChildren = null;
+        if (tableType == TableType.RECURSIVE_COMPARE)
+        {
+        	includeChildren = new Checkbox(StringConstants.BYPASS_INCLUDE);
+        	includeChildren.setTooltipText(StringConstants.QUERY_PLAYLIST_BYPASS_INCLUDE_TIP);
+        	includeChildren.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        }
+
+        /*
          * Create the set of buttons:
          * 
-         * '+' = insert a new row after this one '-' = delete this row
+         * '+' = insert a new row after this one 
+         * '-' = delete this row
          */
         PushButton plusButton = new PushButton();
         plusButton.setButtonData("+");
@@ -640,16 +841,47 @@ public class QueryPlaylistsWindow
                 if (parent instanceof TablePane)
                 {
                     TablePane tablePane = (TablePane) parent;
+                    String tableName = tablePane.getName();
                     int playlistRowIndex = tablePane.getRowAt(plusButtonYCoordinate);
-                    uiLogger.info("plus button pressed for playlist index " + playlistRowIndex);
+                    uiLogger.info("plus button pressed for playlist index " + playlistRowIndex + " on table " + tableName);
 
                     /*
                      * Add the table row and collect the components that need to
                      * be skinned.
                      */
                     List<Component> rowComponents = new ArrayList<Component>();
-                    TablePane.Row tableRow = createPlaylistTableRow(rowComponents);
-                    compareTablePane.getRows().insert(tableRow, playlistRowIndex + 1);
+                    TablePane.Row tableRow = createPlaylistTableRow(tableType, rowComponents);
+                    
+                    /*
+                     * Insert the row into the proper table, based on the name.
+                     */
+                    switch (tableName)
+                    {
+                    case "compareTablePane":
+                        compareTablePane.getRows().insert(tableRow, playlistRowIndex + 1);
+
+                        /*
+                         * Enable or disable the 'some' button based on the current
+                         * number of table rows.
+                         */
+                        int numRows = tablePane.getRows().getLength();
+                        if (numRows >= 3)
+                        {
+                            showSomeButton.setEnabled(true);
+                        }
+                        else
+                        {
+                            showSomeButton.setEnabled(false);
+                        }
+                        break;
+                        
+                    case "recursiveCompareTablePane":
+                        recursiveCompareTablePane.getRows().insert(tableRow, playlistRowIndex + 1);
+                        break;
+
+                    default:
+                        throw new InternalErrorException(true, "unknown table name '" + tableName + "'");
+                    }
 
                     /*
                      * Request focus for the text input on the newly added row.
@@ -668,20 +900,6 @@ public class QueryPlaylistsWindow
                     Map<Skins.Element, List<Component>> windowElements = 
                             skins.registerDynamicWindowElements(Skins.Window.QUERY_PLAYLISTS, rowComponents);
                     skins.skinMe(Skins.Window.QUERY_PLAYLISTS, windowElements);
-
-                    /*
-                     * Enable or disable the 'some' button based on the current
-                     * number of table rows.
-                     */
-                    int numRows = tablePane.getRows().getLength();
-                    if (numRows >= 3)
-                    {
-                        showSomeButton.setEnabled(true);
-                    }
-                    else
-                    {
-                        showSomeButton.setEnabled(false);
-                    }
 
                     queryPlaylistsWindow.repaint();
                 }
@@ -716,8 +934,9 @@ public class QueryPlaylistsWindow
                 if (parent instanceof TablePane)
                 {
                     TablePane tablePane = (TablePane) parent;
+                    String tableName = tablePane.getName();
                     int playlistRowIndex = tablePane.getRowAt(minusButtonYCoordinate);
-                    uiLogger.info("minus button pressed for playlist index " + playlistRowIndex);
+                    uiLogger.info("minus button pressed for playlist index " + playlistRowIndex + " on table " + tableName);
 
                     /*
                      * Get the number of rows and make sure we don't go below
@@ -733,21 +952,33 @@ public class QueryPlaylistsWindow
                     {
 
                         /*
-                         * Remove the table row.
+                         * Remove the table row from the proper table, based on the name..
                          */
-                        compareTablePane.getRows().remove(playlistRowIndex, 1);
+                        switch (tableName)
+                        {
+                        case "compareTablePane":
+                            compareTablePane.getRows().remove(playlistRowIndex, 1);
 
-                        /*
-                         * Enable or disable the 'some' button based on the
-                         * current number of table rows.
-                         */
-                        if (numRows >= 3)
-                        {
-                            showSomeButton.setEnabled(true);
-                        }
-                        else
-                        {
-                            showSomeButton.setEnabled(false);
+                            /*
+                             * Enable or disable the 'some' button based on the
+                             * current number of table rows.
+                             */
+                            if (numRows >= 3)
+                            {
+                                showSomeButton.setEnabled(true);
+                            }
+                            else
+                            {
+                                showSomeButton.setEnabled(false);
+                            }
+                            break;
+                            
+                        case "recursiveCompareTablePane":
+                            recursiveCompareTablePane.getRows().remove(playlistRowIndex, 1);
+                            break;
+
+                        default:
+                            throw new InternalErrorException(true, "unknown table name '" + tableName + "'");
                         }
 
                         queryPlaylistsWindow.repaint();
@@ -777,6 +1008,11 @@ public class QueryPlaylistsWindow
         components.add(textLabel);
         newRow.add(text);
         components.add(text);
+        if (tableType == TableType.RECURSIVE_COMPARE)
+        {
+            newRow.add(includeChildren);
+            components.add(includeChildren);        	
+        }
         newRow.add(plusButton);
         components.add(plusButton);
         newRow.add(minusButton);
@@ -784,13 +1020,115 @@ public class QueryPlaylistsWindow
 
         return newRow;
     }
+    
+    /*
+     * Perform the recursive compare. This doesn't mean this method is recursive, it 
+     * just refers to iterating by comparing two playlists at a time.
+     */
+    private boolean recursiveCompare(List<String> playlists)
+    {
+        boolean good2Go = true;
+        
+        /*
+         * Loop through the set of playlists and compare recursively. Stop when only one
+         * playlist remains.
+         */
+        int numPlaylists = playlists.getLength();
+        filterLogger.debug("recursively comparing " + numPlaylists + " playlists");
+        while (numPlaylists > 1)
+        {
+        	
+        	/*
+        	 * Remove a playlist from the set, designated as the top.
+        	 */
+        	String top = playlists.remove(0, 1).get(0);
+        	numPlaylists = playlists.getLength();
+        	filterLogger.debug("removed top playlist '" + top + "', num = " + numPlaylists);
+            
+        	/*
+        	 * Now compare the top to all other playlists, one at a time.
+        	 */
+            for (String playlist : playlists)
+            {
+                List<String> compareList = new ArrayList<String>();
+                compareList.add(top);
+                compareList.add(playlist);
+
+                good2Go = evaluateComparison(compareList);
+                
+                /*
+                 * Add all discovered tracks (if any) to the recursive compare list.
+                 */
+                filterLogger.debug("discovered " + allIDs.getCount() + " tracks from '" + playlist + "'");
+                for (PlaylistComparisonTrack pcTrack : allIDs)
+                {
+                	if (findTrackID(recursiveIDs, pcTrack.getTrackID()) == null)
+                	{
+                		if (filterLogger.isDebugEnabled())
+                		{
+                            Integer trackIndex = XMLHandler.getTracksMap().get(pcTrack.getTrackID());
+                            Track track = XMLHandler.getTracks().get(trackIndex);
+                            filterLogger.debug("adding track '" + track.getName() + "' to recursive IDs");
+                		}
+                		recursiveIDs.add(pcTrack);
+                	}
+                }                  	
+            }
+        }
+        
+    	return good2Go;
+    }
 
     /*
      * Collect the entered playlists.
      */
-    private List<String> collectPlaylists()
+    private List<String> collectPlaylists(TableType tableType)
     {
-        uiLogger.trace("collectPlaylists: " + this.hashCode());
+        filterLogger.trace("collectPlaylists: " + this.hashCode());
+
+        /*
+         * Iterate through the playlist table rows.
+         */
+        List<String> playlists = new ArrayList<String>();
+        
+        TablePane.RowSequence rows = null;
+        switch (tableType)
+        {
+        case COMPARE:
+            rows = compareTablePane.getRows();
+        	playlists = collectIncludedPlaylists(rows);
+        	break;
+        	
+        case RECURSIVE_COMPARE:
+            rows = recursiveCompareTablePane.getRows();
+            
+            if (recursiveCompareAllCheckbox.isSelected())
+            {
+            	playlists = collectAllNonexcludedPlaylists(rows);
+            }
+            else
+            {
+            	playlists = collectIncludedPlaylists(rows);
+            }
+        	break;
+        	
+        default:
+            throw new InternalErrorException(true, "unknown table type '" + tableType + "'");
+        }
+
+        filterLogger.debug("found " + playlists.getLength() + " playlists");
+        return playlists;
+    }
+    
+    /*
+     * Collect playlists that are included in the selection. This applies to:
+     * 
+     * - The normal compare process
+     * - The recursive compare process when the all checkbox is not checked
+     */
+    private List<String> collectIncludedPlaylists(TablePane.RowSequence rows)
+    {
+        filterLogger.trace("collectIncludedPlaylists: " + this.hashCode());
 
         /*
          * Indexes into the row elements.
@@ -800,12 +1138,9 @@ public class QueryPlaylistsWindow
          * createPlaylistTableRow() for the logic to create a row.
          */
         final int textIndex = 1;
-
-        /*
-         * Iterate through the playlist table rows.
-         */
+        final int includeChildrenIndex = 2;
+        
         List<String> playlists = new ArrayList<String>();
-        TablePane.RowSequence rows = compareTablePane.getRows();
         for (TablePane.Row row : rows)
         {
 
@@ -813,13 +1148,167 @@ public class QueryPlaylistsWindow
              * Get the text input.
              */
             TextInput text = (TextInput) row.get(textIndex);
+            
+            /*
+             * Get the include children checkbox.
+             */
+            Checkbox includeChildren = (Checkbox) row.get(includeChildrenIndex);
 
             /*
              * Add this playlist to the collection.
              */
-            playlists.add(text.getText());
+            String playlistName = text.getText();
+            playlists.add(playlistName);
+            filterLogger.debug("added playlist '" + playlistName + "' (name match)");
+            
+            /*
+             * If we're to include all children then we have to search through all playlists.
+             */
+            if (includeChildren.isSelected())
+            {
+            	
+            	/*
+            	 * Get the ID of the entered playlist.
+            	 */
+                Playlist selectedPlaylistObj = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
+                String selectedID = selectedPlaylistObj.getPersistentID();
+                
+                /*
+                 * Loop through all playlists.
+                 */
+                Map<String, Playlist> allPlaylists = XMLHandler.getPlaylists();                
+                for (String playlistKey : allPlaylists)
+                {
+                    Playlist playlistObj = allPlaylists.get(playlistKey);
+                    
+                    /*
+                     * If this is a child of the parent, add it to the collection.
+                     */
+                    String parentID = playlistObj.getParentPersistentID();
+                    if (parentID != null && parentID.equals(selectedID))
+                    {
+                    	String childName = playlistObj.getName();
+                        playlists.add(childName);
+                        filterLogger.debug("added playlist '" + childName + "' (child match)");
+                    }
+                }            	
+            }
         }
+    	
+        return playlists;
+    }
+    
+    /*
+     * Collect all playlists except those that are excluded in the selection. This applies to:
+     * 
+     * - The recursive compare process when the all checkbox is checked
+     */
+    private List<String> collectAllNonexcludedPlaylists(TablePane.RowSequence rows)
+    {
+        filterLogger.trace("collectAllNonexcludedPlaylists: " + this.hashCode());
 
+        /*
+         * Indexes into the row elements.
+         * 
+         * IMPORTANT: These must match the design of the row. See
+         * queryPlaylistsWindow.bxml for the column definition, and
+         * createPlaylistTableRow() for the logic to create a row.
+         */
+        final int textIndex = 1;
+        final int includeChildrenIndex = 2;
+        
+        /*
+         * Walk through all playlists.
+         */
+        List<String> playlists = new ArrayList<String>();
+        Map<String, Playlist> allPlaylists = XMLHandler.getPlaylists();
+        
+        for (String playlistKey : allPlaylists)
+        {
+            Playlist playlistObj = allPlaylists.get(playlistKey);
+            String playlistName = playlistObj.getName();
+            
+            /*
+             * Ignore bypassed playlists if requested.
+             */
+            if (recursiveExcludeBypassedCheckbox.isSelected() && playlistObj.getBypassed() == true)
+            {
+                filterLogger.debug("ignoring bypassed playlist '" + playlistName + "'");
+            	continue;
+            }
+            
+            /*
+             * Walk through the selection list that was entered, to see if this playlist is excluded or not.
+             */
+            boolean excluded = false;
+            
+            for (TablePane.Row row : rows)
+            {
+
+                /*
+                 * Get the text input.
+                 */
+                TextInput text = (TextInput) row.get(textIndex);
+                
+                /*
+                 * Get the include children checkbox.
+                 */
+                Checkbox includeChildren = (Checkbox) row.get(includeChildrenIndex);
+
+                /*
+                 * Check if this playlist is excluded.
+                 */
+                String selectedName = text.getText();
+                if (playlistName.equals(selectedName))
+                {
+                    filterLogger.debug("excluding playlist '" + playlistName + "' (name match)");
+                	excluded = true;
+                	break;
+                }
+                
+                /*
+                 * It's not, but continue if we're to check children playlists.
+                 */
+                else if (includeChildren.isSelected())
+                {
+                	
+                	/*
+                	 * Get the playlist object for the current selection in the inner loop.
+                	 */
+                	Playlist selectedPlaylistObj = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(selectedName));
+                	
+                	/*
+                	 * Get the parent ID of the current playlist in the outer loop.
+                	 */
+                	Playlist tmpPlaylistObj = playlistObj;
+                	String parentID = null;
+                	while ((parentID = tmpPlaylistObj.getParentPersistentID()) != null)
+                	{
+
+                		/*
+                		 * Check if this playlist is excluded via the include children checkbox.
+                		 */
+                		if (parentID.equals(selectedPlaylistObj.getPersistentID()))
+                		{
+                			filterLogger.debug("excluding playlist '" + playlistName + "' (child match)");
+                			excluded = true;
+                			break;
+                		}
+                		
+                		tmpPlaylistObj = XMLHandler.getPlaylists().get(parentID);
+                	}
+                }
+            }
+            
+            /*
+             * Add the playlist unless it's excluded.
+             */
+            if (excluded == false)
+            {
+            	playlists.add(playlistName);
+            }
+        }
+    	
         return playlists;
     }
 
@@ -832,16 +1321,11 @@ public class QueryPlaylistsWindow
      * if any change is made to the set of playlists, a switch is set to run
      * this method again to re-evaluate the comparison.
      */
-    private boolean evaluateComparison()
+    private boolean evaluateComparison(List<String> playlists)
     {
         filterLogger.trace("evaluateComparison: " + this.hashCode());
 
         boolean playlistsValid = true;
-
-        /*
-         * Collect the playlists from the window.
-         */
-        List<String> playlists = collectPlaylists();
 
         /*
          * Initialize lists for all compare types.
@@ -865,7 +1349,7 @@ public class QueryPlaylistsWindow
 
         for (String playlistName : playlists)
         {
-            filterLogger.debug("playlist index: " + playlistLoopIndex);
+            filterLogger.trace("playlist index: " + playlistLoopIndex);
 
             /*
              * Add this playlist to the query string, along with a "+" separator
@@ -902,7 +1386,7 @@ public class QueryPlaylistsWindow
              */
             for (Integer trackID : trackIDs)
             {
-                filterLogger.debug("track ID: " + trackID);
+                filterLogger.trace("track ID: " + trackID);
                 PlaylistComparisonTrack existingTrack;
                 PlaylistComparisonTrack newTrack;
 
@@ -916,7 +1400,7 @@ public class QueryPlaylistsWindow
                     newTrack.setTrackID(trackID);
                     newTrack.setPlaylistCount(1);
 
-                    filterLogger.debug("add to 'one' ID: " + trackID);
+                    filterLogger.trace("add to 'one' ID: " + trackID);
                     oneIDs.add(newTrack);
                     continue;
                 }
@@ -932,7 +1416,7 @@ public class QueryPlaylistsWindow
                 if (playlistLoopIndex >= 2 && (existingTrack = findTrackID(someIDs, trackID)) != null)
                 {
                     Integer updatedCount = existingTrack.getPlaylistCount() + 1;
-                    filterLogger.debug("bump 'some' count to " + updatedCount + " for ID: " + trackID);
+                    filterLogger.trace("bump 'some' count to " + updatedCount + " for ID: " + trackID);
                     existingTrack.setPlaylistCount(updatedCount);
                 }
                 else
@@ -945,7 +1429,7 @@ public class QueryPlaylistsWindow
                     if ((existingTrack = findTrackID(oneIDs, trackID)) != null)
                     {
                         Integer updatedCount = existingTrack.getPlaylistCount() + 1;
-                        filterLogger.debug("move to 'some' ID: " + trackID + " with count " + updatedCount);
+                        filterLogger.trace("move to 'some' ID: " + trackID + " with count " + updatedCount);
                         oneIDs.remove(existingTrack);
                         existingTrack.setPlaylistCount(updatedCount);
                         someIDs.add(existingTrack);
@@ -961,7 +1445,7 @@ public class QueryPlaylistsWindow
                         newTrack.setTrackID(trackID);
                         newTrack.setPlaylistCount(1);
 
-                        filterLogger.debug("add to 'one' ID: " + trackID);
+                        filterLogger.trace("add to 'one' ID: " + trackID);
                         oneIDs.add(newTrack);
                     }
                 }
@@ -1002,14 +1486,14 @@ public class QueryPlaylistsWindow
             {
                 if (pcTrack.getPlaylistCount() == playlists.getLength())
                 {
-                    filterLogger.debug("add to 'all' ID: " + pcTrack.getTrackID());
+                    filterLogger.trace("add to 'all' ID: " + pcTrack.getTrackID());
                     allIDs.add(pcTrack);
                 }
             }
 
             for (PlaylistComparisonTrack pcTrack : allIDs)
             {
-                filterLogger.debug("remove from 'some' ID: " + pcTrack.getTrackID());
+                filterLogger.trace("remove from 'some' ID: " + pcTrack.getTrackID());
                 someIDs.remove(pcTrack);
             }
 
@@ -1064,6 +1548,11 @@ public class QueryPlaylistsWindow
         case ONE:
             trackIDs = oneIDs;
             compareStr = StringConstants.QUERY_PLAYLIST_COMPARE_ONE;
+            break;
+
+        case RECURSIVE:
+            trackIDs = recursiveIDs;
+            compareStr = StringConstants.QUERY_PLAYLIST_COMPARE_RECURSIVE;
             break;
 
         default:
@@ -1583,6 +2072,36 @@ public class QueryPlaylistsWindow
         showOneButton = 
                 (PushButton) windowSerializer.getNamespace().get("showOneButton");
         components.add(showOneButton);
+        recursiveCompareBorder = 
+                (Border) windowSerializer.getNamespace().get("recursiveCompareBorder");
+        components.add(recursiveCompareBorder);
+        recursiveCompareHolderBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("recursiveCompareHolderBoxPane");
+        components.add(recursiveCompareHolderBoxPane);
+        recursiveCheckboxesBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("recursiveCheckboxesBoxPane");
+        components.add(recursiveCheckboxesBoxPane);
+        recursiveCompareAllCheckbox = 
+                (Checkbox) windowSerializer.getNamespace().get("recursiveCompareAllCheckbox");
+        components.add(recursiveCompareAllCheckbox);
+        recursiveExcludeBypassedCheckbox = 
+                (Checkbox) windowSerializer.getNamespace().get("recursiveExcludeBypassedCheckbox");
+        components.add(recursiveExcludeBypassedCheckbox);
+        recursiveCompareBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("recursiveCompareBoxPane");
+        components.add(recursiveCompareBoxPane);
+        recursiveCompareLabel = 
+                (Label) windowSerializer.getNamespace().get("recursiveCompareLabel");
+        components.add(recursiveCompareLabel);
+        recursiveCompareTablePane = 
+                (TablePane) windowSerializer.getNamespace().get("recursiveCompareTablePane");
+        components.add(recursiveCompareTablePane);
+        recursiveCompareButtonsBoxPane = 
+                (BoxPane) windowSerializer.getNamespace().get("recursiveCompareButtonsBoxPane");
+        components.add(recursiveCompareButtonsBoxPane);
+        showButton = 
+                (PushButton) windowSerializer.getNamespace().get("showButton");
+        components.add(showButton);
         familyBorder = 
                 (Border) windowSerializer.getNamespace().get("familyBorder");
         components.add(familyBorder);

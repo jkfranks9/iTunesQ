@@ -62,7 +62,7 @@ public final class Preferences
     /*
      * Variables for the actual preferences we want to serialize.
      * 
-     * - iTunes XML file name 
+     * - XML file name 
      * - list of bypass playlist preferences 
      * - list of ignored playlist preferences 
      * - various track column sets 
@@ -71,6 +71,7 @@ public final class Preferences
      * - maximum log file history 
      * - global log level flag 
      * - log levels
+     * - list of duplicate track exclusions
      * - artist alternate name overrides
      */
     private String xmlFileName;
@@ -85,6 +86,7 @@ public final class Preferences
     private int maxLogHistory;
     private boolean globalLogLevel;
     private Map<String, Level> logLevels;
+    private List<String> duplicateTrackExclusions;
     
     /*
      * The artist alternate name overrides are special. They need to be saved, which is why they're
@@ -148,6 +150,8 @@ public final class Preferences
 
         globalLogLevel = true;
         logLevels = new HashMap<String, Level>();
+        
+        duplicateTrackExclusions = new ArrayList<String>();
         
         artistOverrides = new ArrayList<ArtistAlternateNameOverride>();
         artistOverrides.setComparator(new Comparator<ArtistAlternateNameOverride>()
@@ -397,6 +401,16 @@ public final class Preferences
     {
         logLevels.put(dimension.getDisplayValue(), level);
     }
+
+    /**
+     * Gets the list of duplicate track exclusion values.
+     * 
+     * @return list of duplicate track exclusion values
+     */
+    public List<String> getDuplicateTrackExclusions()
+    {
+        return duplicateTrackExclusions;
+    }
     
     /**
      * Gets the artist alternate name overrides.
@@ -563,6 +577,27 @@ public final class Preferences
         for (List<String> trackColumnsPref : trackColumnsPrefs)
         {
             this.trackColumnsPlaylistView.add(trackColumnsPref);
+        }
+    }
+
+    /**
+     * Replaces the list of duplicate track exclusion values.
+     * 
+     * @param duplicateTrackExclusions list of duplicate track exclusion values
+     */
+    public void replaceDuplicateTrackExclusions(List<String> duplicateTrackExclusions)
+    {
+        uiLogger.trace("replaceDuplicateTrackExclusions: " + this.hashCode());
+
+        if (duplicateTrackExclusions == null)
+        {
+            throw new IllegalArgumentException("duplicateTrackExclusions argument is null");
+        }
+
+        this.duplicateTrackExclusions.clear();
+        for (String duplicateTrackExclusion : duplicateTrackExclusions)
+        {
+            this.duplicateTrackExclusions.add(duplicateTrackExclusion);
         }
     }
     
@@ -855,6 +890,10 @@ public final class Preferences
         {
             this.logLevels = prefs.logLevels;
         }
+        if (prefs.duplicateTrackExclusions != null)
+        {
+            replaceDuplicateTrackExclusions(prefs.duplicateTrackExclusions);
+        }
         if (prefs.artistOverrides != null)
         {
             this.artistOverrides = prefs.artistOverrides;
@@ -1124,6 +1163,19 @@ public final class Preferences
                     continue;
                 }
                 output.append(indent + listPrefix + dimension + "(" + level.toString() + ")" + lineSeparator);
+            }
+        }
+
+        /*
+         * Duplicate track exclusions.
+         */
+        List<String> inDuplicateTrackExclusions = duplicateTrackExclusions;
+        if (inDuplicateTrackExclusions != null && inDuplicateTrackExclusions.getLength() > 0)
+        {
+            output.append(String.format("%2d", ++itemNum) + ") " + "Duplicate track exclusions:" + lineSeparator);
+            for (String duplicateTrackExclusion : inDuplicateTrackExclusions)
+            {
+                output.append(indent + listPrefix + duplicateTrackExclusion + lineSeparator);
             }
         }
         

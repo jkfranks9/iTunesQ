@@ -9,25 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-
-import javax.activation.DataHandler;
-import javax.activation.DataSource;
-import javax.activation.FileDataSource;
-import javax.mail.Authenticator;
-import javax.mail.BodyPart;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.Multipart;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
-import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeBodyPart;
-import javax.mail.internet.MimeMessage;
-import javax.mail.internet.MimeMultipart;
 
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
@@ -102,6 +85,29 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
 
     /*
      * Diagnostic trigger, to enable breakpoints based on item names, or special logging.
+     * 
+     * Details:
+     * 
+     *   - The diag trigger is passed as a program argument of the form: --diag-trigger=artist (for example).
+     *   
+     *   - From Eclipse, use the Debug Configurations panel, Arguments tab ... if running outside Eclipse
+     *     pass as a program argument.
+     *     
+     *   - Some of the triggers require a diag value that is supplied in a file (for example the artist trigger).
+     *     The file must exist in the save directory under a subdirectory named "diag-trigger". The file name must
+     *     match the enum constructor value below, for example "artist". This file must contain (for an artist trigger)
+     *     the lower case name of an artist of interest. Code can be used (if it exists) or added (if it doesn't) that 
+     *     then allows a breakpoint to be set at any interesting point when the artist name in the file matches an artist
+     *     being processed. Look up the DiagTrigger.ARTIST enum for examples. Note that TRACK and PLAYLIST are defined
+     *     here but have no current uses, but they would follow the same scheme.
+     *     
+     *   - The SKIN_LOGGING and LOGGER_LOGGING triggers don't have a corresponding diag value; they just enable additional
+     *     low level skin or logger logging to help debug those components.
+     *     
+     *   - The FORCE_LOGLEVEL trigger allows the log level to be set for a given dimension very early, which could be 
+     *     useful in a situation where we crash and thus don't have a chance to set the log level preference for a future
+     *     iteration. This trigger uses a diag value in a file as described above. The value takes the form of
+     *     <log dimension>:<log level>.
      */
     public enum DiagTrigger
     {
@@ -339,11 +345,6 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          * Log diagnostic info about our environment.
          */
         Logger diagLogger = logging.getDiagLogger();
-        Version jvmVersion = DesktopApplicationContext.getJVMVersion();
-        if (jvmVersion != null)
-        {
-            diagLogger.info("JVM version: " + jvmVersion.toString());
-        }
         Version pivotVersion = DesktopApplicationContext.getPivotVersion();
         if (pivotVersion != null)
         {
@@ -628,15 +629,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         /*
          * Create a diagnostics zip file.
          */
-        String zipFilename = createDiagZipFile();
-
-        /*
-         * Email the diagnostics file to the developer.
-         */
-        if (zipFilename != null && zipFilename.length() > 0)
-        {
-            sendDiagEmail(zipFilename);
-        }
+        createDiagZipFile();
 
         /*
          * The main window might not have been created yet. If not, try to
@@ -922,13 +915,14 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
     {
 
         /*
-         * Create the zip file name.
+         * Create the zip path.
          */
         StringBuilder zipFilename = new StringBuilder();
-        zipFilename.append(saveDirectory);
-        zipFilename.append("/diag_");
+        zipFilename.append("diag_");
         zipFilename.append(Utilities.getCurrentTimestamp());
         zipFilename.append(".zip");
+        
+        Path zipPath = Paths.get(saveDirectory, zipFilename.toString());
 
         /*
          * Initialize the zip file stream.
@@ -937,7 +931,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         ZipOutputStream zipStream = null;
         try
         {
-            zipStream = new ZipOutputStream(new FileOutputStream(zipFilename.toString()));
+            zipStream = new ZipOutputStream(new FileOutputStream(zipPath.toString()));
         }
         catch (FileNotFoundException e)
         {
@@ -949,7 +943,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
              * email the file.
              */
             zipStreamUsable = false;
-            zipFilename.delete(0, zipFilename.length());
+            zipPath = null;
         }
 
         /*
@@ -993,7 +987,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
             }
         }
 
-        return zipFilename.toString();
+        return zipPath.toString();
     }
 
     /*
@@ -1028,101 +1022,6 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
     }
 
     /*
-     * Send the diagnostic zip file to the fabulous developer.
-     */
-    private void sendDiagEmail(String diagFilename)
-    {
-
-        /*
-         * Email transport information.
-         */
-        final String emailServerAddress = "smtp.gmail.com";
-        final String emailServerPort = "587";
-
-        /*
-         * Static email body.
-         */
-        final String emailBody = "See attachment for diagnostic information.";
-
-        /*
-         * Build the email subject.
-         */
-        StringBuilder emailSubject = new StringBuilder();
-        emailSubject.append("Failure in ");
-        emailSubject.append(this.getClass().getPackage());
-        emailSubject.append(" on ");
-        emailSubject.append(Utilities.getCurrentTimestamp());
-
-        /*
-         * Build the required properties.
-         */
-        Properties emailProperties = new Properties();
-        emailProperties.put("mail.smtp.user", DiagnosticEmailAttributes.getSenderAddress());
-        emailProperties.put("mail.smtp.host", emailServerAddress);
-        emailProperties.put("mail.smtp.port", emailServerPort);
-        emailProperties.put("mail.smtp.starttls.enable", "true");
-        emailProperties.put("mail.smtp.auth", "true");
-        emailProperties.put("mail.smtp.socketFactory.port", emailServerPort);
-        emailProperties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-
-        /*
-         * Create an authenticator for the sender.
-         */
-        Authenticator senderAuth = new SMTPAuthenticator();
-
-        /*
-         * Create an email session.
-         */
-        Session session = Session.getInstance(emailProperties, senderAuth);
-
-        /*
-         * Create the MIME message parts.
-         */
-        Message message = new MimeMessage(session);
-        BodyPart messageBodyPartText = new MimeBodyPart();
-        BodyPart messageBodyPartFile = new MimeBodyPart();
-        Multipart multipart = new MimeMultipart();
-        DataSource source = new FileDataSource(diagFilename);
-
-        /*
-         * Assemble the message and send it.
-         */
-        try
-        {
-
-            /*
-             * Text part.
-             */
-            messageBodyPartText.setText(emailBody);
-            multipart.addBodyPart(messageBodyPartText);
-
-            /*
-             * File attachment part.
-             */
-            messageBodyPartFile.setDataHandler(new DataHandler(source));
-            messageBodyPartFile.setFileName(diagFilename);
-            multipart.addBodyPart(messageBodyPartFile);
-
-            /*
-             * Finalize the message.
-             */
-            message.setContent(multipart);
-            message.setSubject(emailSubject.toString());
-            message.setFrom(new InternetAddress(DiagnosticEmailAttributes.getSenderAddress()));
-            message.addRecipient(Message.RecipientType.TO,
-                    new InternetAddress(DiagnosticEmailAttributes.getReceiverAddress()));
-
-            /*
-             * Send it!
-             */
-            Transport.send(message);
-        }
-        catch (MessagingException e)
-        {
-        }
-    }
-
-    /*
      * Get the diag trigger data from a secret file.
      */
     private void getDiagTriggerData()
@@ -1132,7 +1031,8 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         /*
          * Create the file name we expect to find, based on the type of diag trigger.
          */
-        String diagTriggerFilename = saveDirectory + "/diag-trigger/" + diagTrigger.getDisplayValue();
+        Path diagTriggerPath = Paths.get(saveDirectory, "diag-trigger", diagTrigger.getDisplayValue());
+        String diagTriggerFilename = diagTriggerPath.toString();
         BufferedReader reader = null;
 
         /*
@@ -1258,20 +1158,5 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         queryPlaylistsButton = 
                 (PushButton) windowSerializer.getNamespace().get("queryPlaylistsButton");
         components.add(queryPlaylistsButton);
-    }
-
-    // ---------------- Nested classes --------------------------------------
-
-    /*
-     * This class encapsulates authentication information for sending an email
-     * using SMTP.
-     */
-    private final class SMTPAuthenticator extends Authenticator
-    {
-        public PasswordAuthentication getPasswordAuthentication()
-        {
-            return new PasswordAuthentication(DiagnosticEmailAttributes.getSenderAddress(),
-                    DiagnosticEmailAttributes.getSenderAuth());
-        }
     }
 }

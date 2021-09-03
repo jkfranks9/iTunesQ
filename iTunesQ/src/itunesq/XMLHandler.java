@@ -1,6 +1,10 @@
 package itunesq;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.text.ParseException;
 import java.util.Comparator;
 import java.util.Date;
@@ -123,11 +127,9 @@ public final class XMLHandler
     private static final String ELEM_ARRAY = "array";
     private static final String ELEM_DATE = "date";
     private static final String ELEM_DICT = "dict";
-    private static final String ELEM_FALSE = "false";
     private static final String ELEM_INTEGER = "integer";
     private static final String ELEM_KEY = "key";
     private static final String ELEM_STRING = "string";
-    private static final String ELEM_TRUE = "true";
 
     private static final String KEY_DATE = "Date";
     private static final String KEY_PLAYLISTS = "Playlists";
@@ -435,25 +437,44 @@ public final class XMLHandler
          * 
          * NOTE: This is optional.
          */
+        String xmlDate = null;
         if (dateKey != null)
         {
             dateValue = nextSibling(dateKey);
             if (dateValue != null && dateValue.getName().equals(ELEM_DATE))
             {
-                try
-                {
-                    XMLDate = Utilities.parseDate(dateValue.getValue());
-                }
-                catch (ParseException e)
-                {
-                    MainWindow.logException(xmlLogger, e);
-                    handleJDOMError("unable to parse date value " + dateValue.getValue());
-                }
+            	xmlDate = dateValue.getValue();
             }
             else
             {
                 handleJDOMError(dateKey,
                         "could not find <" + ELEM_DATE + "> element after '" + KEY_DATE + "' key");
+            }
+        }
+        
+        /*
+         * The <date> element doesn't exist, so use the file modification date.
+         */
+        else
+        {
+        	Path xmlPath = Paths.get(xmlFileName);
+        	BasicFileAttributes attrs = Files.readAttributes(xmlPath, BasicFileAttributes.class);
+        	xmlDate = attrs.lastModifiedTime().toString();
+        }
+        
+        /*
+         * Parse the date if we were successful.
+         */
+        if (xmlDate != null)
+        {
+            try
+            {
+                XMLDate = Utilities.parseDate(xmlDate);
+            }
+            catch (ParseException e)
+            {
+                MainWindow.logException(xmlLogger, e);
+                handleJDOMError("unable to parse date value " + xmlDate);
             }
         }
 
@@ -1706,33 +1727,6 @@ public final class XMLHandler
         }
 
         return Integer.valueOf(nextTrackAttr.getTextTrim());
-    }
-
-    /*
-     * See getNextStringValue() for more information.
-     */
-    private static boolean nextBooleanValue(Iterator<Element> trackChildIter, String keyName)
-    {
-        Element nextTrackAttr = trackChildIter.next();
-        if (nextTrackAttr.getName().equals(ELEM_TRUE))
-        {
-            return true;
-        }
-        else if (nextTrackAttr.getName().equals(ELEM_FALSE))
-        {
-            return false;
-        }
-        else
-        {
-            handleJDOMError(nextTrackAttr, "expected <" + ELEM_TRUE + "> or <" + ELEM_FALSE
-                    + "> element not found after '" + keyName + "' key");
-
-            /*
-             * We can't get here, because handleJDOMError throws an exception.
-             * This is just to make the compiler happy.
-             */
-            return false;
-        }
     }
 
     /*

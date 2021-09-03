@@ -33,16 +33,12 @@ public class Playlist
     static
     {
         List<String> result = new ArrayList<String>();
-        result.add("Audiobooks");
-        result.add("Books");      // legacy
         result.add("Downloaded"); // may have multiple :O
-        result.add("iTunes U");   // legacy
         result.add("Library");
         result.add("Movies");
         result.add("Music");
         result.add("Podcasts");
         result.add("Purchased");
-        result.add("Tones");      // legacy
         result.add("TV Shows");
 
         DEFAULT_IGNORED_PLAYLISTS = result;
