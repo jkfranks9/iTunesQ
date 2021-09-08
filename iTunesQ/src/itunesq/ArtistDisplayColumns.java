@@ -8,12 +8,6 @@ import org.apache.pivot.wtk.TableView;
 
 /**
  * Class that represents the columns that are displayed for artists.
- * <p>
- * The following column set definitions exist:
- * <ul>
- * <li>Local - display when remote tracks are not being shown</li>
- * <li>Remote - display when remote tracks are being shown</li>
- * </ul>
  * 
  * @author Jon
  *
@@ -49,24 +43,14 @@ public class ArtistDisplayColumns
         NUM_ALTNAMES(StringConstants.ARTIST_COLUMN_NUM_ALTNAMES, "NumAltNames"),
 
         /**
-         * number of local tracks
+         * number of tracks
          */
-        LOCAL_NUM_TRACKS(StringConstants.ARTIST_COLUMN_LOCAL_TRACKS, "TotalLocalTracks"),
+        NUM_TRACKS(StringConstants.ARTIST_COLUMN_TRACKS, "TotalTracks"),
 
         /**
-         * total time of local tracks
+         * total time of tracks
          */
-        LOCAL_TOTAL_TIME(StringConstants.ARTIST_COLUMN_LOCAL_TIME, "TotalLocalTime"),
-
-        /**
-         * number of remote tracks
-         */
-        REMOTE_NUM_TRACKS(StringConstants.ARTIST_COLUMN_REMOTE_TRACKS, "TotalRemoteTracks"),
-
-        /**
-         * total time of remote tracks
-         */
-        REMOTE_TOTAL_TIME(StringConstants.ARTIST_COLUMN_REMOTE_TIME, "TotalRemoteTime");
+        TOTAL_TIME(StringConstants.ARTIST_COLUMN_TIME, "TotalTime");
 
         private String headerValue;
         private String nameValue;
@@ -109,14 +93,9 @@ public class ArtistDisplayColumns
     {
 
         /**
-         * display when remote tracks are not being shown
+         * artist display columns
          */
-        LOCAL_VIEW(),
-
-        /**
-         * display when remote tracks are being shown
-         */
-        REMOTE_VIEW();
+        ARTIST_VIEW();
 
         private List<String> headers;
         private List<String> names;
@@ -196,10 +175,8 @@ public class ArtistDisplayColumns
         Map<String, String> result = new HashMap<String, String>();
         result.put(ColumnNames.ARTIST.getNameValue(), "3*");
         result.put(ColumnNames.NUM_ALTNAMES.getNameValue(), "1*");
-        result.put(ColumnNames.LOCAL_NUM_TRACKS.getNameValue(), "1*");
-        result.put(ColumnNames.LOCAL_TOTAL_TIME.getNameValue(), "1*");
-        result.put(ColumnNames.REMOTE_NUM_TRACKS.getNameValue(), "1*");
-        result.put(ColumnNames.REMOTE_TOTAL_TIME.getNameValue(), "1*");
+        result.put(ColumnNames.NUM_TRACKS.getNameValue(), "1*");
+        result.put(ColumnNames.TOTAL_TIME.getNameValue(), "1*");
 
         COLUMN_WIDTH_MAP = result;
     }
@@ -219,12 +196,7 @@ public class ArtistDisplayColumns
      */
     public static void initializeColumnSets()
     {
-
-        /*
-         * Build the different types of column sets.
-         */
-        buildLocalColumnSet();
-        buildRemoteColumnSet();
+        buildArtistColumnSet();
     }
 
     /**
@@ -278,9 +250,9 @@ public class ArtistDisplayColumns
     }
 
     /*
-     * Build the local column set.
+     * Build the artist column set.
      */
-    private static void buildLocalColumnSet()
+    private static void buildArtistColumnSet()
     {
         List<List<String>> columnList = new ArrayList<List<String>>();
 
@@ -288,34 +260,11 @@ public class ArtistDisplayColumns
                 ColumnNames.ARTIST.getNameValue()));
         columnList.add(buildColumnData(ColumnNames.NUM_ALTNAMES.getHeaderValue(),
                 ColumnNames.NUM_ALTNAMES.getNameValue()));
-        columnList.add(buildColumnData(ColumnNames.LOCAL_NUM_TRACKS.getHeaderValue(),
-                ColumnNames.LOCAL_NUM_TRACKS.getNameValue()));
-        columnList.add(buildColumnData(ColumnNames.LOCAL_TOTAL_TIME.getHeaderValue(),
-                ColumnNames.LOCAL_TOTAL_TIME.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.NUM_TRACKS.getHeaderValue(),
+                ColumnNames.NUM_TRACKS.getNameValue()));
+        columnList.add(buildColumnData(ColumnNames.TOTAL_TIME.getHeaderValue(),
+                ColumnNames.TOTAL_TIME.getNameValue()));
 
-        ColumnSet.LOCAL_VIEW.buildColumnSet(columnList);
-    }
-
-    /*
-     * Build the remote column set.
-     */
-    private static void buildRemoteColumnSet()
-    {
-        List<List<String>> columnList = new ArrayList<List<String>>();
-
-        columnList.add(buildColumnData(ColumnNames.ARTIST.getHeaderValue(),
-                ColumnNames.ARTIST.getNameValue()));
-        columnList.add(buildColumnData(ColumnNames.NUM_ALTNAMES.getHeaderValue(),
-                ColumnNames.NUM_ALTNAMES.getNameValue()));
-        columnList.add(buildColumnData(ColumnNames.LOCAL_NUM_TRACKS.getHeaderValue(),
-                ColumnNames.LOCAL_NUM_TRACKS.getNameValue()));
-        columnList.add(buildColumnData(ColumnNames.LOCAL_TOTAL_TIME.getHeaderValue(),
-                ColumnNames.LOCAL_TOTAL_TIME.getNameValue()));
-        columnList.add(buildColumnData(ColumnNames.REMOTE_NUM_TRACKS.getHeaderValue(),
-                ColumnNames.REMOTE_NUM_TRACKS.getNameValue()));
-        columnList.add(buildColumnData(ColumnNames.REMOTE_TOTAL_TIME.getHeaderValue(),
-                ColumnNames.REMOTE_TOTAL_TIME.getNameValue()));
-
-        ColumnSet.REMOTE_VIEW.buildColumnSet(columnList);
+        ColumnSet.ARTIST_VIEW.buildColumnSet(columnList);
     }
 }

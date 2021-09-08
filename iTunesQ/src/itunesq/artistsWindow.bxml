@@ -49,7 +49,7 @@
         </columns>
 
         <!-- Informational elements row. -->
-        <TablePane.Row height="1*">
+        <TablePane.Row height="2*">
             <Border bxml:id="infoBorder">
                 <BoxPane bxml:id="infoBoxPane" orientation="horizontal">
                     <Label bxml:id="numArtistsLabel" styles="{font:{bold:true}, padding:5}" />
@@ -58,8 +58,44 @@
             </Border>
         </TablePane.Row>
 
+        <!-- Alphanumeric bar row. -->
+        <TablePane.Row height="1*">
+            <Border bxml:id="alphaBorder">
+                <BoxPane bxml:id="alphaBoxPane" orientation="horizontal" 
+                	styles="{spacing:0, padding:10, verticalAlignment:'center'}">
+                    <Label bxml:id="alphaLabel" styles="{font:{bold:true}, padding:5}" />
+                    <PushButton bxml:id="alphaAButton" buttonData=" A " />
+                    <PushButton bxml:id="alphaBButton" buttonData=" B " />
+                    <PushButton bxml:id="alphaCButton" buttonData=" C " />
+                    <PushButton bxml:id="alphaDButton" buttonData=" D " />
+                    <PushButton bxml:id="alphaEButton" buttonData=" E " />
+                    <PushButton bxml:id="alphaFButton" buttonData=" F " />
+                    <PushButton bxml:id="alphaGButton" buttonData=" G " />
+                    <PushButton bxml:id="alphaHButton" buttonData=" H " />
+                    <PushButton bxml:id="alphaIButton" buttonData=" I " />
+                    <PushButton bxml:id="alphaJButton" buttonData=" J " />
+                    <PushButton bxml:id="alphaKButton" buttonData=" K " />
+                    <PushButton bxml:id="alphaLButton" buttonData=" L " />
+                    <PushButton bxml:id="alphaMButton" buttonData=" M " />
+                    <PushButton bxml:id="alphaNButton" buttonData=" N " />
+                    <PushButton bxml:id="alphaOButton" buttonData=" O " />
+                    <PushButton bxml:id="alphaPButton" buttonData=" P " />
+                    <PushButton bxml:id="alphaQButton" buttonData=" Q " />
+                    <PushButton bxml:id="alphaRButton" buttonData=" R " />
+                    <PushButton bxml:id="alphaSButton" buttonData=" S " />
+                    <PushButton bxml:id="alphaTButton" buttonData=" T " />
+                    <PushButton bxml:id="alphaUButton" buttonData=" U " />
+                    <PushButton bxml:id="alphaVButton" buttonData=" V " />
+                    <PushButton bxml:id="alphaWButton" buttonData=" W " />
+                    <PushButton bxml:id="alphaXButton" buttonData=" X " />
+                    <PushButton bxml:id="alphaYButton" buttonData=" Y " />
+                    <PushButton bxml:id="alphaZButton" buttonData=" Z " />
+                </BoxPane>
+            </Border>
+        </TablePane.Row>
+
         <!-- Artist elements row. -->
-        <TablePane.Row height="10*">
+        <TablePane.Row height="18*">
             <Border bxml:id="artistsBorder">
                 <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
                     verticalScrollBarPolicy="fill_to_capacity">
@@ -78,7 +114,7 @@
         </TablePane.Row>
 
         <!-- Action elements (buttons) row. -->
-        <TablePane.Row height="1*">
+        <TablePane.Row height="2*">
             <Border bxml:id="actionBorder">
                 <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">

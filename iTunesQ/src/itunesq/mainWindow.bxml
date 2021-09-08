@@ -72,7 +72,10 @@
                     <!-- XML file statistics. -->
                     <Separator bxml:id="dataSeparator" />
                     <BoxPane bxml:id="dataBoxPane" orientation="horizontal" styles="{spacing:5, padding:10}">
-                        <Label bxml:id="numTracksLabel"
+                        <Label bxml:id="numAudioTracksLabel"
+                            styles="{font:{size:'120%'}, padding:5,
+               	  	    		horizontalAlignment:'left', verticalAlignment:'center'}" />
+                        <Label bxml:id="numVideoTracksLabel"
                             styles="{font:{size:'120%'}, padding:5,
                	  	    		horizontalAlignment:'left', verticalAlignment:'center'}" />
                         <Label bxml:id="numPlaylistsLabel"
@@ -91,7 +94,8 @@
             <Border bxml:id="actionBorder">
                 <BoxPane bxml:id="actionBoxPane" orientation="horizontal"
                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                    <PushButton bxml:id="viewTracksButton" />
+                    <PushButton bxml:id="viewAudioTracksButton" />
+                    <PushButton bxml:id="viewVideoTracksButton" />
                     <PushButton bxml:id="viewPlaylistsButton" />
                     <PushButton bxml:id="viewArtistsButton" />
                     <PushButton bxml:id="queryTracksButton" />

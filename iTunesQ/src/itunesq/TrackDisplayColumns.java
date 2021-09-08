@@ -138,11 +138,6 @@ public class TrackDisplayColumns
         RATING(StringConstants.TRACK_COLUMN_RATING, StringConstants.TRACK_COLUMN_RATING),
 
         /**
-         * remote track indicator
-         */
-        REMOTE(StringConstants.TRACK_COLUMN_REMOTE, StringConstants.TRACK_COLUMN_REMOTE),
-
-        /**
          * number of playlists
          */
         NUMPLAYLISTS(StringConstants.TRACK_COLUMN_NUMPLAYLISTS, "NumPlaylists");
@@ -323,7 +318,6 @@ public class TrackDisplayColumns
         result.put(ColumnNames.YEAR.getNameValue(),         "1*");
         result.put(ColumnNames.ADDED.getNameValue(),        "2*");
         result.put(ColumnNames.RATING.getNameValue(),       "1*");
-        result.put(ColumnNames.REMOTE.getNameValue(),       "1*");
         result.put(ColumnNames.NUMPLAYLISTS.getNameValue(), "1*");
 
         COLUMN_WIDTH_MAP = result;

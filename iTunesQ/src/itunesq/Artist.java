@@ -105,18 +105,10 @@ public class Artist
         String artistName = track.getArtist();
 
         /*
-         * Update the local or remote track counts and total time.
+         * Update the track counts and total time.
          */
-        if (track.getRemote() == false)
-        {
-            artistTrackData.incrementNumLocalTracks(1);
-            artistTrackData.incrementTotalLocalTime(track.getDuration());
-        }
-        else
-        {
-            artistTrackData.incrementNumRemoteTracks(1);
-            artistTrackData.incrementTotalRemoteTime(track.getDuration());
-        }
+        artistTrackData.incrementNumTracks(1);
+        artistTrackData.incrementTotalTime(track.getDuration());
 
         /*
          * The artist name could possibly be an alternate, so see if it needs to be saved.
@@ -145,36 +137,16 @@ public class Artist
 
         result.put(ArtistDisplayColumns.ColumnNames.ARTIST.getNameValue(), displayName);
 
-        /*
-         * Reduce the number of alternate names if there are remote-only artists and remote tracks
-         * are not being shown.
-         */
-        Preferences prefs = Preferences.getInstance();
-        boolean showRemoteTracks = prefs.getShowRemoteTracks();
-
         Map<String, ArtistTrackData> altNames = artistNames.getAltNames();
         int numAltNames = altNames.getCount();
-
-        for (String altName : altNames)
-        {
-            ArtistTrackData.RemoteArtistControl remoteControl = altNames.get(altName).getRemoteArtistControl();
-            if (showRemoteTracks == false && remoteControl == ArtistTrackData.RemoteArtistControl.REMOTE)
-            {
-                numAltNames--;
-            }
-        }
 
         result.put(ArtistDisplayColumns.ColumnNames.NUM_ALTNAMES.getNameValue(),
                 Integer.toString(numAltNames));
 
-        result.put(ArtistDisplayColumns.ColumnNames.LOCAL_NUM_TRACKS.getNameValue(),
-                Integer.toString(artistTrackData.getNumLocalTracks()));
-        result.put(ArtistDisplayColumns.ColumnNames.LOCAL_TOTAL_TIME.getNameValue(),
-                Utilities.convertMillisecondTime(artistTrackData.getTotalLocalTime()));
-        result.put(ArtistDisplayColumns.ColumnNames.REMOTE_NUM_TRACKS.getNameValue(),
-                Integer.toString(artistTrackData.getNumRemoteTracks()));
-        result.put(ArtistDisplayColumns.ColumnNames.REMOTE_TOTAL_TIME.getNameValue(),
-                Utilities.convertMillisecondTime(artistTrackData.getTotalRemoteTime()));
+        result.put(ArtistDisplayColumns.ColumnNames.NUM_TRACKS.getNameValue(),
+                Integer.toString(artistTrackData.getNumTracks()));
+        result.put(ArtistDisplayColumns.ColumnNames.TOTAL_TIME.getNameValue(),
+                Utilities.convertMillisecondTime(artistTrackData.getTotalTime()));
 
         return result;
     }

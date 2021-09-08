@@ -39,7 +39,29 @@ public class Track
     private Date trkReleased;
     private int trkRating;
     private List<TrackPlaylistInfo> trkPlaylists;
-    private boolean trkRemote;
+    private TrackType trackType;
+    
+    /**
+     * The type of track, for example audio or video.
+     */
+    public enum TrackType
+    {
+    	
+    	/**
+    	 * the type of track is not known
+    	 */
+    	UNKNOWN,
+    	
+    	/**
+    	 * an audio-only track
+    	 */
+        AUDIO,
+        
+        /**
+         * a video track
+         */
+        VIDEO;
+    }
 
     // ---------------- Private variables -----------------------------------
 
@@ -69,8 +91,6 @@ public class Track
                 return c1.compareTo(c2);
             }
         });
-
-        trkRemote = false;
     }
 
     // ---------------- Getters and setters ---------------------------------
@@ -324,25 +344,25 @@ public class Track
     {
         return trkPlaylists;
     }
-
+    
     /**
-     * Gets the remote track indicator.
+     * Gets the track type.
      * 
-     * @return remote track indicator
+     * @return track type
      */
-    public boolean getRemote()
+    public TrackType getTrackType()
     {
-        return trkRemote;
+    	return trackType;
     }
-
+    
     /**
-     * Sets the remote track indicator.
+     * Sets the track type.
      * 
-     * @param remote remote track indicator
+     * @param trackType track type
      */
-    public void setRemote(boolean remote)
+    public void setTrackType(TrackType trackType)
     {
-        this.trkRemote = remote;
+    	this.trackType = trackType;
     }
 
     // ---------------- Public methods --------------------------------------
@@ -423,7 +443,14 @@ public class Track
      */
     public int compareTo(Track t2)
     {
-        return this.trkName.compareTo(t2.trkName);
+    	
+    	/*
+    	 * Ignore leading "The" (case insensitive).
+    	 */
+    	String thisName = this.trkName.replaceAll("^(?i)The ", "");
+    	String thatName = t2.trkName.replaceAll("^(?i)The ", "");
+    	
+        return thisName.toLowerCase().compareTo(thatName.toLowerCase());
     }
 
     /**
@@ -478,8 +505,6 @@ public class Track
 
         result.put(TrackDisplayColumns.ColumnNames.RATING.getNameValue(),
                 Integer.toString(trkRating / RATING_DIVISOR));
-        result.put(TrackDisplayColumns.ColumnNames.REMOTE.getNameValue(),
-                (trkRemote == true) ? "Y" : "N");
 
         /*
          * Create the string of playlist names and the corresponding bypassed indicators.

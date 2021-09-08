@@ -19,6 +19,7 @@ public class ArtistAlternateNameOverride
     private String primaryArtist;
     private List<String> alternateArtists;
     private OverrideType overrideType;
+    private String overrideTypeName;
     
     /**
      * The type of artist override.
@@ -29,12 +30,32 @@ public class ArtistAlternateNameOverride
         /**
          * alternate artist name was added by the user
          */
-        MANUAL,
+        MANUAL("manual"),
         
         /**
          * automatically generated alternate artist name was removed
          */
-        AUTOMATIC;
+        AUTOMATIC("automatic");
+
+        private String displayValue;
+
+        /*
+         * Constructor.
+         */
+        private OverrideType(String s)
+        {
+            displayValue = s;
+        }
+
+        /**
+         * Gets the display value.
+         * 
+         * @return enum display value
+         */
+        public String getDisplayValue()
+        {
+            return displayValue;
+        }
     }
     
     /**
@@ -139,8 +160,26 @@ public class ArtistAlternateNameOverride
     {
         this.overrideType = overrideType;
     }
+
+    /**
+     * Gets the override type name.
+     * 
+     * @return override type name
+     */
+    public String getOverrideTypeName()
+    {
+        return overrideTypeName;
+    }
     
     //---------------- Public methods --------------------------------------
+    
+    /**
+     * Saves the override type enum name to assist serialization.
+     */
+    public void saveOverrideTypeName()
+    {
+    	this.overrideTypeName = overrideType.name();
+    }
 
     /**
      * Compares a given override to this one, used for sorting. This method

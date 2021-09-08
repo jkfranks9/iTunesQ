@@ -11,240 +11,103 @@ public class ArtistTrackData
 
     // ---------------- Class variables -------------------------------------
 
-    private Integer numLocalTracks;
-    private Integer numRemoteTracks;
-    private Integer totalLocalTime;
-    private Integer totalRemoteTime;
-    private RemoteArtistControl remoteArtistControl;
-
-    /**
-     * Control that allows us to keep track of the number of artists that
-     * contain only remote tracks. Such artists should not be counted if remote
-     * tracks are not being shown.
-     */
-    public enum RemoteArtistControl
-    {
-
-        /**
-         * artist does not contain remote tracks
-         */
-        NO_REMOTE,
-
-        /**
-         * artist contains only remote tracks
-         */
-        REMOTE,
-
-        /**
-         * artist contains local and remote tracks
-         */
-        REMOTE_AND_LOCAL;
-    }
+    private Integer numTracks;
+    private Integer totalTime;
     
     /**
      * Class constructor.
      */
     public ArtistTrackData ()
     {
-        numLocalTracks = 0;
-        numRemoteTracks = 0;
-        totalLocalTime = 0;
-        totalRemoteTime = 0;
-        remoteArtistControl = RemoteArtistControl.NO_REMOTE;
+        numTracks = 0;
+        totalTime = 0;
     }
 
     // ---------------- Getters and setters ---------------------------------
 
     /**
-     * Gets the number of local tracks for this artist.
+     * Gets the number of tracks for this artist.
      * 
-     * @return number of local tracks
+     * @return number of tracks
      */
-    public Integer getNumLocalTracks()
+    public Integer getNumTracks()
     {
-        return numLocalTracks;
+        return numTracks;
     }
 
     /**
-     * Sets the number of local tracks for this artist.
+     * Sets the number of tracks for this artist.
      * 
-     * @param numLocalTracks number of local tracks
+     * @param numTracks number of tracks
      */
-    public void setNumLocalTracks(int numLocalTracks)
+    public void setNumTracks(int numTracks)
     {
-        this.numLocalTracks = numLocalTracks;
+        this.numTracks = numTracks;
     }
 
     /**
-     * Gets the number of remote tracks for this artist.
+     * Gets the total time of tracks for this artist.
      * 
-     * @return number of remote tracks
+     * @return total time of tracks
      */
-    public Integer getNumRemoteTracks()
+    public Integer getTotalTime()
     {
-        return numRemoteTracks;
+        return totalTime;
     }
 
     /**
-     * Sets the number of remote tracks for this artist.
+     * Sets the total time of tracks for this artist.
      * 
-     * @param numRemoteTracks number of remote tracks
+     * @param totalTime total time of tracks
      */
-    public void setNumRemoteTracks(int numRemoteTracks)
+    public void setTotalTime(int totalTime)
     {
-        this.numRemoteTracks = numRemoteTracks;
-    }
-
-    /**
-     * Gets the total time of local tracks for this artist.
-     * 
-     * @return total time of local tracks
-     */
-    public Integer getTotalLocalTime()
-    {
-        return totalLocalTime;
-    }
-
-    /**
-     * Sets the total time of local tracks for this artist.
-     * 
-     * @param totalLocalTime total time of local tracks
-     */
-    public void setTotalLocalTime(int totalLocalTime)
-    {
-        this.totalLocalTime = totalLocalTime;
-    }
-
-    /**
-     * Gets the total time of remote tracks for this artist.
-     * 
-     * @return total time of remote tracks
-     */
-    public Integer getTotalRemoteTime()
-    {
-        return totalRemoteTime;
-    }
-
-    /**
-     * Sets the total time of remote tracks for this artist.
-     * 
-     * @param totalRemoteTime total time of remote tracks
-     */
-    public void setTotalRemoteTime(int totalRemoteTime)
-    {
-        this.totalRemoteTime = totalRemoteTime;
-    }
-
-    /**
-     * Gets the remote artist control. This is used to remember that we've
-     * accounted for this artist containing both local and remote tracks, and
-     * have adjusted the count of remote-only artists accordingly.
-     * 
-     * @return remote artist control
-     */
-    public RemoteArtistControl getRemoteArtistControl()
-    {
-        return remoteArtistControl;
-    }
-
-    /**
-     * Sets the remote artist control. This is used to remember that we've
-     * accounted for this artist containing both local and remote tracks, and
-     * have adjusted the count of remote-only artists accordingly.
-     * 
-     * @param remoteArtistControl remote artist control
-     */
-    public void setRemoteArtistControl(RemoteArtistControl remoteArtistControl)
-    {
-        this.remoteArtistControl = remoteArtistControl;
+        this.totalTime = totalTime;
     }
 
     // ---------------- Public methods --------------------------------------
     
     /**
-     * Increments the number of local tracks for this artist.
+     * Increments the number of tracks for this artist.
      * 
-     * @param increment amount to be added to the number of local
+     * @param increment amount to be added to the number of 
      * tracks for this artist
      */
-    public void incrementNumLocalTracks (int increment)
+    public void incrementNumTracks (int increment)
     {
-        numLocalTracks += increment;
+        numTracks += increment;
     }
     
     /**
-     * Decrements the number of local tracks for this artist.
+     * Decrements the number of tracks for this artist.
      * 
-     * @param decrement amount to be subtracted from the number of local
+     * @param decrement amount to be subtracted from the number of 
      * tracks for this artist
      */
-    public void decrementNumLocalTracks (int decrement)
+    public void decrementNumTracks (int decrement)
     {
-        numLocalTracks -= decrement;
+        numTracks -= decrement;
     }
     
     /**
-     * Increments the number of remote tracks for this artist.
+     * Increments the total time of tracks for this artist.
      * 
-     * @param increment amount to be added to the number of remote
-     * tracks for this artist
-     */
-    public void incrementNumRemoteTracks (int increment)
-    {
-        numRemoteTracks += increment;
-    }
-    
-    /**
-     * Decrements the number of remote tracks for this artist.
-     * 
-     * @param decrement amount to be subtracted from the number of remote
-     * tracks for this artist
-     */
-    public void decrementNumRemoteTracks (int decrement)
-    {
-        numRemoteTracks -= decrement;
-    }
-    
-    /**
-     * Increments the total time of local tracks for this artist.
-     * 
-     * @param increment time to be added to the total time of local 
+     * @param increment time to be added to the total time of  
      * tracks
      */
-    public void incrementTotalLocalTime (int increment)
+    public void incrementTotalTime (int increment)
     {
-        totalLocalTime += increment;
+        totalTime += increment;
     }
     
     /**
-     * Decrements the total time of local tracks for this artist.
+     * Decrements the total time of tracks for this artist.
      * 
-     * @param decrement time to be subtracted from the total time of local 
+     * @param decrement time to be subtracted from the total time of  
      * tracks
      */
-    public void decrementTotalLocalTime (int decrement)
+    public void decrementTotalTime (int decrement)
     {
-        totalLocalTime -= decrement;
-    }
-
-    /**
-     * Increments the total time of remote tracks for this artist.
-     * 
-     * @param increment time to be added to the total time of remote tracks
-     */
-    public void incrementTotalRemoteTime (int increment)
-    {
-        totalRemoteTime += increment;
-    }
-    
-    /**
-     * Decrements the total time of remote tracks for this artist.
-     * 
-     * @param decrement time to be subtracted from the remote time of local 
-     * tracks
-     */
-    public void decrementTotalRemoteTime (int decrement)
-    {
-        totalRemoteTime -= decrement;
+        totalTime -= decrement;
     }
 }

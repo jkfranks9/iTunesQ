@@ -252,13 +252,6 @@ public class PlaylistsWindow
 
                 if (trackIDs != null)
                 {
-
-                    /*
-                     * Get the show remote tracks preference.
-                     */
-                    Preferences prefs = Preferences.getInstance();
-                    boolean showRemoteTracks = prefs.getShowRemoteTracks();
-
                     int trackNum = 0;
 
                     for (Integer trackID : trackIDs)
@@ -269,15 +262,6 @@ public class PlaylistsWindow
                          */
                         Integer trackIndex = XMLHandler.getTracksMap().get(trackID);
                         Track track = XMLHandler.getTracks().get(trackIndex);
-
-                        /*
-                         * Skip remote tracks if the user doesn't want to see
-                         * them.
-                         */
-                        if (track.getRemote() == true && showRemoteTracks == false)
-                        {
-                            continue;
-                        }
 
                         playlistLogger.debug("track ID " + trackID + ", index " + trackIndex + ", name "
                                 + track.getName() + " found");

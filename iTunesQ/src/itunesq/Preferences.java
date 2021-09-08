@@ -66,7 +66,6 @@ public final class Preferences
      * - list of bypass playlist preferences 
      * - list of ignored playlist preferences 
      * - various track column sets 
-     * - show remote tracks flag 
      * - skin name 
      * - maximum log file history 
      * - global log level flag 
@@ -81,7 +80,6 @@ public final class Preferences
     private List<List<String>> trackColumnsDuplicatesView;
     private List<List<String>> trackColumnsFilteredView;
     private List<List<String>> trackColumnsPlaylistView;
-    private boolean showRemoteTracks;
     private String skinName;
     private int maxLogHistory;
     private boolean globalLogLevel;
@@ -143,8 +141,6 @@ public final class Preferences
          */
         bypassPrefs = new ArrayList<BypassPreference>();
         ignoredPrefs = new ArrayList<String>(Playlist.DEFAULT_IGNORED_PLAYLISTS);
-
-        showRemoteTracks = false;
 
         maxLogHistory = InternalConstants.DEFAULT_MAX_HISTORY;
 
@@ -287,26 +283,6 @@ public final class Preferences
     public void setTrackColumnsPlaylistView(List<List<String>> trackColumnsPlaylistView)
     {
         this.trackColumnsPlaylistView = trackColumnsPlaylistView;
-    }
-
-    /**
-     * Gets the show remote tracks indicator.
-     * 
-     * @return show remote tracks indicator
-     */
-    public boolean getShowRemoteTracks()
-    {
-        return showRemoteTracks;
-    }
-
-    /**
-     * Sets the show remote tracks indicator.
-     * 
-     * @param showRemoteTracks show remote tracks indicator
-     */
-    public void setShowRemoteTracks(boolean showRemoteTracks)
-    {
-        this.showRemoteTracks = showRemoteTracks;
     }
 
     /**
@@ -882,7 +858,6 @@ public final class Preferences
         {
             this.trackColumnsPlaylistView = prefs.trackColumnsPlaylistView;
         }
-        this.showRemoteTracks = prefs.showRemoteTracks;
         this.skinName = prefs.skinName;
         this.maxLogHistory = prefs.maxLogHistory;
         this.globalLogLevel = prefs.globalLogLevel;
@@ -923,6 +898,27 @@ public final class Preferences
             prefsInputStream = new FileInputStream(prefsFile);
             reader = new JsonReader(prefsInputStream);
             prefs = (Preferences) reader.readObject();
+
+            /*
+             * Restore the override type Enum from the serialized name.
+             */
+        	for (ArtistAlternateNameOverride override : prefs.artistOverrides)
+        	{
+        		String typeName = override.getOverrideTypeName();
+        		switch (typeName)
+        		{
+        		case "MANUAL":
+            		override.setOverrideType(ArtistAlternateNameOverride.OverrideType.MANUAL);
+            		break;
+            		
+        		case "AUTOMATIC":
+            		override.setOverrideType(ArtistAlternateNameOverride.OverrideType.AUTOMATIC);
+            		break;
+            		
+            	default:
+                    throw new InternalErrorException(true, "unknown override type name '" + typeName + "'");
+        		}
+        	}
         }
         catch (FileNotFoundException e)
         {
@@ -956,11 +952,48 @@ public final class Preferences
 
         FileOutputStream prefsOutputStream = null;
         JsonWriter writer = null;
+        
+        /*
+         * Artist overrides contain an Enum. Serializing an Enum seems to be problematic, so save 
+         * its name and blacklist the Enum. Note that we need to use Java constructs here 
+         * because JsonWriter needs them. 
+         */
+    	java.util.Map<String, Object> args = new java.util.HashMap<String, Object>();
+    	if (artistOverrides.getLength() > 0)
+        {
+    		
+    		/*
+    		 * We need the artist override class, so save it when we process the first override.
+    		 */
+        	Class<? extends ArtistAlternateNameOverride> overrideClass = null;
+        	
+        	for (ArtistAlternateNameOverride override : artistOverrides)
+        	{
+        		override.saveOverrideTypeName();
+        		if (overrideClass == null)
+        		{
+        			overrideClass = override.getClass();
+        		}
+        	}
+
+        	/*
+        	 * Build the argument list for the JsonWriter.
+        	 */
+        	java.util.List<String> blacklistFields = new java.util.ArrayList<String>();
+        	@SuppressWarnings("rawtypes")
+        	java.util.Map<Class, java.util.List<String>> blacklist = 
+        		new java.util.HashMap<Class, java.util.List<String>>();
+
+        	blacklistFields.add("overrideType");
+        	blacklist.put(overrideClass, blacklistFields);
+        	args.put(JsonWriter.FIELD_NAME_BLACK_LIST, blacklist);
+        }
 
         try
         {
             prefsOutputStream = new FileOutputStream(prefsFile);
-            writer = new JsonWriter(prefsOutputStream);
+            writer = new JsonWriter(prefsOutputStream, args);
+            
             writer.write(this);
         }
         finally
@@ -1120,12 +1153,6 @@ public final class Preferences
             }
             output.append(lineSeparator);
         }
-
-        /*
-         * Show remote tracks flag.
-         */
-        output.append(String.format("%2d", ++itemNum) + ") " + "Show remote tracks:" + lineSeparator);
-        output.append(indent + showRemoteTracks + lineSeparator);
 
         /*
          * Skin name.

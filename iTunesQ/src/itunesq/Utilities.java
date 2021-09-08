@@ -36,7 +36,8 @@ public final class Utilities
     // ---------------- Private variables -----------------------------------
 
     private static Label fileLabel = null;
-    private static Label numTracksLabel = null;
+    private static Label numAudioTracksLabel = null;
+    private static Label numVideoTracksLabel = null;
     private static Label numPlaylistsLabel = null;
     private static Label numArtistsLabel = null;
 
@@ -332,13 +333,23 @@ public final class Utilities
     }
 
     /**
-     * Saves the number of tracks label for the main window.
+     * Saves the number of audio tracks label for the main window.
      * 
-     * @param label number of tracks label
+     * @param label number of audio tracks label
      */
-    public static void saveNumTracksLabel(Label label)
+    public static void saveNumAudioTracksLabel(Label label)
     {
-        numTracksLabel = label;
+        numAudioTracksLabel = label;
+    }
+
+    /**
+     * Saves the number of video tracks label for the main window.
+     * 
+     * @param label number of video tracks label
+     */
+    public static void saveNumVideoTracksLabel(Label label)
+    {
+        numVideoTracksLabel = label;
     }
 
     /**
@@ -366,7 +377,7 @@ public final class Utilities
      * 
      * @param xmlFileName name of the XML file to be processed
      * @param owningWindow owning window
-     * @throws IOException If an error occurs trying to read the iTunes XML
+     * @throws IOException If an error occurs trying to read the XML
      * file.
      */
     public static void updateFromXMLFile(String xmlFileName, Window owningWindow) 
@@ -439,17 +450,19 @@ public final class Utilities
      * <code>updateFromXMLFile</code> also calls this method. All this so I
      * don't have to repeat this code in two places.
      * 
-     * @param xmlFileName iTunes XML file name
+     * @param xmlFileName XML file name
      */
     public static void updateMainWindowLabels(String xmlFileName)
     {
         fileLabel.setText(xmlFileName + StringConstants.UTILITY_XMLFILE_DATE 
                 + XMLHandler.getXMLFileTimestamp());
-        numTracksLabel.setText(StringConstants.UTILITY_NUMTRACKS 
-                + Integer.toString(XMLHandler.getNumberOfTracks()));
-        numPlaylistsLabel.setText(StringConstants.UTILITY_NUMPLAYLISTS 
+        numAudioTracksLabel.setText(StringConstants.UTILITY_NUM_AUDIO_TRACKS 
+                + Integer.toString(XMLHandler.getNumberOfAudioTracks()));
+        numVideoTracksLabel.setText(StringConstants.UTILITY_NUM_VIDEO_TRACKS 
+                + Integer.toString(XMLHandler.getNumberOfVideoTracks()));
+        numPlaylistsLabel.setText(StringConstants.UTILITY_NUM_PLAYLISTS 
                 + Integer.toString(XMLHandler.getNumberOfPlaylists()));
-        numArtistsLabel.setText(StringConstants.UTILITY_NUMARTISTS 
+        numArtistsLabel.setText(StringConstants.UTILITY_NUM_ARTISTS 
                 + Integer.toString(XMLHandler.getNumberOfArtists()));
     }
 

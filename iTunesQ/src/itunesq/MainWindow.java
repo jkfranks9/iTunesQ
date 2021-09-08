@@ -47,9 +47,9 @@ import ch.qos.logback.classic.Logger;
 /**
  * Class that represents the Apache Pivot application for the iTunes Query Tool.
  * <p>
- * This application operates on the XML file containing iTunes library tracks
- * and playlists. The XML file is exported by the iTunes application. As such,
- * this application does not have access to the actual iTunes songs, album art,
+ * This application operates on the XML file containing music library tracks
+ * and playlists. The XML file is exported by the library application. As such,
+ * this application does not have access to the actual songs, album art,
  * and so on. The layout of, and access to, all that stuff is proprietary.
  * <p>
  * What this application provides is the following:
@@ -83,9 +83,11 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
     private static DiagTrigger diagTrigger = null;
     private static final String DIAG_TRIGGER_PROPERTY_KEY = "diag-trigger";
 
-    /*
+    /**
      * Diagnostic trigger, to enable breakpoints based on item names, or special logging.
-     * 
+     */
+    
+    /*
      * Details:
      * 
      *   - The diag trigger is passed as a program argument of the form: --diag-trigger=artist (for example).
@@ -111,12 +113,40 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
      */
     public enum DiagTrigger
     {
-        NONE("none"), 
+    	
+    	/**
+    	 * no diagnostic trigger in use
+    	 */
+        NONE("none"),
+        
+        /**
+         * diagnose tracks
+         */
         TRACK("track"), 
-        PLAYLIST("playlist"), 
+        
+        /**
+         * diagnose playlists
+         */
+        PLAYLIST("playlist"),
+        
+        /**
+         * diagnose artists
+         */
         ARTIST("artist"), 
+        
+        /**
+         * activate additional logging for the skins component
+         */
         SKIN_LOGGING("skin"), 
+        
+        /**
+         * activate additional logging for the logging component
+         */
         LOGGER_LOGGING("logger"), 
+        
+        /**
+         * activate specific log level for a component during startup
+         */
         FORCE_LOGLEVEL("loglevel");
 
         private String displayValue;
@@ -129,16 +159,21 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
             displayValue = s;
         }
 
-        /*
-         * Get the display value.
+        /**
+         * Gets the display value.
+         * 
+         * @return the display value
          */
         public String getDisplayValue()
         {
             return displayValue;
         }
 
-        /*
-         * Perform a reverse lookup of the <code>enum</code> from the display value.
+        /**
+         * Performs a reverse lookup of the <code>enum</code> from the display value.
+         * 
+         * @param value display value to look up
+         * @return <code>enum</code>
          */
         public static DiagTrigger getEnum(String value)
         {
@@ -183,12 +218,14 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
     @BXML private Label fileLabel = null;
     @BXML private Separator dataSeparator = null;
     @BXML private BoxPane dataBoxPane = null;
-    @BXML private Label numTracksLabel = null;
+    @BXML private Label numAudioTracksLabel = null;
+    @BXML private Label numVideoTracksLabel = null;
     @BXML private Label numPlaylistsLabel = null;
     @BXML private Label numArtistsLabel = null;
     @BXML private Border actionBorder = null;
     @BXML private BoxPane actionBoxPane = null;
-    @BXML private static PushButton viewTracksButton = null;
+    @BXML private static PushButton viewAudioTracksButton = null;
+    @BXML private static PushButton viewVideoTracksButton = null;
     @BXML private static PushButton viewPlaylistsButton = null;
     @BXML private static PushButton viewArtistsButton = null;
     @BXML private static PushButton queryTracksButton = null;
@@ -444,7 +481,8 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          * other windows.
          */
         Utilities.saveFileLabel(fileLabel);
-        Utilities.saveNumTracksLabel(numTracksLabel);
+        Utilities.saveNumAudioTracksLabel(numAudioTracksLabel);
+        Utilities.saveNumVideoTracksLabel(numVideoTracksLabel);
         Utilities.saveNumPlaylistsLabel(numPlaylistsLabel);
         Utilities.saveNumArtistsLabel(numArtistsLabel);
 
@@ -488,9 +526,12 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         titleLabel.setText(StringConstants.SKIN_WINDOW_MAIN);
         fileSeparator.setHeading(StringConstants.MAIN_XML_FILE_INFO);
         dataSeparator.setHeading(StringConstants.MAIN_XML_FILE_STATS);
-        viewTracksButton.setButtonData(StringConstants.MAIN_VIEW_TRACKS);
-        viewTracksButton.setTooltipText(StringConstants.MAIN_VIEW_TRACKS_TIP);
-        viewTracksButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        viewAudioTracksButton.setButtonData(StringConstants.MAIN_VIEW_AUDIO_TRACKS);
+        viewAudioTracksButton.setTooltipText(StringConstants.MAIN_VIEW_AUDIO_TRACKS_TIP);
+        viewAudioTracksButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        viewVideoTracksButton.setButtonData(StringConstants.MAIN_VIEW_VIDEO_TRACKS);
+        viewVideoTracksButton.setTooltipText(StringConstants.MAIN_VIEW_VIDEO_TRACKS_TIP);
+        viewVideoTracksButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         viewPlaylistsButton.setButtonData(StringConstants.MAIN_VIEW_PLAYLISTS);
         viewPlaylistsButton.setTooltipText(StringConstants.MAIN_VIEW_PLAYLISTS_TIP);
         viewPlaylistsButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
@@ -573,7 +614,8 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
      */
     public static void updateMainButtonsState(boolean state)
     {
-        viewTracksButton.setEnabled(state);
+        viewAudioTracksButton.setEnabled(state);
+        viewVideoTracksButton.setEnabled(state);
         viewPlaylistsButton.setEnabled(state);
         viewArtistsButton.setEnabled(state);
         queryTracksButton.setEnabled(state);
@@ -775,19 +817,44 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         logger.trace("createEventHandlers: " + this.hashCode());
 
         /*
-         * Listener to handle the view tracks button press.
+         * Listener to handle the view audio tracks button press.
          */
-        viewTracksButton.getButtonPressListeners().add(new ButtonPressListener()
+        viewAudioTracksButton.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
             {
-                logger.info("view tracks button pressed");
+                logger.info("view audio tracks button pressed");
 
                 try
                 {
                     TracksWindow tracksWindowHandler = new TracksWindow();
-                    tracksWindowHandler.displayTracks(display, XMLHandler.getTracks(), null);
+                    tracksWindowHandler.displayTracks(display, Skins.Window.AUDIO_TRACKS, 
+                    		XMLHandler.getTracksFromMap(XMLHandler.getAudioTracksMap()), null);
+                }
+                catch (IOException | SerializationException e)
+                {
+                    logException(logger, e);
+                    throw new InternalErrorException(true, e.getMessage());
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the view video tracks button press.
+         */
+        viewVideoTracksButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("view video tracks button pressed");
+
+                try
+                {
+                    TracksWindow tracksWindowHandler = new TracksWindow();
+                    tracksWindowHandler.displayTracks(display, Skins.Window.VIDEO_TRACKS, 
+                    		XMLHandler.getTracksFromMap(XMLHandler.getVideoTracksMap()), null);
                 }
                 catch (IOException | SerializationException e)
                 {
@@ -960,7 +1027,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
             copyFileToZip(Preferences.getPrefsFilePath(), zipStream);
 
             /*
-             * Copy the iTunes XML file.
+             * Copy the XML file.
              */
             copyFileToZip(userPrefs.getXMLFileName(), zipStream);
 
@@ -1128,9 +1195,12 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         dataBoxPane = 
                 (BoxPane) windowSerializer.getNamespace().get("dataBoxPane");
         components.add(dataBoxPane);
-        numTracksLabel = 
-                (Label) windowSerializer.getNamespace().get("numTracksLabel");
-        components.add(numTracksLabel);
+        numAudioTracksLabel = 
+                (Label) windowSerializer.getNamespace().get("numAudioTracksLabel");
+        components.add(numAudioTracksLabel);
+        numVideoTracksLabel = 
+                (Label) windowSerializer.getNamespace().get("numVideoTracksLabel");
+        components.add(numVideoTracksLabel);
         numPlaylistsLabel = 
                 (Label) windowSerializer.getNamespace().get("numPlaylistsLabel");
         components.add(numPlaylistsLabel);
@@ -1143,9 +1213,12 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         actionBoxPane = 
                 (BoxPane) windowSerializer.getNamespace().get("actionBoxPane");
         components.add(actionBoxPane);
-        viewTracksButton = 
-                (PushButton) windowSerializer.getNamespace().get("viewTracksButton");
-        components.add(viewTracksButton);
+        viewAudioTracksButton = 
+                (PushButton) windowSerializer.getNamespace().get("viewAudioTracksButton");
+        components.add(viewAudioTracksButton);
+        viewVideoTracksButton = 
+                (PushButton) windowSerializer.getNamespace().get("viewVideoTracksButton");
+        components.add(viewVideoTracksButton);
         viewPlaylistsButton = 
                 (PushButton) windowSerializer.getNamespace().get("viewPlaylistsButton");
         components.add(viewPlaylistsButton);

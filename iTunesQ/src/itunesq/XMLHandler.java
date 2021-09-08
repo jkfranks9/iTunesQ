@@ -27,13 +27,13 @@ import org.slf4j.LoggerFactory;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that reads and processes the iTunes XML file.
+ * Class that reads and processes the XML file.
  * <p>
  * This is a final class consisting entirely of static methods.
  * <p>
  * The main public method is <code>processXML</code>, that uses JDOM to walk
- * through the XML file. I'd like to note that the iTunes XML is rather
- * ridiculous and difficult to work with. Just saying.
+ * through the XML file. I'd like to note that the XML file (original iTunes 
+ * design) is rather ridiculous and difficult to work with. Just saying.
  * 
  * @author Jon
  *
@@ -44,17 +44,19 @@ public final class XMLHandler
     // ---------------- Class variables -------------------------------------
 
     /*
-     * The list of tracks; just a simple list.
+     * The list of all tracks; just a simple list.
      */
     private static ArrayList<Track> tracks = null;
 
     /*
-     * The tracks map is a map of the track ID to its index value in the tracks
-     * list. This means it can't be created until the entire list has been
+     * The different tracks maps are a map of the track ID to its index value in the 
+     * all tracks list. This means it can't be created until the entire list has been
      * created and sorted. This map facilitates quick searches of a track given
      * its track ID (tracks within a playlist are identified only by ID).
      */
     private static Map<Integer, Integer> tracksMap = null;
+    private static Map<Integer, Integer> audioTracksMap = null;
+    private static Map<Integer, Integer> videoTracksMap = null;
 
     /*
      * The duplicates map is a map of the track name to a list of track IDs.
@@ -117,9 +119,7 @@ public final class XMLHandler
     private static Preferences userPrefs = Preferences.getInstance();
 
     private static Date XMLDate = null;
-
-    private static Integer remoteTracksCount = 0;
-    private static Integer remoteArtistsCount = 0;
+    private static Map<String, Integer> codecStats = null;
 
     /*
      * Static string definitions for the XML file.
@@ -136,25 +136,45 @@ public final class XMLHandler
     private static final String KEY_TRACKS = "Tracks";
 
     // ---------------- Getters and setters ---------------------------------
-
+    
     /**
-     * Gets the list of tracks found in the input XML file.
+     * Gets the list of all tracks.
      * 
-     * @return list of tracks
+     * @return list of all tracks
      */
     public static List<Track> getTracks()
     {
         return tracks;
     }
-
+    
     /**
-     * Gets the mapping of track IDs to track list indices.
+     * Gets the mapping of all track IDs to track list indices, regardless of type.
      * 
-     * @return mapping of track IDs to indices
+     * @return mapping of all track IDs to track list indices
      */
     public static Map<Integer, Integer> getTracksMap()
     {
         return tracksMap;
+    }
+
+    /**
+     * Gets the mapping of audio track IDs to track list indices.
+     * 
+     * @return mapping of audio track IDs to indices
+     */
+    public static Map<Integer, Integer> getAudioTracksMap()
+    {
+        return audioTracksMap;
+    }
+
+    /**
+     * Gets the mapping of video track IDs to track list indices.
+     * 
+     * @return mapping of video track IDs to indices
+     */
+    public static Map<Integer, Integer> getVideoTracksMap()
+    {
+        return videoTracksMap;
     }
 
     /**
@@ -230,28 +250,62 @@ public final class XMLHandler
         logging.registerLogger(Logging.Dimension.PLAYLIST, playlistLogger);
         logging.registerLogger(Logging.Dimension.ARTIST, artistLogger);
     }
+    
+    /**
+     * Gets a list of tracks based on a tracks map.
+     * 
+     * @param tracksMap map of track ID to index in the all tracks list
+     * @return list of tracks
+     */
+    public static List<Track> getTracksFromMap(Map<Integer, Integer> tracksMap)
+    {
+    	List<Track> trackList = new ArrayList<Track>();
+    	trackList.setComparator(new Comparator<Track>()
+        {
+            @Override
+            public int compare(Track t1, Track t2)
+            {
+                return t1.compareTo(t2);
+            }
+        });
+    	
+    	for (Integer ID : tracksMap)
+    	{
+    		Integer index = tracksMap.get(ID);
+    		trackList.add(tracks.get(index));
+    	}
+    	
+    	return trackList;
+    }
 
     /**
-     * Gets the number of tracks found in the input XML file. This is reduced by
-     * the number of remote tracks if <code>Show Remote Tracks</code> is not
-     * checked in the user preferences.
+     * Gets the number of all tracks found in the input XML file.
      * 
-     * @return number of tracks
+     * @return number of all tracks
      */
     public static int getNumberOfTracks()
     {
-        int numTracks = 0;
+        return (tracks != null) ? tracks.getLength() : 0;
+    }
 
-        if (tracks != null)
-        {
-            numTracks = tracks.getLength();
-            if (userPrefs.getShowRemoteTracks() == false)
-            {
-                numTracks -= remoteTracksCount;
-            }
-        }
+    /**
+     * Gets the number of audio tracks found in the input XML file.
+     * 
+     * @return number of audio tracks
+     */
+    public static int getNumberOfAudioTracks()
+    {
+        return (audioTracksMap != null) ? audioTracksMap.getCount() : 0;
+    }
 
-        return numTracks;
+    /**
+     * Gets the number of video tracks found in the input XML file.
+     * 
+     * @return number of video tracks
+     */
+    public static int getNumberOfVideoTracks()
+    {
+        return (videoTracksMap != null) ? videoTracksMap.getCount() : 0;
     }
 
     /**
@@ -266,26 +320,13 @@ public final class XMLHandler
     }
 
     /**
-     * Gets the number of artist names found in the input XML file. This is
-     * reduced by the number of artists with only remote tracks if
-     * <code>Show Remote Tracks</code> is not checked in the user preferences.
+     * Gets the number of artist names found in the input XML file.
      * 
      * @return number of artists
      */
     public static int getNumberOfArtists()
     {
-        int numArtists = 0;
-
-        if (artists != null)
-        {
-            numArtists = artists.getCount();
-            if (userPrefs.getShowRemoteTracks() == false)
-            {
-                numArtists -= remoteArtistsCount;
-            }
-        }
-
-        return numArtists;
+        return (artists != null) ? artists.getCount() : 0;
     }
 
     /**
@@ -353,7 +394,7 @@ public final class XMLHandler
      * Reads and processes the XML file.
      * 
      * @param xmlFileName XML file name
-     * @throws IOException If an error occurs trying to read the iTunes XML
+     * @throws IOException If an error occurs trying to read the XML
      * file.
      */
     public static void processXML(String xmlFileName) 
@@ -705,15 +746,11 @@ public final class XMLHandler
          * the data for the removed alternate), and the alternate artist (by using the artist track 
          * data retrieved above).
          */
-        primaryArtistObj.getArtistTrackData().decrementNumLocalTracks(altTrackData.getNumLocalTracks());
-        primaryArtistObj.getArtistTrackData().decrementNumRemoteTracks(altTrackData.getNumRemoteTracks());
-        primaryArtistObj.getArtistTrackData().decrementTotalLocalTime(altTrackData.getTotalLocalTime());
-        primaryArtistObj.getArtistTrackData().decrementTotalRemoteTime(altTrackData.getTotalRemoteTime());
+        primaryArtistObj.getArtistTrackData().decrementNumTracks(altTrackData.getNumTracks());
+        primaryArtistObj.getArtistTrackData().decrementTotalTime(altTrackData.getTotalTime());
         
-        altArtistObj.getArtistTrackData().setNumLocalTracks(altTrackData.getNumLocalTracks());
-        altArtistObj.getArtistTrackData().setNumRemoteTracks(altTrackData.getNumRemoteTracks());
-        altArtistObj.getArtistTrackData().setTotalLocalTime(altTrackData.getTotalLocalTime());
-        altArtistObj.getArtistTrackData().setTotalRemoteTime(altTrackData.getTotalRemoteTime());
+        altArtistObj.getArtistTrackData().setNumTracks(altTrackData.getNumTracks());
+        altArtistObj.getArtistTrackData().setTotalTime(altTrackData.getTotalTime());
     }
     
     /**
@@ -761,19 +798,13 @@ public final class XMLHandler
         trackLogger.trace("generateTracks");
 
         /*
-         * Reset the remote tracks and remote artists count.
-         */
-        remoteTracksCount = 0;
-        remoteArtistsCount = 0;
-
-        /*
          * Get a list of the XML tracks to work with.
          */
         List<Element> tracksXML = javaListToPivotList(tracksHolder);
 
         /*
-         * We collect all the tracks into a ArrayList of type Track. Initialize
-         * it now. Also, make sure it's sorted by track name.
+         * We collect all the tracks into an ArrayList of type Track. Initialize
+         * the audio, video and all lists now. Also, make sure they're sorted by track name.
          */
         tracks = new ArrayList<Track>();
         tracks.setComparator(new Comparator<Track>()
@@ -786,10 +817,12 @@ public final class XMLHandler
         });
 
         /*
-         * To be able to find a given track easily, we also create a HashMap of
-         * the track ID to the index in the above ArrayList.
+         * To be able to find a given track easily, we also create HashMaps of
+         * the track ID to the index in the track list.
          */
         tracksMap = new HashMap<Integer, Integer>();
+        audioTracksMap = new HashMap<Integer, Integer>();
+        videoTracksMap = new HashMap<Integer, Integer>();
 
         /*
          * Initialize the duplicates map as well.
@@ -814,13 +847,21 @@ public final class XMLHandler
          * Initialize the artists map.
          */
         artists = new HashMap<Integer, Artist>();
+        
+        /*
+         * Initialize the codecs map.
+         */
+        codecStats = new HashMap<String, Integer>();
+        codecStats.setComparator(String.CASE_INSENSITIVE_ORDER);
 
         /*
          * Walk through the elements of the parent <dict> element.
          * 
          * This is tricky stuff. Each track consists of a pair of sibling
-         * elements: - <key>ID number</key> - <dict> element, whose children are
-         * the attributes of the track.
+         * elements: 
+         * 
+         * - <key>ID number</key> 
+         * - <dict> ... </dict>  (whose children are the attributes of the track)
          * 
          * We walk all the children expecting this structure, so we use
          * variables that are expected to be set when the ID key is found, then
@@ -917,7 +958,48 @@ public final class XMLHandler
                             break;
 
                         case "Kind":
-                            trackObj.setKind(nextStringValue(trackChildIter, keyValue));
+                        	String kind = nextStringValue(trackChildIter, keyValue);
+                            trackObj.setKind(kind);
+                            
+                            /*
+                             * Get the codec name, for example AAC. Change MPEG to MP3 since it's more common.
+                             */
+                            String[] kindWords = kind.split(" ");
+                            String codec = kindWords[0];
+                            if (codec.equals("MPEG"))
+                            {
+                            	codec = "MP3";
+                            }
+                            
+                            /*
+                             * Accumulate a count of each codec discovered.
+                             */
+                            Integer codecNum = codecStats.get(codec);
+                            if (codecNum != null)
+                            {
+                            	codecStats.put(codec, ++codecNum);
+                            }
+                            else
+                            {
+                            	codecStats.put(codec, 1);
+                            }
+                            
+                            /*
+                             * Set the type of track. A kind that doesn't match any known type will 
+                             * result in a warning when creating the tracks map, and audio will be assumed.
+                             */
+                            if (kind.toLowerCase().contains("audio"))
+                            {
+                            	trackObj.setTrackType(Track.TrackType.AUDIO);
+                            }
+                            else if (kind.toLowerCase().contains("video"))
+                            {
+                            	trackObj.setTrackType(Track.TrackType.VIDEO);
+                            }
+                            else
+                            {
+                            	trackObj.setTrackType(Track.TrackType.UNKNOWN);
+                            }
                             break;
 
                         case "Size":
@@ -960,14 +1042,6 @@ public final class XMLHandler
                             trackObj.setRating(nextIntValue(trackChildIter, keyValue));
                             break;
 
-                        case "Track Type":
-                            if (nextStringValue(trackChildIter, keyValue).equals("Remote"))
-                            {
-                                trackObj.setRemote(true);
-                                remoteTracksCount++;
-                            }
-                            break;
-
                         /*
                          * We need to skip over the sibling element for all
                          * attributes we don't process.
@@ -988,6 +1062,9 @@ public final class XMLHandler
                  * do this before adding it to the main tracks list, to avoid
                  * false duplicates.
                  */
+                boolean trackLogged = false;
+                Track.TrackType trackType = trackObj.getTrackType();
+                
                 int index = ArrayList.binarySearch(tracks, trackObj, tracks.getComparator());
                 if (index >= 0)
                 {
@@ -1004,16 +1081,20 @@ public final class XMLHandler
                                 + "', track ID " + foundID);
                     }
                     trackIDs.add(thisID);
-                    trackLogger.debug("added track ID " + thisID + " to track '" + trackName + "'");
+                    trackLogger.debug("added track ID " + thisID + " type " + trackType + " to track '" + trackName + "'");
+                    trackLogged = true;
 
                     duplicatesMap.put(trackName, trackIDs);
                 }
-
+                
                 /*
-                 * Add the track object to the list.
+                 * Add the track object to the all tracks list.
                  */
                 tracks.add(trackObj);
-                trackLogger.debug("found track ID " + ID + ", name '" + trackObj.getName() + "'");
+                if (trackLogged == false)
+                {
+                	trackLogger.debug("found track ID " + ID + " type " + trackType + ", name '" + trackObj.getName() + "'");
+                }
             }
             else
             {
@@ -1063,23 +1144,6 @@ public final class XMLHandler
                     artists.put(correlator, artistObj);
                     artistLogger.debug("found artist name '" + artist + "', normalized '"
                             + normalizedName + "'");
-
-                    /*
-                     * This is tricky. We need to keep a count of artists that
-                     * ONLY contain remote tracks, so we can adjust the artist
-                     * count if remote tracks are not being shown. So we bump
-                     * the remote artists count here if this track is remote. On
-                     * the else leg we're hitting the same artist again, so if
-                     * that track is local, we then decrement the remote artists
-                     * count. And then remember that fact using a flag in the
-                     * artist track data object. A thing of beauty, yes?
-                     */
-                    if (trackObj.getRemote() == true)
-                    {
-                        remoteArtistsCount++;
-                        artistObj.getArtistTrackData().setRemoteArtistControl(
-                                ArtistTrackData.RemoteArtistControl.REMOTE);
-                    }
                 }
 
                 /*
@@ -1095,18 +1159,6 @@ public final class XMLHandler
                     artists.put(artistCorr.getArtistKey(), artistObj);
                     artistLogger.debug("updated existing artist name '" + artist + "', normalized '"
                             + normalizedName + "'");
-
-                    /*
-                     * See comment above in the if leg.
-                     */
-                    if (trackObj.getRemote() == false && 
-                            artistObj.getArtistTrackData().getRemoteArtistControl() == 
-                            ArtistTrackData.RemoteArtistControl.REMOTE)
-                    {
-                        remoteArtistsCount--;
-                        artistObj.getArtistTrackData().setRemoteArtistControl(
-                                ArtistTrackData.RemoteArtistControl.REMOTE_AND_LOCAL);
-                    }
                 }
             }
 
@@ -1118,7 +1170,7 @@ public final class XMLHandler
         }
 
         /*
-         * Generate the track ID to index mapping. We have to wait until all
+         * Generate the track ID to index mappings. We have to wait until all
          * tracks have been found and sorted in order for the indices to be
          * correct.
          */
@@ -1126,8 +1178,30 @@ public final class XMLHandler
         for (Track track : tracks)
         {
             int trackID = track.getID();
-            tracksMap.put(trackID, index++);
-            trackLogger.debug("mapped track ID " + trackID + " to index " + index);
+            tracksMap.put(trackID, index);
+            
+            Track.TrackType trackType = track.getTrackType();
+            switch (trackType)
+            {
+            case VIDEO:
+                videoTracksMap.put(trackID, index);
+                trackLogger.debug("mapped video track ID " + trackID + " to index " + index + ", name '" + track.getName() + "'");
+            	break;
+
+            case UNKNOWN:
+            	trackLogger.warn("track ID " + ID + ", name '" + track.getName() + "'" +
+            			" unknown track type - assuming audio");
+            	
+            case AUDIO:
+                audioTracksMap.put(trackID, index);
+                trackLogger.debug("mapped audio track ID " + trackID + " to index " + index + ", name '" + track.getName() + "'");
+                break;
+                
+            default:
+                throw new InternalErrorException(true, "unknown track type '" + trackType + "'");
+            }
+            
+            index++;
         }
     }
 
@@ -1282,7 +1356,7 @@ public final class XMLHandler
     }
     
     /*
-     * Verify that artist names contained in any artist overrides are still valid. The iTunes
+     * Verify that artist names contained in any artist overrides are still valid. The 
      * XML file could have been changed or updated. Fix the overrides for any invalid ones found.
      */
     private static void verifyArtistOverrides ()
@@ -1516,18 +1590,12 @@ public final class XMLHandler
         /*
          * Update the primary artist counts and times.
          */
-        int updatedValue = primaryArtistObj.getArtistTrackData().getNumLocalTracks() + 
-                altArtistObj.getArtistTrackData().getNumLocalTracks();
-        primaryArtistObj.getArtistTrackData().setNumLocalTracks(updatedValue);
-        updatedValue = primaryArtistObj.getArtistTrackData().getNumRemoteTracks() + 
-                altArtistObj.getArtistTrackData().getNumRemoteTracks();
-        primaryArtistObj.getArtistTrackData().setNumRemoteTracks(updatedValue);
-        updatedValue = primaryArtistObj.getArtistTrackData().getTotalLocalTime() + 
-                altArtistObj.getArtistTrackData().getTotalLocalTime();
-        primaryArtistObj.getArtistTrackData().setTotalLocalTime(updatedValue);
-        updatedValue = primaryArtistObj.getArtistTrackData().getTotalRemoteTime() + 
-                altArtistObj.getArtistTrackData().getTotalRemoteTime();
-        primaryArtistObj.getArtistTrackData().setTotalRemoteTime(updatedValue);
+        int updatedValue = primaryArtistObj.getArtistTrackData().getNumTracks() + 
+                altArtistObj.getArtistTrackData().getNumTracks();
+        primaryArtistObj.getArtistTrackData().setNumTracks(updatedValue);
+        updatedValue = primaryArtistObj.getArtistTrackData().getTotalTime() + 
+                altArtistObj.getArtistTrackData().getTotalTime();
+        primaryArtistObj.getArtistTrackData().setTotalTime(updatedValue);
 
         /*
          * Delete the now-alternate name from the artist list.
@@ -1646,7 +1714,7 @@ public final class XMLHandler
     /*
      * JDOM doesn't include a method to find sibling elements. But we need to
      * locate the next sibling in many cases, due to the weird structure of the
-     * iTunes XML.
+     * XML.
      */
     private static Element nextSibling(Element current)
     {
@@ -1831,6 +1899,8 @@ public final class XMLHandler
     private static void logXMLStats()
     {
         final String lineSeparator = System.lineSeparator();
+        final String indent = "      ";
+        final String listPrefix = "- ";
         int itemNum = 0;
         StringBuilder output = new StringBuilder();
 
@@ -1846,14 +1916,21 @@ public final class XMLHandler
                 + getXMLFileTimestamp() + lineSeparator);
 
         /*
-         * Number of tracks and remote tracks.
+         * Number of audio tracks.
          */
-        if (tracks != null)
+        if (audioTracksMap != null)
         {
-            output.append(String.format("%2d", ++itemNum) + ") " + "Number of tracks: "
-                    + tracks.getLength() + lineSeparator);
-            output.append(String.format("%2d", ++itemNum) + ") " + "Number of remote tracks: "
-                    + remoteTracksCount + lineSeparator);
+            output.append(String.format("%2d", ++itemNum) + ") " + "Number of audio tracks: "
+                    + audioTracksMap.getCount() + lineSeparator);
+        }
+
+        /*
+         * Number of video tracks.
+         */
+        if (videoTracksMap != null)
+        {
+            output.append(String.format("%2d", ++itemNum) + ") " + "Number of video tracks: "
+                    + videoTracksMap.getCount() + lineSeparator);
         }
 
         /*
@@ -1868,14 +1945,24 @@ public final class XMLHandler
         }
 
         /*
-         * Number of artists and remote artists.
+         * Number of artists.
          */
         if (artists != null)
         {
             output.append(String.format("%2d", ++itemNum) + ") " + "Number of artists: "
                     + artists.getCount() + lineSeparator);
-            output.append(String.format("%2d", ++itemNum) + ") " + "Number of remote artists: "
-                    + remoteArtistsCount + lineSeparator);
+        }
+        
+        /*
+         * Codec statistics.
+         */
+        if (codecStats != null)
+        {
+            output.append(String.format("%2d", ++itemNum) + ") " + "Codec statistics: " + lineSeparator);
+            for (String codec : codecStats)
+            {
+                output.append(indent + listPrefix + codec + ": " + codecStats.get(codec) + lineSeparator);
+            }
         }
 
         /*
@@ -1888,7 +1975,7 @@ public final class XMLHandler
     // ---------------- Nested classes --------------------------------------
     
     /**
-     * Inner class that encapsulates reading the iTunes XML file in a
+     * Inner class that encapsulates reading the XML file in a
      * background task.
      * 
      * @author Jon

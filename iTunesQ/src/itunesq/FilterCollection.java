@@ -320,6 +320,7 @@ public class FilterCollection
          * Walk through all tracks.
          */
         List<Track> tracks = XMLHandler.getTracks();
+        
         for (Track track : tracks)
         {
             boolean logicSwitch;

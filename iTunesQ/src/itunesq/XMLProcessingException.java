@@ -1,7 +1,7 @@
 package itunesq;
 
 /**
- * Class that represents an error while processing the iTunes XML file. This is
+ * Class that represents an error while processing the XML file. This is
  * a runtime exception.
  * 
  * @author Jon

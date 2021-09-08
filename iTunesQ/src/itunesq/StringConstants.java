@@ -7,7 +7,7 @@ package itunesq;
  * <ul>
  * <li>log messages</li>
  * <li>exception text</li>
- * <li>strings found in the iTunes XML file</li>
+ * <li>strings found in the XML file</li>
  * <li>simple constants such as newline or "/"</li>
  * </ul>
  * 
@@ -44,11 +44,9 @@ public class StringConstants
     /*
      * ArtistDisplayColumns constants.
      */
-    public static final String ARTIST_COLUMN_LOCAL_TIME = "Total Local Time";
-    public static final String ARTIST_COLUMN_LOCAL_TRACKS = "Total Local Tracks";
     public static final String ARTIST_COLUMN_NUM_ALTNAMES = "Number Alternate Names";
-    public static final String ARTIST_COLUMN_REMOTE_TIME = "Total Remote Time";
-    public static final String ARTIST_COLUMN_REMOTE_TRACKS = "Total Remote Tracks";
+    public static final String ARTIST_COLUMN_TIME = "Total Time";
+    public static final String ARTIST_COLUMN_TRACKS = "Total Tracks";
 
     /*
      * ArtistsWindow constants.
@@ -85,7 +83,6 @@ public class StringConstants
     public static final String FIND_DUPLICATES_EXACT = "Exact Match";
     public static final String FIND_DUPLICATES_EXCLUDE_LIVE = "Exclude Live";
     public static final String FIND_DUPLICATES_EXCLUDE_USER = "Exclude User";
-    public static final String FIND_DUPLICATES_EXCLUDE_VIDEO = "Exclude Video";
     public static final String FIND_DUPLICATES_KIND = "Same Kind";
     public static final String FIND_DUPLICATES_NOT_ARTIST = "Different Artist";
     public static final String FIND_DUPLICATES_RATING = "Same Rating";
@@ -178,10 +175,12 @@ public class StringConstants
             "Use filters to select a group of tracks to display.";
     public static final String MAIN_VIEW_ARTISTS = "View Artists";
     public static final String MAIN_VIEW_ARTISTS_TIP = "Show all artists.";
+    public static final String MAIN_VIEW_AUDIO_TRACKS = "View Audio Tracks";
+    public static final String MAIN_VIEW_AUDIO_TRACKS_TIP = "Show all audio tracks.";
     public static final String MAIN_VIEW_PLAYLISTS = "View Playlists";
     public static final String MAIN_VIEW_PLAYLISTS_TIP = "Show all playlists.";
-    public static final String MAIN_VIEW_TRACKS = "View Tracks";
-    public static final String MAIN_VIEW_TRACKS_TIP = "Show all tracks.";
+    public static final String MAIN_VIEW_VIDEO_TRACKS = "View Video Tracks";
+    public static final String MAIN_VIEW_VIDEO_TRACKS_TIP = "Show all video tracks.";
     public static final String MAIN_XML_FILE_INFO = "Working XML File";
     public static final String MAIN_XML_FILE_STATS = "XML File Statistics";
     
@@ -232,7 +231,7 @@ public class StringConstants
     public static final String PREFS_IGNORED_PLUS_BUTTON =
             "Add a new playlist to be completely ignored.";
     public static final String PREFS_IGNORED_TIP =
-            "iTunes includes built-in playlists that might be considered clutter." + lineSeparator
+            "The library might include built-in playlists that could be considered clutter." + lineSeparator
             + "You can ignore them if you want, and also add your own "
             + "playlists to completely ignore." + lineSeparator
             + "The default ignored playlists are automatically populated, unless you've made changes.";
@@ -250,10 +249,6 @@ public class StringConstants
     public static final String PREFS_COLUMN_PLAYLIST = "Playlist View:";
     public static final String PREFS_COLUMN_TIP =
             "Select the columns you want to be displayed for various types of track lists.";
-    public static final String PREFS_SHOW_REMOTE_TRACKS = "Show remote tracks:";
-    public static final String PREFS_SHOW_REMOTE_TRACKS_TIP =
-            "iTunes can include tracks that are only available in the cloud, "
-            + "not in your local database. Check here to include such tracks.";
     public static final String PREFS_TAB2_BUTTON = "Track Display";
     public static final String PREFS_TAB2_RESET_TIP =
             "Reset the track display choices to the default value.";
@@ -375,6 +370,7 @@ public class StringConstants
     public static final String SKIN_WINDOW_ALT_NAMES = "Alternate Names";
     public static final String SKIN_WINDOW_ARTIST_OVERRIDES = "Artist Overrides";
     public static final String SKIN_WINDOW_ARTISTS = "Artists";
+    public static final String SKIN_WINDOW_AUDIO_TRACKS = "Audio Tracks";
     public static final String SKIN_WINDOW_FAMILY_PLAYLISTS = "Family Expansion Playlists";
     public static final String SKIN_WINDOW_FILE_SAVE = "File Save";
     public static final String SKIN_WINDOW_FIND_DUPLICATES = "Find Duplicates";
@@ -384,8 +380,9 @@ public class StringConstants
     public static final String SKIN_WINDOW_REMOVE_ALT_NAME_SELECTION = "Remove Alternate Name Selection";
     public static final String SKIN_WINDOW_SET_ALT_NAME_SELECTION = "Set Alternate Name Selection";
     public static final String SKIN_WINDOW_SKIN_PREVIEW = "Skin Preview";
-    public static final String SKIN_WINDOW_TRACK_INFO = "Track Details";
     public static final String SKIN_WINDOW_TRACKS = "Tracks";
+    public static final String SKIN_WINDOW_TRACK_INFO = "Track Details";
+    public static final String SKIN_WINDOW_VIDEO_TRACKS = "Video Tracks";
 
     /*
      * TrackDisplayColumns constants.
@@ -406,7 +403,6 @@ public class StringConstants
     public static final String TRACK_COLUMN_PLAYCOUNT = "Play Count";
     public static final String TRACK_COLUMN_RATING = "Rating";
     public static final String TRACK_COLUMN_RELEASED = "Released";
-    public static final String TRACK_COLUMN_REMOTE = "Remote";
     public static final String TRACK_COLUMN_SAMPLERATE = "Sample Rate";
     public static final String TRACK_COLUMN_SIZE = "Size";
     public static final String TRACK_COLUMN_YEAR = "Year";
@@ -421,9 +417,10 @@ public class StringConstants
     /*
      * Utilities constants.
      */
-    public static final String UTILITY_NUMARTISTS = "Number of artists: ";
-    public static final String UTILITY_NUMPLAYLISTS = "Number of playlists: ";
-    public static final String UTILITY_NUMTRACKS = "Number of tracks: ";
+    public static final String UTILITY_NUM_ARTISTS = "Number of artists: ";
+    public static final String UTILITY_NUM_AUDIO_TRACKS = "Number of audio tracks: ";
+    public static final String UTILITY_NUM_PLAYLISTS = "Number of playlists: ";
+    public static final String UTILITY_NUM_VIDEO_TRACKS = "Number of video tracks: ";
     public static final String UTILITY_UNKNOWN_DATE = "--unknown--";
     public static final String UTILITY_XMLFILE_DATE = ", dated ";
 

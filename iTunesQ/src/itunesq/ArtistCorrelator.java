@@ -39,7 +39,7 @@ public class ArtistCorrelator
     // ---------------- Getters and setters ---------------------------------
 
     /**
-     * Gets the display name, which is the artist name from the iTunes XML 
+     * Gets the display name, which is the artist name from the XML 
      * file.
      * 
      * @return artist display name
@@ -50,7 +50,7 @@ public class ArtistCorrelator
     }
 
     /**
-     * Sets the display name, which is the artist name from the iTunes XML 
+     * Sets the display name, which is the artist name from the XML 
      * file.
      * 
      * @param artistName artist display name
@@ -125,6 +125,13 @@ public class ArtistCorrelator
      */
     public int compareToDisplay(ArtistCorrelator c2)
     {
-        return this.displayName.compareTo(c2.displayName);
+    	
+    	/*
+    	 * Ignore leading "The" (case insensitive).
+    	 */
+    	String thisName = this.displayName.replaceAll("^(?i)The ", "");
+    	String thatName = c2.displayName.replaceAll("^(?i)The ", "");
+    	
+        return thisName.toLowerCase().compareTo(thatName.toLowerCase());
     }
 }

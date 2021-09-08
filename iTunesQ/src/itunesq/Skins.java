@@ -281,6 +281,16 @@ public class Skins
         TRACKS(StringConstants.SKIN_WINDOW_TRACKS),
 
         /**
+         * audio tracks window
+         */
+        AUDIO_TRACKS(StringConstants.SKIN_WINDOW_AUDIO_TRACKS),
+
+        /**
+         * video tracks window
+         */
+        VIDEO_TRACKS(StringConstants.SKIN_WINDOW_VIDEO_TRACKS),
+
+        /**
          * playlists window
          */
         PLAYLISTS(StringConstants.SKIN_WINDOW_PLAYLISTS),

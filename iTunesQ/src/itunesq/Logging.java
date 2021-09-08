@@ -60,7 +60,7 @@ public class Logging
 
     /**
      * The dimension, or scope, of a logger. For example, <code>XML</code> only
-     * concerns logging related to the reading and processing of the iTunes XML
+     * concerns logging related to the reading and processing of the XML
      * file.
      * <p>
      * Each dimension contains the associated log level.
@@ -79,7 +79,7 @@ public class Logging
         UI("UI"),
 
         /**
-         * logging associated with processing the iTunes XML file
+         * logging associated with processing the XML file
          */
         XML("XML"),
 

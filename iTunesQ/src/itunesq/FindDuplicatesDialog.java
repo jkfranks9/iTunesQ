@@ -53,7 +53,7 @@ public class FindDuplicatesDialog
     private enum MatchCriteria
     {
         EXACT, ARTIST, NOT_ARTIST, ALBUM, KIND, DURATION, YEAR, RATING, 
-        EXCLUDE_VIDEO, EXCLUDE_LIVE, EXCLUDE_USER
+        EXCLUDE_LIVE, EXCLUDE_USER
     }
 
     private static final int NUM_MATCH_CRITERIA = MatchCriteria.values().length;
@@ -79,7 +79,6 @@ public class FindDuplicatesDialog
     @BXML private Checkbox duplicatesSpecYearCheckbox = null;
     @BXML private Checkbox duplicatesSpecRatingCheckbox = null;
     @BXML private BoxPane duplicatesSpecExclusionsBoxPane = null;
-    @BXML private Checkbox duplicatesSpecExcludeVideoCheckbox = null;
     @BXML private Checkbox duplicatesSpecExcludeLiveCheckbox = null;
     @BXML private Checkbox duplicatesSpecExcludeUserCheckbox = null;
     @BXML private Border duplicatesButtonBorder = null;
@@ -176,7 +175,6 @@ public class FindDuplicatesDialog
         duplicatesSpecDurationCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_DURATION);
         duplicatesSpecYearCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_YEAR);
         duplicatesSpecRatingCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_RATING);
-        duplicatesSpecExcludeVideoCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXCLUDE_VIDEO);
         duplicatesSpecExcludeLiveCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXCLUDE_LIVE);
         duplicatesSpecExcludeUserCheckbox.setButtonData(StringConstants.FIND_DUPLICATES_EXCLUDE_USER);
         duplicatesDoneButton.setButtonData(StringConstants.DONE);
@@ -226,6 +224,9 @@ public class FindDuplicatesDialog
             public void buttonPressed(Button button)
             {
                 uiLogger.info("duplicates done button pressed");
+                
+                String ownerTitle = button.getWindow().getOwner().getTitle();
+                Skins.Window window = Skins.Window.getEnum(ownerTitle);
 
                 /*
                  * Gather the selected match criteria.
@@ -242,7 +243,6 @@ public class FindDuplicatesDialog
                     matchSpec.set(MatchCriteria.DURATION.ordinal(), duplicatesSpecDurationCheckbox.isSelected());
                     matchSpec.set(MatchCriteria.YEAR.ordinal(), duplicatesSpecYearCheckbox.isSelected());
                     matchSpec.set(MatchCriteria.RATING.ordinal(), duplicatesSpecRatingCheckbox.isSelected());
-                    matchSpec.set(MatchCriteria.EXCLUDE_VIDEO.ordinal(), duplicatesSpecExcludeVideoCheckbox.isSelected());
                     matchSpec.set(MatchCriteria.EXCLUDE_LIVE.ordinal(), duplicatesSpecExcludeLiveCheckbox.isSelected());
                     matchSpec.set(MatchCriteria.EXCLUDE_USER.ordinal(), duplicatesSpecExcludeUserCheckbox.isSelected());
                 }
@@ -280,31 +280,39 @@ public class FindDuplicatesDialog
                     List<Integer> dupIDs = duplicatesMap.get(dupName);
 
                     /*
-                     * Get the user preferences.
-                     */
-                    Preferences prefs = Preferences.getInstance();
-                    boolean showRemoteTracks = prefs.getShowRemoteTracks();
-
-                    /*
                      * Create a list of track objects that correspond to the
                      * IDs.
                      */
                     List<Track> dupTracksForName = new ArrayList<Track>();
                     for (Integer dupID : dupIDs)
                     {
-                        Integer trackIndex = XMLHandler.getTracksMap().get(dupID);
-                        Track track = XMLHandler.getTracks().get(trackIndex);
-
+                    	Track track;
+                    	Integer trackIndex;
+                    	
+                    	switch (window)
+                    	{
+                    	case AUDIO_TRACKS:
+                            trackIndex = XMLHandler.getAudioTracksMap().get(dupID);
+                    		break;
+                    		
+                    	case VIDEO_TRACKS:
+                            trackIndex = XMLHandler.getVideoTracksMap().get(dupID);
+                    		break;
+                    		
+                    	default:
+                            throw new InternalErrorException(true, "unexpected window type '" + window + "'");
+                    	}
+                        
                         /*
-                         * Skip remote tracks if the user doesn't want to see
-                         * them.
+                         * Skip adding if we didn't find the index, which can happen if we're not
+                         * on the appropriate window (meaning the ID is for a video track while
+                         * we're on the audio tracks window, or vice versa).
                          */
-                        if (track.getRemote() == true && showRemoteTracks == false)
+                        if (trackIndex != null)
                         {
-                            continue;
+                        	track = XMLHandler.getTracks().get(trackIndex);                 
+                        	dupTracksForName.add(track);
                         }
-
-                        dupTracksForName.add(track);
                     }
 
                     /*
@@ -329,7 +337,7 @@ public class FindDuplicatesDialog
 
                     try
                     {
-                        tracksWindowHandler.displayTracks(display, allDupTracks, owningWindow);
+                        tracksWindowHandler.displayTracks(display, window, allDupTracks, owningWindow);
                     }
                     catch (IOException | SerializationException e)
                     {
@@ -364,7 +372,6 @@ public class FindDuplicatesDialog
                     duplicatesSpecDurationCheckbox.setEnabled(false);
                     duplicatesSpecYearCheckbox.setEnabled(false);
                     duplicatesSpecRatingCheckbox.setEnabled(false);
-                    duplicatesSpecExcludeVideoCheckbox.setEnabled(false);
                     duplicatesSpecExcludeLiveCheckbox.setEnabled(false);
                     duplicatesSpecExcludeUserCheckbox.setEnabled(false);
                 }
@@ -377,7 +384,6 @@ public class FindDuplicatesDialog
                     duplicatesSpecDurationCheckbox.setEnabled(true);
                     duplicatesSpecYearCheckbox.setEnabled(true);
                     duplicatesSpecRatingCheckbox.setEnabled(true);
-                    duplicatesSpecExcludeVideoCheckbox.setEnabled(true);
                     duplicatesSpecExcludeLiveCheckbox.setEnabled(true);
                     duplicatesSpecExcludeUserCheckbox.setEnabled(true);
                 }
@@ -530,6 +536,8 @@ public class FindDuplicatesDialog
 
         /*
          * A fuzzy match must match only the specified criteria.
+         * 
+         * NOTE: Video tracks have already been excluded if requested.
          */
         else
         {
@@ -582,15 +590,6 @@ public class FindDuplicatesDialog
                 {
                     result = isEqual(track1.getCorrectedRating(), track2.getCorrectedRating());
                 }
-            }
-            
-            if (matchSpec.get(MatchCriteria.EXCLUDE_VIDEO.ordinal()) == true)
-            {
-                if (result == true)
-                {
-                	result =   !(track1.getKind().contains("video")) 
-                			&& !(track2.getKind().contains("video"));
-                }            	
             }
             
             if (matchSpec.get(MatchCriteria.EXCLUDE_LIVE.ordinal()) == true)
@@ -808,9 +807,6 @@ public class FindDuplicatesDialog
         duplicatesSpecRatingCheckbox = 
                 (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecRatingCheckbox");
         components.add(duplicatesSpecRatingCheckbox);
-        duplicatesSpecExcludeVideoCheckbox = 
-                (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecExcludeVideoCheckbox");
-        components.add(duplicatesSpecExcludeVideoCheckbox);
         duplicatesSpecExcludeLiveCheckbox = 
                 (Checkbox) dialogSerializer.getNamespace().get("duplicatesSpecExcludeLiveCheckbox");
         components.add(duplicatesSpecExcludeLiveCheckbox);

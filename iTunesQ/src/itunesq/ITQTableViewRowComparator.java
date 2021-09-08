@@ -65,13 +65,9 @@ public class ITQTableViewRowComparator implements Comparator<Object>
                 NumericalType.TIME);
         numericalColumns.put(ArtistDisplayColumns.ColumnNames.NUM_ALTNAMES.getNameValue(), 
                 NumericalType.NUMBER);
-        numericalColumns.put(ArtistDisplayColumns.ColumnNames.LOCAL_NUM_TRACKS.getNameValue(), 
+        numericalColumns.put(ArtistDisplayColumns.ColumnNames.NUM_TRACKS.getNameValue(), 
                 NumericalType.NUMBER);
-        numericalColumns.put(ArtistDisplayColumns.ColumnNames.LOCAL_TOTAL_TIME.getNameValue(), 
-                NumericalType.TIME);
-        numericalColumns.put(ArtistDisplayColumns.ColumnNames.REMOTE_NUM_TRACKS.getNameValue(), 
-                NumericalType.NUMBER);
-        numericalColumns.put(ArtistDisplayColumns.ColumnNames.REMOTE_TOTAL_TIME.getNameValue(), 
+        numericalColumns.put(ArtistDisplayColumns.ColumnNames.TOTAL_TIME.getNameValue(), 
                 NumericalType.TIME);
         numericalColumns.put(PlaylistDisplayColumns.ColumnNames.NUM_TRACKS.getNameValue(), 
                 NumericalType.NUMBER);

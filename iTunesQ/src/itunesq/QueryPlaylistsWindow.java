@@ -1096,7 +1096,7 @@ public class QueryPlaylistsWindow
         {
         case COMPARE:
             rows = compareTablePane.getRows();
-        	playlists = collectIncludedPlaylists(rows);
+        	playlists = collectIncludedPlaylists(rows, tableType);
         	break;
         	
         case RECURSIVE_COMPARE:
@@ -1108,7 +1108,7 @@ public class QueryPlaylistsWindow
             }
             else
             {
-            	playlists = collectIncludedPlaylists(rows);
+            	playlists = collectIncludedPlaylists(rows, tableType);
             }
         	break;
         	
@@ -1126,7 +1126,7 @@ public class QueryPlaylistsWindow
      * - The normal compare process
      * - The recursive compare process when the all checkbox is not checked
      */
-    private List<String> collectIncludedPlaylists(TablePane.RowSequence rows)
+    private List<String> collectIncludedPlaylists(TablePane.RowSequence rows, TableType tableType)
     {
         filterLogger.trace("collectIncludedPlaylists: " + this.hashCode());
 
@@ -1148,11 +1148,6 @@ public class QueryPlaylistsWindow
              * Get the text input.
              */
             TextInput text = (TextInput) row.get(textIndex);
-            
-            /*
-             * Get the include children checkbox.
-             */
-            Checkbox includeChildren = (Checkbox) row.get(includeChildrenIndex);
 
             /*
              * Add this playlist to the collection.
@@ -1162,36 +1157,48 @@ public class QueryPlaylistsWindow
             filterLogger.debug("added playlist '" + playlistName + "' (name match)");
             
             /*
-             * If we're to include all children then we have to search through all playlists.
+             * Handle a recursive compare.
              */
-            if (includeChildren.isSelected())
+            if (tableType == TableType.RECURSIVE_COMPARE)
             {
-            	
-            	/*
-            	 * Get the ID of the entered playlist.
-            	 */
-                Playlist selectedPlaylistObj = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
-                String selectedID = selectedPlaylistObj.getPersistentID();
                 
                 /*
-                 * Loop through all playlists.
+                 * Get the include children checkbox.
                  */
-                Map<String, Playlist> allPlaylists = XMLHandler.getPlaylists();                
-                for (String playlistKey : allPlaylists)
+            	Checkbox includeChildren = (Checkbox) row.get(includeChildrenIndex);
+                
+                /*
+                 * If we're to include all children then we have to search through all playlists.
+                 */
+                if (includeChildren.isSelected())
                 {
-                    Playlist playlistObj = allPlaylists.get(playlistKey);
+                	
+                	/*
+                	 * Get the ID of the entered playlist.
+                	 */
+                    Playlist selectedPlaylistObj = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
+                    String selectedID = selectedPlaylistObj.getPersistentID();
                     
                     /*
-                     * If this is a child of the parent, add it to the collection.
+                     * Loop through all playlists.
                      */
-                    String parentID = playlistObj.getParentPersistentID();
-                    if (parentID != null && parentID.equals(selectedID))
+                    Map<String, Playlist> allPlaylists = XMLHandler.getPlaylists();                
+                    for (String playlistKey : allPlaylists)
                     {
-                    	String childName = playlistObj.getName();
-                        playlists.add(childName);
-                        filterLogger.debug("added playlist '" + childName + "' (child match)");
-                    }
-                }            	
+                        Playlist playlistObj = allPlaylists.get(playlistKey);
+                        
+                        /*
+                         * If this is a child of the parent, add it to the collection.
+                         */
+                        String parentID = playlistObj.getParentPersistentID();
+                        if (parentID != null && parentID.equals(selectedID))
+                        {
+                        	String childName = playlistObj.getName();
+                            playlists.add(childName);
+                            filterLogger.debug("added playlist '" + childName + "' (child match)");
+                        }
+                    }            	
+                }
             }
         }
     	
@@ -1582,7 +1589,7 @@ public class QueryPlaylistsWindow
         tracksWindowHandler.saveWindowAttributes(ListQueryType.Type.TRACK_COMPARE,
                 ListQueryType.Type.TRACK_COMPARE.getDisplayValue() + " " + compareStr + ": " + queryStr,
                 TrackDisplayColumns.ColumnSet.FILTERED_VIEW.getNamesList());
-        tracksWindowHandler.displayTracks(display, displayableTracks, null);
+        tracksWindowHandler.displayTracks(display, Skins.Window.TRACKS, displayableTracks, null);
     }
 
     /*
@@ -1762,7 +1769,7 @@ public class QueryPlaylistsWindow
             tracksWindowHandler.saveWindowAttributes(ListQueryType.Type.TRACK_FAMILY,
                     ListQueryType.Type.TRACK_FAMILY.getDisplayValue() + ": " + playlistName,
                     TrackDisplayColumns.ColumnSet.FAMILY_VIEW.getNamesList());
-            tracksWindowHandler.displayTracks(display, displayableTracks, null);
+            tracksWindowHandler.displayTracks(display, Skins.Window.TRACKS, displayableTracks, null);
         }
 
     }

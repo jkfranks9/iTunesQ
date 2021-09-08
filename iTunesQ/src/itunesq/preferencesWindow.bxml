@@ -135,7 +135,6 @@
                                                 <Checkbox bxml:id="fullYearCheckbox" />
                                                 <Checkbox bxml:id="fullAddedCheckbox" />
                                                 <Checkbox bxml:id="fullRatingCheckbox" />
-                                                <Checkbox bxml:id="fullRemoteCheckbox" />
                                             </BoxPane>
                                         </TablePane.Row>
 
@@ -153,7 +152,6 @@
                                                 <Checkbox bxml:id="duplicatesYearCheckbox" />
                                                 <Checkbox bxml:id="duplicatesAddedCheckbox" />
                                                 <Checkbox bxml:id="duplicatesRatingCheckbox" />
-                                                <Checkbox bxml:id="duplicatesRemoteCheckbox" />
                                             </BoxPane>
                                         </TablePane.Row>
 
@@ -171,7 +169,6 @@
                                                 <Checkbox bxml:id="filteredYearCheckbox" />
                                                 <Checkbox bxml:id="filteredAddedCheckbox" />
                                                 <Checkbox bxml:id="filteredRatingCheckbox" />
-                                                <Checkbox bxml:id="filteredRemoteCheckbox" />
                                             </BoxPane>
                                         </TablePane.Row>
 
@@ -189,7 +186,6 @@
                                                 <Checkbox bxml:id="playlistYearCheckbox" />
                                                 <Checkbox bxml:id="playlistAddedCheckbox" />
                                                 <Checkbox bxml:id="playlistRatingCheckbox" />
-                                                <Checkbox bxml:id="playlistRemoteCheckbox" />
                                             </BoxPane>
                                         </TablePane.Row>
                                     </TablePane>
@@ -197,19 +193,8 @@
                             </Border>
                         </TablePane.Row>
 
-                        <!-- Show remote tracks row. -->
-                        <TablePane.Row height="1*">
-                            <Border bxml:id="remoteTracksBorder">
-                                <BoxPane bxml:id="remoteTracksBoxPane" orientation="horizontal"
-                                    styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                                    <Label bxml:id="remoteTracksLabel" styles="{font:{bold:true}}" />
-                                    <Checkbox bxml:id="remoteTracksCheckbox" />
-                                </BoxPane>
-                            </Border>
-                        </TablePane.Row>
-
                         <!-- Duplicate tracks exclusions row. -->
-                        <TablePane.Row height="4*">
+                        <TablePane.Row height="5*">
                             <ScrollPane horizontalScrollBarPolicy="fill_to_capacity"
                                 verticalScrollBarPolicy="fill_to_capacity">
                                 <Border bxml:id="duplicateTrackExclusionsBorder">

@@ -26,6 +26,7 @@ import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.TablePane;
 import org.apache.pivot.wtk.TableView;
 import org.apache.pivot.wtk.TableViewHeader;
+import org.apache.pivot.wtk.TableViewHeaderPressListener;
 import org.apache.pivot.wtk.TableViewSelectionListener;
 import org.apache.pivot.wtk.TableViewSortListener;
 import org.apache.pivot.wtk.Window;
@@ -51,6 +52,7 @@ public class TracksWindow
     private ListQueryType.Type queryType = null;
     private String queryStr = null;
     private List<String> columnNames = null;
+    private String tableSortColumnName = null;
     private Logger logger = null;
 
     /*
@@ -59,6 +61,35 @@ public class TracksWindow
     @BXML private Border infoBorder = null;
     @BXML private FillPane infoFillPane = null;
     @BXML private Label numTracksLabel = null;
+    @BXML private Border alphaBorder = null;
+    @BXML private BoxPane alphaBoxPane = null;
+    @BXML private Label alphaLabel = null;
+    @BXML private PushButton alphaAButton = null;
+    @BXML private PushButton alphaBButton = null;
+    @BXML private PushButton alphaCButton = null;
+    @BXML private PushButton alphaDButton = null;
+    @BXML private PushButton alphaEButton = null;
+    @BXML private PushButton alphaFButton = null;
+    @BXML private PushButton alphaGButton = null;
+    @BXML private PushButton alphaHButton = null;
+    @BXML private PushButton alphaIButton = null;
+    @BXML private PushButton alphaJButton = null;
+    @BXML private PushButton alphaKButton = null;
+    @BXML private PushButton alphaLButton = null;
+    @BXML private PushButton alphaMButton = null;
+    @BXML private PushButton alphaNButton = null;
+    @BXML private PushButton alphaOButton = null;
+    @BXML private PushButton alphaPButton = null;
+    @BXML private PushButton alphaQButton = null;
+    @BXML private PushButton alphaRButton = null;
+    @BXML private PushButton alphaSButton = null;
+    @BXML private PushButton alphaTButton = null;
+    @BXML private PushButton alphaUButton = null;
+    @BXML private PushButton alphaVButton = null;
+    @BXML private PushButton alphaWButton = null;
+    @BXML private PushButton alphaXButton = null;
+    @BXML private PushButton alphaYButton = null;
+    @BXML private PushButton alphaZButton = null;
     @BXML private Border tracksBorder = null;
     @BXML private TableView tracksTableView = null;
     @BXML private TableViewHeader tracksTableViewHeader = null;
@@ -99,6 +130,7 @@ public class TracksWindow
          */
         skins = Skins.getInstance();
         queryType = ListQueryType.Type.NONE;
+        tableSortColumnName = TrackDisplayColumns.ColumnNames.NAME.getHeaderValue();
 
         logger.trace("TracksWindow constructor: " + this.hashCode());
     }
@@ -125,13 +157,14 @@ public class TracksWindow
      * Displays the tracks in a new window.
      * 
      * @param display display object for managing windows
+     * @param window the type of window containing the displayed tracks
      * @param tracks list of tracks to be displayed
      * @param owningWindow window on which to open the new window, or null
      * @throws IOException If an error occurs trying to read the BXML file.
      * @throws SerializationException If an error occurs trying to deserialize
      * the BXML file.
      */
-    public void displayTracks(Display display, List<Track> tracks, Window owningWindow)
+    public void displayTracks(Display display, Skins.Window window, List<Track> tracks, Window owningWindow)
             throws IOException, SerializationException
     {
         logger.trace("displayTracks: " + this.hashCode());
@@ -154,34 +187,38 @@ public class TracksWindow
         initializeWindowBxmlVariables(queryType, components);
 
         /*
-         * Set this object as the handler attribute on the tracks window. Also
-         * set other needed attributes. The attributes are used for the File ->
-         * Save menu on queried track results.
-         */
-        if (queryType != ListQueryType.Type.NONE)
-        {
-            tracksWindow.setAttribute(MenuBars.WindowAttributes.HANDLER, this);
-            tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_TYPE, queryType);
-            tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_STRING, queryStr);
-            tracksWindow.setAttribute(MenuBars.WindowAttributes.COLUMN_NAMES, columnNames);
-        }
-
-        /*
          * Set up the various event handlers.
          */
         createEventHandlers();
 
         /*
-         * Set the number of tracks label. We have to treat the entire list of
-         * tracks as a special case: getLength() on the entire list includes
-         * remote tracks, which we might not be showing. So in this case, get
-         * the real length using getNumberOfTracks().
+         * Handle a query type tracks display.
+         */
+        if (queryType != ListQueryType.Type.NONE)
+        {
+            /*
+             * Set this object as the handler attribute on the tracks window. Also
+             * set other needed attributes. The attributes are used for the File ->
+             * Save menu on queried track results.
+             */
+            tracksWindow.setAttribute(MenuBars.WindowAttributes.HANDLER, this);
+            tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_TYPE, queryType);
+            tracksWindow.setAttribute(MenuBars.WindowAttributes.QUERY_STRING, queryStr);
+            tracksWindow.setAttribute(MenuBars.WindowAttributes.COLUMN_NAMES, columnNames);
+        }
+        
+        /*
+         * Handle a basic tracks display, which is the only one that uses the alphanumeric bar.
+         */
+        else
+        {
+        	createAlphaEventHandlers();
+        }
+
+        /*
+         * Set the number of tracks label.
          */
         int numTracks = tracks.getLength();
-        if (numTracks == XMLHandler.getTracks().getLength())
-        {
-            numTracks = XMLHandler.getNumberOfTracks();
-        }
         numTracksLabel.setText(StringConstants.TRACK_NUMBER + numTracks);
 
         /*
@@ -190,29 +227,39 @@ public class TracksWindow
         List<HashMap<String, String>> displayTracks = new ArrayList<HashMap<String, String>>();
 
         /*
-         * Get the show remote tracks preference.
-         */
-        Preferences prefs = Preferences.getInstance();
-        boolean showRemoteTracks = prefs.getShowRemoteTracks();
-
-        /*
-         * Now walk the set, and add all tracks to the list.
+         * Now walk the set, and add all requested tracks to the list.
          */
         int trackNum = 0;
 
         for (Track track : tracks)
         {
-
-            /*
-             * Skip remote tracks if the user doesn't want to see them.
-             */
-            if (track.getRemote() == true && showRemoteTracks == false)
-            {
-                continue;
-            }
-
-            HashMap<String, String> trackAttrs = track.toDisplayMap(++trackNum);
-            displayTracks.add(trackAttrs);
+        	HashMap<String, String> trackAttrs;
+        	switch (window)
+        	{
+        	case TRACKS:
+                trackAttrs = track.toDisplayMap(++trackNum);
+                displayTracks.add(trackAttrs);
+        		break;
+        	
+        	case AUDIO_TRACKS:
+        		if (XMLHandler.getAudioTracksMap().get(track.getID()) != null)
+        		{
+                    trackAttrs = track.toDisplayMap(++trackNum);
+                    displayTracks.add(trackAttrs);
+        		}
+        		break;
+        	
+        	case VIDEO_TRACKS:
+        		if (XMLHandler.getVideoTracksMap().get(track.getID()) != null)
+        		{
+                    trackAttrs = track.toDisplayMap(++trackNum);
+                    displayTracks.add(trackAttrs);
+        		}
+        		break;
+        	
+        	default:
+                throw new InternalErrorException(true, "unexpected window type '" + window + "'");
+        	}
         }
 
         logger.info("found " + displayTracks.getLength() + " tracks for display");
@@ -256,6 +303,21 @@ public class TracksWindow
                 tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView, logger));
             }
         });
+        
+        /*
+         * Add a listener to detect column sort. We save the column being sorted for the alpha
+         * bar logic. 
+         */
+        tracksTableViewHeader.getTableViewHeaderPressListeners().add(new TableViewHeaderPressListener()
+        {
+            @Override
+            public void headerPressed(TableViewHeader tableViewHeader,
+                    int index)
+            {
+            	TableView table = tableViewHeader.getTableView();
+            	tableSortColumnName = table.getColumns().get(index).getName();
+            }        	
+        });
 
         /*
          * Create the track playlists column set if we're here because of a query.
@@ -265,7 +327,22 @@ public class TracksWindow
             PlaylistDisplayColumns.createColumnSet(PlaylistDisplayColumns.ColumnSet.TRACK_PLAYLISTS, 
                     trackPlaylistsTableView);
         }
-
+        
+        /*
+         * Not here because of a query.
+         */
+        else
+        {
+        
+        	/*
+        	 * Set the width of the (empty) alpha bar label. The label's only purpose is to
+        	 * allow centering the alpha bar.
+        	 */
+        	int displayWidth = display.getWidth();
+        	int alphaLabelWidth = (displayWidth - InternalConstants.ALPHA_BAR_PADDING - InternalConstants.ALPHA_BAR_WIDTH) / 2;
+        	alphaLabel.setPreferredWidth(alphaLabelWidth);
+        }
+        
         /*
          * Add widget texts.
          */
@@ -280,23 +357,23 @@ public class TracksWindow
         /*
          * Set the window title.
          */
-        tracksWindow.setTitle(Skins.Window.TRACKS.getDisplayValue());
+        tracksWindow.setTitle(window.getDisplayValue());
 
         /*
          * Register the tracks window skin elements.
          */
-        skins.registerWindowElements(Skins.Window.TRACKS, components);
+        skins.registerWindowElements(window, components);
 
         /*
          * Skin the tracks window.
          */
-        skins.skinMe(Skins.Window.TRACKS);
+        skins.skinMe(window);
 
         /*
          * Push the skinned window onto the skins window stack. It gets popped
          * from our done button press handler.
          */
-        skins.pushSkinnedWindow(Skins.Window.TRACKS);
+        skins.pushSkinnedWindow(window);
 
         /*
          * Open the tracks window.
@@ -620,6 +697,662 @@ public class TracksWindow
             }
         });
     }
+    
+    /*
+     * Create the alpha bar event handlers.
+     */
+    private void createAlphaEventHandlers()
+    {
+    	logger.trace("createAlphaEventHandlers: " + this.hashCode());
+
+        /*
+         * Listener to handle the A button press.
+         */
+        alphaAButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar numeric button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the A button press.
+         */
+        alphaAButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar A button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the B button press.
+         */
+        alphaBButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar B button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the C button press.
+         */
+        alphaCButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar C button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the D button press.
+         */
+        alphaDButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar D button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the E button press.
+         */
+        alphaEButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar E button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the F button press.
+         */
+        alphaFButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar F button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the G button press.
+         */
+        alphaGButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar G button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the H button press.
+         */
+        alphaHButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar H button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the I button press.
+         */
+        alphaIButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar I button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the J button press.
+         */
+        alphaJButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar J button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the K button press.
+         */
+        alphaKButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar K button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the L button press.
+         */
+        alphaLButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar L button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the M button press.
+         */
+        alphaMButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar M button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the N button press.
+         */
+        alphaNButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar N button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the O button press.
+         */
+        alphaOButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar O button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the P button press.
+         */
+        alphaPButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar P button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the Q button press.
+         */
+        alphaQButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar Q button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the R button press.
+         */
+        alphaRButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar R button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the S button press.
+         */
+        alphaSButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar S button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the T button press.
+         */
+        alphaTButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar T button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the U button press.
+         */
+        alphaUButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar U button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the V button press.
+         */
+        alphaVButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar V button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the W button press.
+         */
+        alphaWButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar W button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the X button press.
+         */
+        alphaXButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar X button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the Y button press.
+         */
+        alphaYButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar Y button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+
+        /*
+         * Listener to handle the Z button press.
+         */
+        alphaZButton.getButtonPressListeners().add(new ButtonPressListener()
+        {
+            @Override
+            public void buttonPressed(Button button)
+            {
+                logger.info("alpha bar Z button pressed");
+                
+                switch (tableSortColumnName)
+                {
+                case StringConstants.TRACK_COLUMN_NAME:
+                case StringConstants.TRACK_COLUMN_ARTIST:
+                case StringConstants.TRACK_COLUMN_ALBUM:
+                	scrollToName((String) button.getButtonData());
+                	break;
+                	
+                default:
+                	// do nothing
+                }
+            }
+        });
+    }
 
     /*
      * Build the track info data for the track details dialog.
@@ -729,6 +1462,41 @@ public class TracksWindow
 
         return result;
     }
+    
+    /*
+     * Scroll to the alphanumeric name in the current column being sorted, based on 
+     * the alpha bar button that was pressed.
+     */
+    private void scrollToName(String buttonData)
+    {
+    	String buttonID = buttonData.trim().toLowerCase();
+
+    	/*
+    	 * Get the artists table view data.
+    	 */
+        @SuppressWarnings("unchecked") 
+        List<HashMap<String, String>> tableData = 
+            (List<HashMap<String, String>>) tracksTableView.getTableData();
+        
+        /*
+         * Loop through the table rows.
+         */
+        for (int i = 0; i < tableData.getLength(); i++)
+        {
+            HashMap<String, String> row = tableData.get(i);
+
+            /*
+             * If the row name starts with the character according to the button, select the
+             * corresponding name in the table.
+             */
+            String name = row.get(tableSortColumnName).replaceAll("^(?i)The ", "");
+            if (name.toLowerCase().startsWith(buttonID))
+            {
+            	tracksTableView.setSelectedIndex(i);
+                break;
+            }
+        }
+    }
 
     /*
      * Initialize tracks window BXML variables and collect the list of
@@ -771,6 +1539,100 @@ public class TracksWindow
         numTracksLabel = 
                 (Label) windowSerializer.getNamespace().get("numTracksLabel");
         components.add(numTracksLabel);
+        
+        /*
+         * The alphanumeric bar only applies to the basic tracks display, not any query type.
+         */
+        if (queryType == ListQueryType.Type.NONE)
+        {
+        	alphaBorder = 
+        			(Border) windowSerializer.getNamespace().get("alphaBorder");
+        	components.add(alphaBorder);
+        	alphaBoxPane = 
+        			(BoxPane) windowSerializer.getNamespace().get("alphaBoxPane");
+        	components.add(alphaBoxPane);
+        	alphaLabel = 
+        			(Label) windowSerializer.getNamespace().get("alphaLabel");
+        	components.add(alphaLabel);
+        	alphaAButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaAButton");
+        	components.add(alphaAButton);
+        	alphaBButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaBButton");
+        	components.add(alphaBButton);
+        	alphaCButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaCButton");
+        	components.add(alphaCButton);
+        	alphaDButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaDButton");
+        	components.add(alphaDButton);
+        	alphaEButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaEButton");
+        	components.add(alphaEButton);
+        	alphaFButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaFButton");
+        	components.add(alphaFButton);
+        	alphaGButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaGButton");
+        	components.add(alphaGButton);
+        	alphaHButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaHButton");
+        	components.add(alphaHButton);
+        	alphaIButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaIButton");
+        	components.add(alphaIButton);
+        	alphaJButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaJButton");
+        	components.add(alphaJButton);
+        	alphaKButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaKButton");
+        	components.add(alphaKButton);
+        	alphaLButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaLButton");
+        	components.add(alphaLButton);
+        	alphaMButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaMButton");
+        	components.add(alphaMButton);
+        	alphaNButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaNButton");
+        	components.add(alphaNButton);
+        	alphaOButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaOButton");
+        	components.add(alphaOButton);
+        	alphaPButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaPButton");
+        	components.add(alphaPButton);
+        	alphaQButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaQButton");
+        	components.add(alphaQButton);
+        	alphaRButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaRButton");
+        	components.add(alphaRButton);
+        	alphaSButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaSButton");
+        	components.add(alphaSButton);
+        	alphaTButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaTButton");
+        	components.add(alphaTButton);
+        	alphaUButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaUButton");
+        	components.add(alphaUButton);
+        	alphaVButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaVButton");
+        	components.add(alphaVButton);
+        	alphaWButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaWButton");
+        	components.add(alphaWButton);
+        	alphaXButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaXButton");
+        	components.add(alphaXButton);
+        	alphaYButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaYButton");
+        	components.add(alphaYButton);
+        	alphaZButton = 
+        			(PushButton) windowSerializer.getNamespace().get("alphaZButton");
+        	components.add(alphaZButton);
+        }
         tracksBorder = 
                 (Border) windowSerializer.getNamespace().get("tracksBorder");
         components.add(tracksBorder);

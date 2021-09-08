@@ -242,7 +242,7 @@ public class FiltersWindow
 
                             try
                             {
-                                tracksWindowHandler.displayTracks(display, filteredTracks, null);
+                                tracksWindowHandler.displayTracks(display, Skins.Window.TRACKS, filteredTracks, null);
                             }
                             catch (IOException | SerializationException e)
                             {

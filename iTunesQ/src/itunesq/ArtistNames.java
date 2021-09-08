@@ -35,7 +35,7 @@ public class ArtistNames
     
     /**
      * Type of artist post-processing to be performed. Depending on the order
-     * that artists are discovered in the iTunes XML file, some types of 
+     * that artists are discovered in the XML file, some types of 
      * artist alternate names cannot be handled as the XML file is read, but
      * instead require post-processing afterwards.
      */
@@ -265,7 +265,7 @@ public class ArtistNames
             }
 
             /*
-             * Rest this control flag for the next iteration.
+             * Reset this control flag for the next iteration.
              */
             performSearch = true;
 
@@ -529,56 +529,13 @@ public class ArtistNames
             }
 
             /*
-             * If the alternate name is already known, adjust the remote artist control according 
-             * to whether or not the track containing this artist is a remote-only track. The 
-             * remote artist control is used to filter out artists containing only remote tracks
-             * if remotes are not being shown.
+             * Increment the track and time totals.
              */
             if (foundName == true)
             {
-                
-                /*
-                 * Get the existing track data and remote control.
-                 */
                 ArtistTrackData artistTrackData = altNames.get(artistName);
-                ArtistTrackData.RemoteArtistControl remoteControl = artistTrackData.getRemoteArtistControl();
-                
-                /*
-                 * Increment the track and time totals.
-                 */
-                if (track.getRemote() == false)
-                {
-                    artistTrackData.incrementNumLocalTracks(1);
-                    artistTrackData.incrementTotalLocalTime(track.getDuration());
-                }
-                else
-                {
-                    artistTrackData.incrementNumRemoteTracks(1);
-                    artistTrackData.incrementTotalRemoteTime(track.getDuration());
-                }
-
-                /*
-                 * If the control is already remote + local we have nothing else to do.
-                 */
-                if (remoteControl != ArtistTrackData.RemoteArtistControl.REMOTE_AND_LOCAL)
-                {
-                    boolean remoteControlIsRemote = 
-                            (remoteControl == ArtistTrackData.RemoteArtistControl.REMOTE) ? true : false;
-
-                    /*
-                     * Change the control to remote + local if it's currently remote-only and this
-                     * is a local track, or if it's currently no remote and this is a remote track.
-                     */
-                    if (track.getRemote() != remoteControlIsRemote)
-                    {
-                        remoteControl = ArtistTrackData.RemoteArtistControl.REMOTE_AND_LOCAL;
-                        artistTrackData.setRemoteArtistControl(remoteControl);
-                        altNames.put(artistName, artistTrackData);
-                        artistLogger.debug("changed remote artist control for alternate artist '"
-                                + artistName + "' to "
-                                + ArtistTrackData.RemoteArtistControl.REMOTE_AND_LOCAL.toString());
-                    }
-                }
+                artistTrackData.incrementNumTracks(1);
+                artistTrackData.incrementTotalTime(track.getDuration());
             }
 
             /*
@@ -591,32 +548,14 @@ public class ArtistNames
                  * Create a new track data object and initialize the track and time totals.
                  */
                 ArtistTrackData artistTrackData = new ArtistTrackData();
-                if (track.getRemote() == false)
-                {
-                    artistTrackData.setNumLocalTracks(1);
-                    artistTrackData.setTotalLocalTime(track.getDuration());
-                }
-                else
-                {
-                    artistTrackData.setNumRemoteTracks(1);
-                    artistTrackData.setTotalRemoteTime(track.getDuration());
-                }                
-                
-                /*
-                 * Set the remote control.
-                 */
-                ArtistTrackData.RemoteArtistControl remoteControl = (track.getRemote() == false) ? 
-                        ArtistTrackData.RemoteArtistControl.NO_REMOTE : 
-                        ArtistTrackData.RemoteArtistControl.REMOTE;
-                artistTrackData.setRemoteArtistControl(remoteControl);
+                artistTrackData.setNumTracks(1);
+                artistTrackData.setTotalTime(track.getDuration());
                 
                 /*
                  * Add the new alternate artist with its updated track data.
                  */
                 altNames.put(artistName, artistTrackData);
-                artistLogger.debug("added alternate artist '" + artistName 
-                        + "' with remote artist control "
-                        + remoteControl.toString() + " to '" + displayName + "'");
+                artistLogger.debug("added alternate artist '" + artistName  + "' to '" + displayName + "'");
             }
         }
     }
@@ -648,9 +587,7 @@ public class ArtistNames
         artistLogger.trace("addAlternateName: " + this.hashCode());
         
         altNames.put(artistName, artistTrackData);
-        artistLogger.debug("added alternate artist '" + artistName 
-                + "' with remote artist control "
-                + artistTrackData.getRemoteArtistControl().toString() + " to '" + displayName + "'");
+        artistLogger.debug("added alternate artist '" + artistName + "' to '" + displayName + "'");
     }
     
     /*
@@ -659,6 +596,20 @@ public class ArtistNames
      */
     private String normalizeName(String displayName)
     {
+        
+        /*
+         * If we have a diag trigger artist value, allow for a breakpoint if the artist matches.
+         */
+        if (MainWindow.getDiagTrigger() == MainWindow.DiagTrigger.ARTIST)
+        {
+            if (displayName.toLowerCase().contains(MainWindow.getDiagTriggerValue()))
+            {
+                for (int i = 0; i < 1; i++)
+                {
+                	i++;
+                }
+            }
+        }
         String normalizedName = new String(displayName.toLowerCase().trim());
         int idx;
 

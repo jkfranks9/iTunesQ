@@ -67,7 +67,6 @@ public class PreferencesWindow
     private boolean duplicatesTrackColumnsUpdated;
     private boolean filteredTrackColumnsUpdated;
     private boolean playlistTrackColumnsUpdated;
-    private boolean showRemoteTracksUpdated;
     private boolean duplicateTrackExclusionsUpdated;
     private boolean skinPrefsUpdated;
     private boolean logLevelPrefsUpdated;
@@ -116,7 +115,6 @@ public class PreferencesWindow
     @BXML private Checkbox fullYearCheckbox = null;
     @BXML private Checkbox fullAddedCheckbox = null;
     @BXML private Checkbox fullRatingCheckbox = null;
-    @BXML private Checkbox fullRemoteCheckbox = null;
     @BXML private BoxPane duplicatesColumnPrefsBoxPane = null;
     @BXML private Label duplicatesColumnPrefsLabel = null;
     @BXML private Checkbox duplicatesNumberCheckbox = null;
@@ -128,7 +126,6 @@ public class PreferencesWindow
     @BXML private Checkbox duplicatesYearCheckbox = null;
     @BXML private Checkbox duplicatesAddedCheckbox = null;
     @BXML private Checkbox duplicatesRatingCheckbox = null;
-    @BXML private Checkbox duplicatesRemoteCheckbox = null;
     @BXML private BoxPane filteredColumnPrefsBoxPane = null;
     @BXML private Label filteredColumnPrefsLabel = null;
     @BXML private Checkbox filteredNumberCheckbox = null;
@@ -140,7 +137,6 @@ public class PreferencesWindow
     @BXML private Checkbox filteredYearCheckbox = null;
     @BXML private Checkbox filteredAddedCheckbox = null;
     @BXML private Checkbox filteredRatingCheckbox = null;
-    @BXML private Checkbox filteredRemoteCheckbox = null;
     @BXML private BoxPane playlistColumnPrefsBoxPane = null;
     @BXML private Label playlistColumnPrefsLabel = null;
     @BXML private Checkbox playlistNumberCheckbox = null;
@@ -152,11 +148,6 @@ public class PreferencesWindow
     @BXML private Checkbox playlistYearCheckbox = null;
     @BXML private Checkbox playlistAddedCheckbox = null;
     @BXML private Checkbox playlistRatingCheckbox = null;
-    @BXML private Checkbox playlistRemoteCheckbox = null;
-    @BXML private Border remoteTracksBorder = null;
-    @BXML private BoxPane remoteTracksBoxPane = null;
-    @BXML private Label remoteTracksLabel = null;
-    @BXML private Checkbox remoteTracksCheckbox = null;
     @BXML private Border duplicateTrackExclusionsBorder = null;
     @BXML private BoxPane duplicateTrackExclusionsBoxPane = null;
     @BXML private Label duplicateTrackExclusionsBorderLabel = null;
@@ -353,13 +344,12 @@ public class PreferencesWindow
         }
 
         /*
-         * Set the widths of the column preferences and remote tracks labels.
+         * Set the widths of the column preferences labels.
          */
         fullColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         duplicatesColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         filteredColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
         playlistColumnPrefsLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
-        remoteTracksLabel.setPreferredWidth(InternalConstants.PREFS_COLUMN_LABELS_WIDTH);
 
         /*
          * Set the widths of the log level preferences labels.
@@ -441,11 +431,6 @@ public class PreferencesWindow
         createDuplicatesTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsDuplicatesView());
         createFilteredTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsFilteredView());
         createPlaylistTrackColumnPrefsCheckboxes(userPrefs.getTrackColumnsPlaylistView());
-
-        /*
-         * Fill in the remote tracks checkbox according to the preference.
-         */
-        remoteTracksCheckbox.setSelected(userPrefs.getShowRemoteTracks());
 
         /*
          * Add duplicate track exclusions rows if such preferences exist. This
@@ -551,7 +536,6 @@ public class PreferencesWindow
         duplicatesTrackColumnsUpdated = false;
         filteredTrackColumnsUpdated = false;
         playlistTrackColumnsUpdated = false;
-        showRemoteTracksUpdated = false;
         duplicateTrackExclusionsUpdated = false;
         skinPrefsUpdated = false;
         saveDirectoryUpdated = false;
@@ -593,7 +577,6 @@ public class PreferencesWindow
         fullYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
         fullAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
         fullRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
-        fullRemoteCheckbox.setButtonData(StringConstants.TRACK_COLUMN_REMOTE);
         duplicatesColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_DUPLICATES);
         duplicatesNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
         duplicatesNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
@@ -604,7 +587,6 @@ public class PreferencesWindow
         duplicatesYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
         duplicatesAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
         duplicatesRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
-        duplicatesRemoteCheckbox.setButtonData(StringConstants.TRACK_COLUMN_REMOTE);
         filteredColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_FILTERED);
         filteredNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
         filteredNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
@@ -615,7 +597,6 @@ public class PreferencesWindow
         filteredYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
         filteredAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
         filteredRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
-        filteredRemoteCheckbox.setButtonData(StringConstants.TRACK_COLUMN_REMOTE);
         playlistColumnPrefsLabel.setText(StringConstants.PREFS_COLUMN_PLAYLIST);
         playlistNumberCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NUMBER);
         playlistNameCheckbox.setButtonData(StringConstants.TRACK_COLUMN_NAME);
@@ -626,10 +607,6 @@ public class PreferencesWindow
         playlistYearCheckbox.setButtonData(StringConstants.TRACK_COLUMN_YEAR);
         playlistAddedCheckbox.setButtonData(StringConstants.TRACK_COLUMN_ADDED);
         playlistRatingCheckbox.setButtonData(StringConstants.TRACK_COLUMN_RATING);
-        playlistRemoteCheckbox.setButtonData(StringConstants.TRACK_COLUMN_REMOTE);
-        remoteTracksLabel.setText(StringConstants.PREFS_SHOW_REMOTE_TRACKS);
-        remoteTracksLabel.setTooltipText(StringConstants.PREFS_SHOW_REMOTE_TRACKS_TIP);
-        remoteTracksLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         duplicateTrackExclusionsBorderLabel.setText(StringConstants.PREFS_DUPLICATE_EXCLUSIONS_BORDER);
         duplicateTrackExclusionsBorderLabel.setTooltipText(StringConstants.PREFS_DUPLICATE_EXCLUSIONS_TIP);
         duplicateTrackExclusionsBorderLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
@@ -773,18 +750,6 @@ public class PreferencesWindow
         });
 
         /*
-         * Listener to handle the remote tracks checkbox.
-         */
-        remoteTracksCheckbox.getButtonPressListeners().add(new ButtonPressListener()
-        {
-            @Override
-            public void buttonPressed(Button button)
-            {
-                showRemoteTracksUpdated = true;
-            }
-        });
-
-        /*
          * Listener to handle the reset button on the second tab.
          */
         tab2ResetButton.getButtonPressListeners().add(new ButtonPressListener()
@@ -809,18 +774,12 @@ public class PreferencesWindow
                 createPlaylistTrackColumnPrefsCheckboxes(TrackDisplayColumns.getPlaylistColumnDefaults());
 
                 /*
-                 * Set the show remote tracks checkbox to unselected.
-                 */
-                remoteTracksCheckbox.setSelected(false);
-
-                /*
                  * Indicate the above preferences have been updated.
                  */
                 fullTrackColumnsUpdated = true;
                 duplicatesTrackColumnsUpdated = true;
                 filteredTrackColumnsUpdated = true;
                 playlistTrackColumnsUpdated = true;
-                showRemoteTracksUpdated = true;
 
                 preferencesSheet.repaint();
             }
@@ -962,6 +921,23 @@ public class PreferencesWindow
                                 }
                             }
                         }
+                    }
+                });
+
+                /*
+                 * Listener to handle the skin preview close button.
+                 */
+                previewButton.getButtonPressListeners().add(new ButtonPressListener()
+                {
+                    @Override
+                    public void buttonPressed(Button button)
+                    {
+                        logger.info("skin preview close button pressed");
+
+                        /*
+                         * Close the dialog.
+                         */
+                        skinPreviewDialog.close();
                     }
                 });
 
@@ -1240,16 +1216,6 @@ public class PreferencesWindow
                     userPrefs.replaceTrackColumnsPlaylistView(trackColumnPrefs);
 
                     TrackDisplayColumns.ColumnSet.PLAYLIST_VIEW.buildColumnSet(trackColumnPrefs);
-                }
-
-                if (showRemoteTracksUpdated == true)
-                {
-                    logger.info("updating show remote tracks preference");
-
-                    prefsUpdated = true;
-
-                    userPrefs.setShowRemoteTracks(remoteTracksCheckbox.isSelected());
-                    Utilities.updateMainWindowLabels(userPrefs.getXMLFileName());
                 }
 
                 if (duplicateTrackExclusionsUpdated == true)
@@ -2245,14 +2211,6 @@ public class PreferencesWindow
             columnPrefs.add(columnData);
         }
 
-        if (fullRemoteCheckbox.isSelected())
-        {
-            List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
-                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
-            columnPrefs.add(columnData);
-        }
-
         return columnPrefs;
     }
 
@@ -2337,14 +2295,6 @@ public class PreferencesWindow
             List<String> columnData = TrackDisplayColumns
                     .buildColumnData(TrackDisplayColumns.ColumnNames.RATING.getHeaderValue(),
                             TrackDisplayColumns.ColumnNames.RATING.getNameValue());
-            columnPrefs.add(columnData);
-        }
-
-        if (duplicatesRemoteCheckbox.isSelected())
-        {
-            List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
-                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
             columnPrefs.add(columnData);
         }
 
@@ -2435,14 +2385,6 @@ public class PreferencesWindow
             columnPrefs.add(columnData);
         }
 
-        if (filteredRemoteCheckbox.isSelected())
-        {
-            List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
-                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
-            columnPrefs.add(columnData);
-        }
-
         return columnPrefs;
     }
 
@@ -2530,14 +2472,6 @@ public class PreferencesWindow
             columnPrefs.add(columnData);
         }
 
-        if (playlistRemoteCheckbox.isSelected())
-        {
-            List<String> columnData = TrackDisplayColumns
-                    .buildColumnData(TrackDisplayColumns.ColumnNames.REMOTE.getHeaderValue(),
-                            TrackDisplayColumns.ColumnNames.REMOTE.getNameValue());
-            columnPrefs.add(columnData);
-        }
-
         return columnPrefs;
     }
 
@@ -2592,10 +2526,6 @@ public class PreferencesWindow
 
             case RATING:
                 fullRatingCheckbox.setSelected(true);
-                break;
-
-            case REMOTE:
-                fullRemoteCheckbox.setSelected(true);
                 break;
 
             default:
@@ -2657,10 +2587,6 @@ public class PreferencesWindow
                 duplicatesRatingCheckbox.setSelected(true);
                 break;
 
-            case REMOTE:
-                duplicatesRemoteCheckbox.setSelected(true);
-                break;
-
             default:
                 throw new InternalErrorException(true, "unknown column name '" + columnName + "'");
             }
@@ -2718,10 +2644,6 @@ public class PreferencesWindow
 
             case RATING:
                 filteredRatingCheckbox.setSelected(true);
-                break;
-
-            case REMOTE:
-                filteredRemoteCheckbox.setSelected(true);
                 break;
 
             default:
@@ -2783,10 +2705,6 @@ public class PreferencesWindow
                 playlistRatingCheckbox.setSelected(true);
                 break;
 
-            case REMOTE:
-                playlistRemoteCheckbox.setSelected(true);
-                break;
-
             default:
                 throw new InternalErrorException(true, "unknown column name '" + columnName + "'");
             }
@@ -2809,7 +2727,6 @@ public class PreferencesWindow
         fullYearCheckbox.setSelected(false);
         fullAddedCheckbox.setSelected(false);
         fullRatingCheckbox.setSelected(false);
-        fullRemoteCheckbox.setSelected(false);
 
         duplicatesNumberCheckbox.setSelected(false);
         duplicatesNameCheckbox.setSelected(false);
@@ -2820,7 +2737,6 @@ public class PreferencesWindow
         duplicatesYearCheckbox.setSelected(false);
         duplicatesAddedCheckbox.setSelected(false);
         duplicatesRatingCheckbox.setSelected(false);
-        duplicatesRemoteCheckbox.setSelected(false);
 
         filteredNumberCheckbox.setSelected(false);
         filteredNameCheckbox.setSelected(false);
@@ -2831,7 +2747,6 @@ public class PreferencesWindow
         filteredYearCheckbox.setSelected(false);
         filteredAddedCheckbox.setSelected(false);
         filteredRatingCheckbox.setSelected(false);
-        filteredRemoteCheckbox.setSelected(false);
 
         playlistNumberCheckbox.setSelected(false);
         playlistNameCheckbox.setSelected(false);
@@ -2842,7 +2757,6 @@ public class PreferencesWindow
         playlistYearCheckbox.setSelected(false);
         playlistAddedCheckbox.setSelected(false);
         playlistRatingCheckbox.setSelected(false);
-        playlistRemoteCheckbox.setSelected(false);
 
     }
 
@@ -3005,19 +2919,6 @@ public class PreferencesWindow
             }
         });
 
-        fullRemoteCheckbox = 
-                (Checkbox) prefsWindowSerializer.getNamespace().get("fullRemoteCheckbox");
-        components.add(fullRemoteCheckbox);
-
-        fullRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
-        {
-            @Override
-            public void buttonPressed(Button button)
-            {
-                fullTrackColumnsUpdated = true;
-            }
-        });
-
         duplicatesNumberCheckbox = 
                 (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesNumberCheckbox");
         components.add(duplicatesNumberCheckbox);
@@ -3127,19 +3028,6 @@ public class PreferencesWindow
         components.add(duplicatesRatingCheckbox);
 
         duplicatesRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
-        {
-            @Override
-            public void buttonPressed(Button button)
-            {
-                duplicatesTrackColumnsUpdated = true;
-            }
-        });
-
-        duplicatesRemoteCheckbox = 
-                (Checkbox) prefsWindowSerializer.getNamespace().get("duplicatesRemoteCheckbox");
-        components.add(duplicatesRemoteCheckbox);
-
-        duplicatesRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
@@ -3265,19 +3153,6 @@ public class PreferencesWindow
             }
         });
 
-        filteredRemoteCheckbox = 
-                (Checkbox) prefsWindowSerializer.getNamespace().get("filteredRemoteCheckbox");
-        components.add(filteredRemoteCheckbox);
-
-        filteredRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
-        {
-            @Override
-            public void buttonPressed(Button button)
-            {
-                filteredTrackColumnsUpdated = true;
-            }
-        });
-
         playlistNumberCheckbox = 
                 (Checkbox) prefsWindowSerializer.getNamespace().get("playlistNumberCheckbox");
         components.add(playlistNumberCheckbox);
@@ -3387,19 +3262,6 @@ public class PreferencesWindow
         components.add(playlistRatingCheckbox);
 
         playlistRatingCheckbox.getButtonPressListeners().add(new ButtonPressListener()
-        {
-            @Override
-            public void buttonPressed(Button button)
-            {
-                playlistTrackColumnsUpdated = true;
-            }
-        });
-
-        playlistRemoteCheckbox = 
-                (Checkbox) prefsWindowSerializer.getNamespace().get("playlistRemoteCheckbox");
-        components.add(playlistRemoteCheckbox);
-
-        playlistRemoteCheckbox.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
@@ -3604,23 +3466,17 @@ public class PreferencesWindow
     }
 
     /*
-     * Toggle the dimensional log level labels and spinners on or off.
+     * Toggle the dimensional log level spinners on or off.
      */
     private void toggleDimensionalLogLevelWidgets(boolean value)
     {
         logger.trace("toggleDimensionalLogLevelWidgets: " + this.hashCode());
         
-        uiLogLevelPrefsLabel.setEnabled(value);
         uiLogLevelPrefsSpinner.setEnabled(value);
-        xmlLogLevelPrefsLabel.setEnabled(value);
         xmlLogLevelPrefsSpinner.setEnabled(value);
-        trackLogLevelPrefsLabel.setEnabled(value);
         trackLogLevelPrefsSpinner.setEnabled(value);
-        playlistLogLevelPrefsLabel.setEnabled(value);
         playlistLogLevelPrefsSpinner.setEnabled(value);
-        artistLogLevelPrefsLabel.setEnabled(value);
         artistLogLevelPrefsSpinner.setEnabled(value);
-        filterLogLevelPrefsLabel.setEnabled(value);
         filterLogLevelPrefsSpinner.setEnabled(value);
     }
 
@@ -3716,18 +3572,6 @@ public class PreferencesWindow
         playlistColumnPrefsLabel =
                 (Label) prefsWindowSerializer.getNamespace().get("playlistColumnPrefsLabel");
         components.add(playlistColumnPrefsLabel);
-        remoteTracksBorder =
-                (Border) prefsWindowSerializer.getNamespace().get("remoteTracksBorder");
-        components.add(remoteTracksBorder);
-        remoteTracksBoxPane =
-                (BoxPane) prefsWindowSerializer.getNamespace().get("remoteTracksBoxPane");
-        components.add(remoteTracksBoxPane);
-        remoteTracksLabel = 
-                (Label) prefsWindowSerializer.getNamespace().get("remoteTracksLabel");
-        components.add(remoteTracksLabel);
-        remoteTracksCheckbox =
-                (Checkbox) prefsWindowSerializer.getNamespace().get("remoteTracksCheckbox");
-        components.add(remoteTracksCheckbox);
         duplicateTrackExclusionsBorder = 
                 (Border) prefsWindowSerializer.getNamespace().get("duplicateTrackExclusionsBorder");
         components.add(duplicateTrackExclusionsBorder);
@@ -3811,7 +3655,7 @@ public class PreferencesWindow
                 (TablePane) prefsWindowSerializer.getNamespace().get("logLevelPrefsTablePane");
         components.add(logLevelPrefsTablePane);
         globalLogLevelPrefsBoxPane =
-                (BoxPane) prefsWindowSerializer.getNamespace().get("logLevelPrefsBoxPane");
+                (BoxPane) prefsWindowSerializer.getNamespace().get("globalLogLevelPrefsBoxPane");
         components.add(globalLogLevelPrefsBoxPane);
         uiLogLevelPrefsBoxPane =
                 (BoxPane) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsBoxPane");

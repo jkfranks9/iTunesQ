@@ -48,8 +48,7 @@
             <Border bxml:id="previewButtonBorder">
                 <BoxPane bxml:id="previewButtonBoxPane" orientation="horizontal"
                     styles="{spacing:5, padding:10, verticalAlignment:'center'}">
-                    <PushButton bxml:id="previewButton"
-                        ButtonPressListener.buttonPressed="dialog.close()" />
+                    <PushButton bxml:id="previewButton" />
                 </BoxPane>
             </Border>
         </TablePane.Row>
