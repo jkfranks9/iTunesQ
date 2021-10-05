@@ -319,7 +319,7 @@ public class FilterCollection
         /*
          * Walk through all tracks.
          */
-        List<Track> tracks = XMLHandler.getTracks();
+        List<Track> tracks = Database.getTracks();
         
         for (Track track : tracks)
         {

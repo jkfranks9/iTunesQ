@@ -1,19 +1,16 @@
 package itunesq;
 
-import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.pivot.collections.ArrayList;
-import org.apache.pivot.util.concurrent.Task;
-import org.apache.pivot.util.concurrent.TaskListener;
 import org.apache.pivot.wtk.Label;
-import org.apache.pivot.wtk.TaskAdapter;
 import org.apache.pivot.wtk.TextInput;
-import org.apache.pivot.wtk.Window;
 
 /**
  * Class that contains various useful utility methods.
@@ -42,17 +39,39 @@ public final class Utilities
     private static Label numArtistsLabel = null;
 
     /*
-     * Static string definitions.
+     * Format or error string returned by formatDate().
      */
     private static final String DATE_FORMAT = "EEE, MMM dd yyyy, HH:mm:ss";
-    private static final String FORMATTED_DATE = "yyyy-MM-dd'T'HH:mm:ssX";
-    private static final String FORMATTED_DATE_MILLI = "yyyy-MM-dd'T'HH:mm:ss.SSSX";
+    private static final String UNKNOWN = StringConstants.UTILITY_UNKNOWN_DATE;
+    
+    /*
+     * Format definitions for parseDate().
+     */
+    private static final String SIMPLE_DATE_AM = "AM";
+    private static final String SIMPLE_DATE_PM = "PM";
+    private static final String SIMPLE_DATE = "MM/dd/yyyy HH:mm a";
+    private static final String FORMATTED_DATE_ISO8601 = "yyyy-MM-dd'T'HH:mm:ssX";
+    private static final String FORMATTED_DATE_MILLI = "yyyy-MM-dd'T'HH:mm:ss.";
+    private static final String FORMATTED_DATE_UTC_ZONE_SUFFIX = "Z";
+    private static final String FORMATTED_DATE_ISO8601_UTC_ZONE_SUFFIX = "X";
+    private static final String FORMATTED_DATE_ISO8601_ZONE_SUFFIX = "XXX";
+    
+    /*
+     * Format returned by getCurrentTimestamp().
+     */
     private static final String FORMATTED_DATE_FILENAME = "yyyy-MM-dd-HH-mm-ss";
+    
+    /*
+     * Format returned by convertMillisecondTime().
+     */
     private static final String MMSS_FORMAT = "%02d:%02d";
     private static final String HHMMSS_FORMAT = "%02d:%02d:%02d";
+    
+    /*
+     * Format definitions for parseTime().
+     */
     private static final String CALENDAR_MMSS_FORMAT = "mm:ss";
     private static final String CALENDAR_HHMMSS_FORMAT = "HH:mm:ss";
-    private static final String UNKNOWN = StringConstants.UTILITY_UNKNOWN_DATE;
 
     // ---------------- Public methods --------------------------------------
 
@@ -76,10 +95,19 @@ public final class Utilities
     }
 
     /**
-     * Parses a date string into a date object.
+     * Parses a date string into a date object. 
      * 
-     * @param dateStr formatted date string, with optional milliseconds 
-     * and ISO 8601 time zone
+     * The date string can be any of the the following formats:
+     * <ul>
+     * <li>MM/dd/yyyy HH:mm {AM|PM}</li>
+     * <li>yyyy-MM-dd'T'HH:mm:ssZ</li>
+     * <li>yyyy-MM-dd'T'HH:mm:ss.mmmZ</li>
+     * <li>yyyy-MM-dd'T'HH:mm:ss.mmm{+|-}HH</li>
+     * </ul>
+     * <p>
+     * The number of millisecond digits ("mmm") can be variable.
+     * 
+     * @param dateStr formatted date string
      * @return date object
      * @throws ParseException If an error occurs trying to parse the date
      * string.
@@ -90,15 +118,62 @@ public final class Utilities
     	SimpleDateFormat dateParser = null;
     	
     	/*
-    	 * Use the correct format based on the presence of milliseconds.
+    	 * Use the simple format if the string ends with AM or PM.
     	 */
-    	if (dateStr.indexOf('.') == -1)
+    	if (dateStr.endsWith(SIMPLE_DATE_AM) || (dateStr.endsWith(SIMPLE_DATE_PM)))
     	{
-            dateParser = new SimpleDateFormat(new String(FORMATTED_DATE));
+            dateParser = new SimpleDateFormat(new String(SIMPLE_DATE));
     	}
+    	
+    	/*
+    	 * The date does not contain milliseconds.
+    	 */
+    	else if (dateStr.indexOf('.') == -1)
+    	{
+			dateParser = new SimpleDateFormat(new String(FORMATTED_DATE_ISO8601));
+    	}
+    	
+    	/*
+    	 * The date contains milliseconds.
+    	 */
     	else
     	{
-            dateParser = new SimpleDateFormat(new String(FORMATTED_DATE_MILLI));
+    		
+    		/*
+    		 * Format the date according to the zone suffix used.
+    		 */
+    		String formattedDateMilli;
+    		int startIndex = dateStr.lastIndexOf('.');
+    		int endIndex;
+    		int numMilliChars;
+    		
+    		if (dateStr.endsWith(FORMATTED_DATE_UTC_ZONE_SUFFIX))
+    		{
+        		
+        		/*
+        		 * Create the format string with the correct number of millisecond characters.
+        		 */
+        		endIndex = dateStr.lastIndexOf('Z');
+        		numMilliChars = endIndex - startIndex - 1;
+    			formattedDateMilli = FORMATTED_DATE_MILLI + 
+    					String.join("", Collections.nCopies(numMilliChars, "S")) + 
+    					FORMATTED_DATE_ISO8601_UTC_ZONE_SUFFIX;
+    		}
+    		else
+    		{
+        		
+        		/*
+        		 * Create the format string with the correct number of millisecond characters.
+        		 */
+        		endIndex = dateStr.lastIndexOf('-');
+        		numMilliChars = endIndex - startIndex - 1;
+        		
+    			formattedDateMilli = FORMATTED_DATE_MILLI + 
+    					String.join("", Collections.nCopies(numMilliChars, "S")) + 
+    					FORMATTED_DATE_ISO8601_ZONE_SUFFIX;
+    		}
+            
+    		dateParser = new SimpleDateFormat(new String(formattedDateMilli));
     	}
 
         return dateParser.parse(dateStr);
@@ -373,97 +448,40 @@ public final class Utilities
     }
 
     /**
-     * Processes the XML file, and updates the main window XML file information.
-     * 
-     * @param xmlFileName name of the XML file to be processed
-     * @param owningWindow owning window
-     * @throws IOException If an error occurs trying to read the XML
-     * file.
-     */
-    public static void updateFromXMLFile(String xmlFileName, Window owningWindow) 
-            throws IOException
-    {
-
-        /*
-         * Start the activity indicator.
-         */
-        MainWindow.updateActivityIndicator(true);
-        
-        /*
-         * Create the concurrent task.
-         */
-        XMLHandler.ReadXMLTask xmlTask = new XMLHandler.ReadXMLTask();
-        
-        /*
-         * Listener that gets called when the task completes.
-         */
-        TaskListener<Integer> taskListener = new TaskListener<Integer>()
-        {
-            
-            /*
-             * The task completed successfully. Stop the activity indicator, update the main
-             * window labels and repaint the main window.
-             */
-            @Override
-            public void taskExecuted(Task<Integer> task)
-            {
-                MainWindow.updateActivityIndicator(false);
-                Utilities.updateMainWindowLabels(xmlFileName);
-                owningWindow.repaint(true);
-            }
-
-            /*
-             * The task failed. I think this only happens if an exception was throw, in which
-             * case we convert it to an internal error exception. But also throw an exception
-             * if getFault returns null, because we really can't do anything without the XML
-             * file being processed.
-             */
-            @Override
-            public void executeFailed(Task<Integer> task)
-            {
-                MainWindow.updateActivityIndicator(false);
-                
-                if (task.getFault() != null)
-                {
-                    throw new InternalErrorException(true, task.getFault().getMessage());
-                }
-                else
-                {
-                    throw new InternalErrorException(true, "failed to execute ReadXMLTask");
-                }
-            }
-        };
-        
-        /*
-         * All set. Run the background task.
-         */
-        xmlTask.execute(new TaskAdapter<Integer>(taskListener));
-    }
-
-    /**
-     * Updates the XML file information on the main window.
+     * Updates the input file information on the main window.
      * <p>
      * This is somewhat tricky. <code>MainWindow</code> calls several methods in
      * this class to save the actual <code>Label</code> variables, for example
-     * <code>saveFileLabel</code>. It then calls this method to fill in the
-     * label values. Likewise, if the XML file is changed while running,
-     * <code>updateFromXMLFile</code> also calls this method. All this so I
-     * don't have to repeat this code in two places.
+     * <code>saveFileLabel</code>. It then calls <code>updateFromInputFile</code>
+     * which in turn calls this method to fill in the label values. Likewise, if 
+     * the input file is changed while running, <code>updateFromInputFile</code>
+     * is also called. All this so I don't have to repeat this code in two places.
      * 
-     * @param xmlFileName XML file name
+     * @param inputFileName input file name
      */
-    public static void updateMainWindowLabels(String xmlFileName)
+    public static void updateMainWindowLabels(String inputFileName)
     {
-        fileLabel.setText(xmlFileName + StringConstants.UTILITY_XMLFILE_DATE 
-                + XMLHandler.getXMLFileTimestamp());
+    	String fileNameExt = FilenameUtils.getExtension(inputFileName);
+    	
+    	if (fileNameExt.equals(StringConstants.XML))
+    	{
+            fileLabel.setText(inputFileName + StringConstants.UTILITY_FILE_DATE 
+                    + XMLHandler.getXMLFileTimestamp());
+    	}
+    	else if (fileNameExt.equals(StringConstants.JSON))
+    	{
+            fileLabel.setText(inputFileName + StringConstants.UTILITY_FILE_DATE 
+                    + JSONHandler.getJSONFileTimestamp());
+    	}
+    	
         numAudioTracksLabel.setText(StringConstants.UTILITY_NUM_AUDIO_TRACKS 
-                + Integer.toString(XMLHandler.getNumberOfAudioTracks()));
+                + Integer.toString(Database.getNumberOfAudioTracks()));
         numVideoTracksLabel.setText(StringConstants.UTILITY_NUM_VIDEO_TRACKS 
-                + Integer.toString(XMLHandler.getNumberOfVideoTracks()));
+                + Integer.toString(Database.getNumberOfVideoTracks()));
         numPlaylistsLabel.setText(StringConstants.UTILITY_NUM_PLAYLISTS 
-                + Integer.toString(XMLHandler.getNumberOfPlaylists()));
+                + Integer.toString(Database.getNumberOfPlaylists()));
         numArtistsLabel.setText(StringConstants.UTILITY_NUM_ARTISTS 
-                + Integer.toString(XMLHandler.getNumberOfArtists()));
+                + Integer.toString(Database.getNumberOfArtists()));
     }
 
     /**

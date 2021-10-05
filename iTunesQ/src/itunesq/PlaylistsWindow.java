@@ -141,7 +141,7 @@ public class PlaylistsWindow
         /*
          * Set the number of playlists label.
          */
-        numPlaylistsLabel.setText(StringConstants.PLAYLIST_NUMBER + XMLHandler.getNumberOfPlaylists());
+        numPlaylistsLabel.setText(StringConstants.PLAYLIST_NUMBER + Database.getNumberOfPlaylists());
 
         /*
          * Gather the playlist tree.
@@ -237,7 +237,7 @@ public class PlaylistsWindow
                 /*
                  * Get the selected playlist object.
                  */
-                Playlist playlist = XMLHandler.getPlaylists().get(playlistID);
+                Playlist playlist = Database.getPlaylists().get(playlistID);
                 uiLogger.info("playlist '" + playlist.getName() + "' selected");
 
                 /*
@@ -260,8 +260,8 @@ public class PlaylistsWindow
                         /*
                          * Get the track for this track ID.
                          */
-                        Integer trackIndex = XMLHandler.getTracksMap().get(trackID);
-                        Track track = XMLHandler.getTracks().get(trackIndex);
+                        Integer trackIndex = Database.getTracksMap().get(trackID);
+                        Track track = Database.getTracks().get(trackIndex);
 
                         playlistLogger.debug("track ID " + trackID + ", index " + trackIndex + ", name "
                                 + track.getName() + " found");
@@ -297,7 +297,7 @@ public class PlaylistsWindow
                     public void sortChanged(TableView tableView)
                     {
                         List<Object> tableDataOfTableView = (List<Object>) tableView.getTableData();
-                        tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView, uiLogger));
+                        tableDataOfTableView.setComparator(new LQTTableViewRowComparator(tableView, uiLogger));
                     }
                 });
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.beans.Bindable;
@@ -176,14 +177,14 @@ public class MenuBars extends Frame implements Bindable
 
                             if (selectedFile != null)
                             {
-                                String xmlFileName = selectedFile.getPath();
+                                String inputFileName = selectedFile.getPath();
 
                                 /*
-                                 * Save the selected XML file, then write the
+                                 * Save the selected input file, then write the
                                  * preferences.
                                  */
                                 Preferences userPrefs = Preferences.getInstance();
-                                userPrefs.setXMLFileName(xmlFileName);
+                                userPrefs.setInputFileName(inputFileName);
                                 try
                                 {
                                     userPrefs.writePreferences();
@@ -194,31 +195,43 @@ public class MenuBars extends Frame implements Bindable
                                     throw new InternalErrorException(true, e.getMessage());
                                 }
 
-                                logger.info("updating for new XML file '" + xmlFileName + "'");
+                                logger.info("updating for new input file '" + inputFileName + "'");
                                 
                                 /*
-                                 * Gray out the main buttons until the XML file is successfully processed.
+                                 * Gray out the main buttons until the input file is successfully processed.
                                  */
                                 MainWindow.updateMainButtonsState(false);
 
                                 /*
-                                 * Update based on the new XML file.
+                                 * Update based on the new input file.
                                  * 
-                                 * We're going to read and process the XML file in a background task, 
+                                 * We're going to read and process the input file in a background task, 
                                  * with an activity indicator on the main window. This lets the user 
                                  * know that something is going on in the background. When the task 
                                  * completes successfully, we update the main window labels and 
                                  * inactivate the activity indicator.
                                  */
-                                try
+                            	String fileNameExt = FilenameUtils.getExtension(inputFileName);
+                                
+                            	try
                                 {
-                                    Utilities.updateFromXMLFile(xmlFileName, MenuBars.this);
+                                    MainWindow.updateFromInputFile(inputFileName, MenuBars.this);
                                 }
                                 catch (IOException e)
                                 {
                                     MainWindow.logException(logger, e);
-                                    Alert.alert(MessageType.ERROR, StringConstants.ALERT_XML_FILE_ERROR + xmlFileName,
-                                            MenuBars.this);
+
+                                    String alert = "";
+                                	if (fileNameExt.equals(StringConstants.XML))
+                                	{
+                                		alert = StringConstants.ALERT_XML_FILE_ERROR;
+                                	}
+                                	else if (fileNameExt.equals(StringConstants.JSON))
+                                	{
+                                		alert = StringConstants.ALERT_JSON_FILE_ERROR;
+                                	}
+                                	
+                                    Alert.alert(MessageType.ERROR, alert + inputFileName, MenuBars.this);
                                     throw new InternalErrorException(true, e.getMessage());
                                 }
 

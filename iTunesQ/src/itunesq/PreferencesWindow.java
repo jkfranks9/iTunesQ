@@ -1,7 +1,6 @@
 package itunesq;
 
 import java.io.IOException;
-
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
@@ -184,9 +183,9 @@ public class PreferencesWindow
     @BXML private BoxPane uiLogLevelPrefsBoxPane = null;
     @BXML private Label uiLogLevelPrefsLabel = null;
     @BXML private Spinner uiLogLevelPrefsSpinner = null;
-    @BXML private BoxPane xmlLogLevelPrefsBoxPane = null;
-    @BXML private Label xmlLogLevelPrefsLabel = null;
-    @BXML private Spinner xmlLogLevelPrefsSpinner = null;
+    @BXML private BoxPane fileLogLevelPrefsBoxPane = null;
+    @BXML private Label fileLogLevelPrefsLabel = null;
+    @BXML private Spinner fileLogLevelPrefsSpinner = null;
     @BXML private BoxPane trackLogLevelPrefsBoxPane = null;
     @BXML private Label trackLogLevelPrefsLabel = null;
     @BXML private Spinner trackLogLevelPrefsSpinner = null;
@@ -355,7 +354,7 @@ public class PreferencesWindow
          * Set the widths of the log level preferences labels.
          */
         uiLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
-        xmlLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
+        fileLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
         trackLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
         playlistLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
         artistLogLevelPrefsLabel.setPreferredWidth(InternalConstants.PREFS_LOG_LEVEL_LABELS_WIDTH);
@@ -501,7 +500,7 @@ public class PreferencesWindow
          */
         setupLogLevelSpinner(Logging.Dimension.ALL, globalLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.UI, uiLogLevelPrefsSpinner);
-        setupLogLevelSpinner(Logging.Dimension.XML, xmlLogLevelPrefsSpinner);
+        setupLogLevelSpinner(Logging.Dimension.FILE, fileLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.TRACK, trackLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.PLAYLIST, playlistLogLevelPrefsSpinner);
         setupLogLevelSpinner(Logging.Dimension.ARTIST, artistLogLevelPrefsSpinner);
@@ -639,11 +638,11 @@ public class PreferencesWindow
         uiLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         uiLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_UI_LOG_LEVEL_TIP);
         uiLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
-        xmlLogLevelPrefsLabel.setText(StringConstants.PREFS_XML_LOG_LEVEL);
-        xmlLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_XML_LOG_LEVEL_TIP);
-        xmlLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
-        xmlLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_XML_LOG_LEVEL_TIP);
-        xmlLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        fileLogLevelPrefsLabel.setText(StringConstants.PREFS_FILE_LOG_LEVEL);
+        fileLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_FILE_LOG_LEVEL_TIP);
+        fileLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
+        fileLogLevelPrefsSpinner.setTooltipText(StringConstants.PREFS_FILE_LOG_LEVEL_TIP);
+        fileLogLevelPrefsSpinner.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
         trackLogLevelPrefsLabel.setText(StringConstants.PREFS_TRACK_LOG_LEVEL);
         trackLogLevelPrefsLabel.setTooltipText(StringConstants.PREFS_TRACK_LOG_LEVEL_TIP);
         trackLogLevelPrefsLabel.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
@@ -686,11 +685,15 @@ public class PreferencesWindow
         skins.skinMe(Skins.Window.PREFERENCES);
 
         /*
+         * Save and set the window title.
+         */
+        owningWindowTitle = owningWindow.getTitle();
+        owningWindow.setTitle(Skins.Window.PREFERENCES.getDisplayValue());
+
+        /*
          * Open the preferences window.
          */
         logger.info("opening preferences window");
-        owningWindowTitle = owningWindow.getTitle();
-        owningWindow.setTitle(Skins.Window.PREFERENCES.getDisplayValue());
         preferencesSheet.open(display, owningWindow);
     }
 
@@ -820,7 +823,7 @@ public class PreferencesWindow
 
                 globalLogLevelPrefsSpinner.setSelectedIndex(index);
                 uiLogLevelPrefsSpinner.setSelectedIndex(index);
-                xmlLogLevelPrefsSpinner.setSelectedIndex(index);
+                fileLogLevelPrefsSpinner.setSelectedIndex(index);
                 trackLogLevelPrefsSpinner.setSelectedIndex(index);
                 playlistLogLevelPrefsSpinner.setSelectedIndex(index);
                 artistLogLevelPrefsSpinner.setSelectedIndex(index);
@@ -1309,8 +1312,8 @@ public class PreferencesWindow
 
                     levelPref = (String) uiLogLevelPrefsSpinner.getSelectedItem();
                     userPrefs.setLogLevel(Logging.Dimension.UI, Level.toLevel(levelPref));
-                    levelPref = (String) xmlLogLevelPrefsSpinner.getSelectedItem();
-                    userPrefs.setLogLevel(Logging.Dimension.XML, Level.toLevel(levelPref));
+                    levelPref = (String) fileLogLevelPrefsSpinner.getSelectedItem();
+                    userPrefs.setLogLevel(Logging.Dimension.FILE, Level.toLevel(levelPref));
                     levelPref = (String) trackLogLevelPrefsSpinner.getSelectedItem();
                     userPrefs.setLogLevel(Logging.Dimension.TRACK, Level.toLevel(levelPref));
                     levelPref = (String) playlistLogLevelPrefsSpinner.getSelectedItem();
@@ -1421,7 +1424,7 @@ public class PreferencesWindow
             {
                 bypassPrefsUpdated = true;
 
-                Utilities.typingAssistant(textInput, XMLHandler.getPlaylistNames(), textInput.getText(),
+                Utilities.typingAssistant(textInput, Database.getPlaylistNames(), textInput.getText(),
                         Filter.Operator.IS);
             }
         });
@@ -1661,7 +1664,7 @@ public class PreferencesWindow
             {
                 ignoredPrefsUpdated = true;
 
-                Utilities.typingAssistant(textInput, XMLHandler.getPlaylistNames(), textInput.getText(),
+                Utilities.typingAssistant(textInput, Database.getPlaylistNames(), textInput.getText(),
                         Filter.Operator.IS);
             }
         });
@@ -3341,11 +3344,11 @@ public class PreferencesWindow
             }
         });
 
-        xmlLogLevelPrefsSpinner = 
-                (Spinner) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsSpinner");
-        components.add(xmlLogLevelPrefsSpinner);
+        fileLogLevelPrefsSpinner = 
+                (Spinner) prefsWindowSerializer.getNamespace().get("fileLogLevelPrefsSpinner");
+        components.add(fileLogLevelPrefsSpinner);
 
-        xmlLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
+        fileLogLevelPrefsSpinner.getSpinnerSelectionListeners().add(new SpinnerSelectionListener()
         {
             @Override
             public void selectedIndexChanged(Spinner spinner, int previousSelectedIndex)
@@ -3473,7 +3476,7 @@ public class PreferencesWindow
         logger.trace("toggleDimensionalLogLevelWidgets: " + this.hashCode());
         
         uiLogLevelPrefsSpinner.setEnabled(value);
-        xmlLogLevelPrefsSpinner.setEnabled(value);
+        fileLogLevelPrefsSpinner.setEnabled(value);
         trackLogLevelPrefsSpinner.setEnabled(value);
         playlistLogLevelPrefsSpinner.setEnabled(value);
         artistLogLevelPrefsSpinner.setEnabled(value);
@@ -3663,12 +3666,12 @@ public class PreferencesWindow
         uiLogLevelPrefsLabel =
                 (Label) prefsWindowSerializer.getNamespace().get("uiLogLevelPrefsLabel");
         components.add(uiLogLevelPrefsLabel);
-        xmlLogLevelPrefsBoxPane =
-                (BoxPane) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsBoxPane");
-        components.add(xmlLogLevelPrefsBoxPane);
-        xmlLogLevelPrefsLabel =
-                (Label) prefsWindowSerializer.getNamespace().get("xmlLogLevelPrefsLabel");
-        components.add(xmlLogLevelPrefsLabel);
+        fileLogLevelPrefsBoxPane =
+                (BoxPane) prefsWindowSerializer.getNamespace().get("fileLogLevelPrefsBoxPane");
+        components.add(fileLogLevelPrefsBoxPane);
+        fileLogLevelPrefsLabel =
+                (Label) prefsWindowSerializer.getNamespace().get("fileLogLevelPrefsLabel");
+        components.add(fileLogLevelPrefsLabel);
         trackLogLevelPrefsBoxPane =
                 (BoxPane) prefsWindowSerializer.getNamespace().get("trackLogLevelPrefsBoxPane");
         components.add(trackLogLevelPrefsBoxPane);

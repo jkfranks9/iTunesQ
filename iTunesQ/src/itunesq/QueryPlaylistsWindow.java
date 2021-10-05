@@ -718,7 +718,7 @@ public class QueryPlaylistsWindow
             @Override
             public void textInserted(TextInput textInput, int index, int count)
             {
-                Utilities.typingAssistant(textInput, XMLHandler.getPlaylistNames(), textInput.getText(),
+                Utilities.typingAssistant(textInput, Database.getPlaylistNames(), textInput.getText(),
                         Filter.Operator.IS);
             }
         });
@@ -764,7 +764,7 @@ public class QueryPlaylistsWindow
             {
                 evaluateComparisonNeeded = true;
 
-                Utilities.typingAssistant(textInput, XMLHandler.getPlaylistNames(), textInput.getText(),
+                Utilities.typingAssistant(textInput, Database.getPlaylistNames(), textInput.getText(),
                         Filter.Operator.IS);
             }
 
@@ -1066,8 +1066,8 @@ public class QueryPlaylistsWindow
                 	{
                 		if (filterLogger.isDebugEnabled())
                 		{
-                            Integer trackIndex = XMLHandler.getTracksMap().get(pcTrack.getTrackID());
-                            Track track = XMLHandler.getTracks().get(trackIndex);
+                            Integer trackIndex = Database.getTracksMap().get(pcTrack.getTrackID());
+                            Track track = Database.getTracks().get(trackIndex);
                             filterLogger.debug("adding track '" + track.getName() + "' to recursive IDs");
                 		}
                 		recursiveIDs.add(pcTrack);
@@ -1176,13 +1176,13 @@ public class QueryPlaylistsWindow
                 	/*
                 	 * Get the ID of the entered playlist.
                 	 */
-                    Playlist selectedPlaylistObj = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
+                    Playlist selectedPlaylistObj = Database.getPlaylists().get(Database.getPlaylistsMap().get(playlistName));
                     String selectedID = selectedPlaylistObj.getPersistentID();
                     
                     /*
                      * Loop through all playlists.
                      */
-                    Map<String, Playlist> allPlaylists = XMLHandler.getPlaylists();                
+                    Map<String, Playlist> allPlaylists = Database.getPlaylists();                
                     for (String playlistKey : allPlaylists)
                     {
                         Playlist playlistObj = allPlaylists.get(playlistKey);
@@ -1228,7 +1228,7 @@ public class QueryPlaylistsWindow
          * Walk through all playlists.
          */
         List<String> playlists = new ArrayList<String>();
-        Map<String, Playlist> allPlaylists = XMLHandler.getPlaylists();
+        Map<String, Playlist> allPlaylists = Database.getPlaylists();
         
         for (String playlistKey : allPlaylists)
         {
@@ -1282,7 +1282,7 @@ public class QueryPlaylistsWindow
                 	/*
                 	 * Get the playlist object for the current selection in the inner loop.
                 	 */
-                	Playlist selectedPlaylistObj = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(selectedName));
+                	Playlist selectedPlaylistObj = Database.getPlaylists().get(Database.getPlaylistsMap().get(selectedName));
                 	
                 	/*
                 	 * Get the parent ID of the current playlist in the outer loop.
@@ -1302,7 +1302,7 @@ public class QueryPlaylistsWindow
                 			break;
                 		}
                 		
-                		tmpPlaylistObj = XMLHandler.getPlaylists().get(parentID);
+                		tmpPlaylistObj = Database.getPlaylists().get(parentID);
                 	}
                 }
             }
@@ -1371,7 +1371,7 @@ public class QueryPlaylistsWindow
             /*
              * Get the playlist object.
              */
-            String playlistID = XMLHandler.getPlaylistsMap().get(playlistName);
+            String playlistID = Database.getPlaylistsMap().get(playlistName);
 
             if (playlistID == null)
             {
@@ -1381,7 +1381,7 @@ public class QueryPlaylistsWindow
                 break;
             }
 
-            Playlist playlist = XMLHandler.getPlaylists().get(playlistID);
+            Playlist playlist = Database.getPlaylists().get(playlistID);
 
             /*
              * Get the list of track IDs for this playlist.
@@ -1575,8 +1575,8 @@ public class QueryPlaylistsWindow
             /*
              * Add the associated track object to the list of tracks.
              */
-            Integer trackIndex = XMLHandler.getTracksMap().get(pcTrack.getTrackID());
-            Track track = XMLHandler.getTracks().get(trackIndex);
+            Integer trackIndex = Database.getTracksMap().get(pcTrack.getTrackID());
+            Track track = Database.getTracks().get(trackIndex);
             displayableTracks.add(track);
         }
 
@@ -1734,7 +1734,7 @@ public class QueryPlaylistsWindow
         /*
          * Get the input playlist object.
          */
-        Playlist playlist = XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
+        Playlist playlist = Database.getPlaylists().get(Database.getPlaylistsMap().get(playlistName));
 
         /*
          * Get the track IDs for the input playlist into a set.
@@ -1752,7 +1752,7 @@ public class QueryPlaylistsWindow
                 /*
                  * Get the track for this track ID.
                  */
-                Track track = XMLHandler.getTracks().get(XMLHandler.getTracksMap().get(trackID));
+                Track track = Database.getTracks().get(Database.getTracksMap().get(trackID));
 
                 /*
                  * Add the track.
@@ -1799,7 +1799,7 @@ public class QueryPlaylistsWindow
          * Get the input playlist object.
          */
         Playlist inputPlaylistObj = 
-                XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlistName));
+                Database.getPlaylists().get(Database.getPlaylistsMap().get(playlistName));
 
         /*
          * Get the track IDs for the input playlist into a list.
@@ -1817,7 +1817,7 @@ public class QueryPlaylistsWindow
                 /*
                  * Get the track for this track ID.
                  */
-                Track track = XMLHandler.getTracks().get(XMLHandler.getTracksMap().get(trackID));
+                Track track = Database.getTracks().get(Database.getTracksMap().get(trackID));
                 
                 /*
                  * Get the list of playlist info objects for this track.
@@ -1852,7 +1852,7 @@ public class QueryPlaylistsWindow
                      * Skip children of the input playlist.
                      */
                     Playlist playlistObj = 
-                            XMLHandler.getPlaylists().get(XMLHandler.getPlaylistsMap().get(playlist));
+                            Database.getPlaylists().get(Database.getPlaylistsMap().get(playlist));
                     String parentID = playlistObj.getParentPersistentID();
                     
                     if (parentID != null && parentID.equals(inputPlaylistObj.getPersistentID()))
@@ -1989,7 +1989,7 @@ public class QueryPlaylistsWindow
             public void sortChanged(TableView tableView)
             {
                 List<Object> tableDataOfTableView = (List<Object>) tableView.getTableData();
-                tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView, uiLogger));
+                tableDataOfTableView.setComparator(new LQTTableViewRowComparator(tableView, uiLogger));
             }
         });
 

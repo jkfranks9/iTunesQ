@@ -745,8 +745,8 @@ public class FileSaveDialog
         case TRACK_QUERY:
         case TRACK_DUPLICATES:
         case TRACK_FAMILY:
-            String playlistID = XMLHandler.getPlaylistsMap().get(playlistName);
-            Playlist playlist = XMLHandler.getPlaylists().get(playlistID);
+            String playlistID = Database.getPlaylistsMap().get(playlistName);
+            Playlist playlist = Database.getPlaylists().get(playlistID);
             result = playlist.getBypassed();
             break;
 

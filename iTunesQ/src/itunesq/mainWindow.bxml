@@ -61,7 +61,7 @@
                     <!-- Activity indicator. -->
                     <ActivityIndicator bxml:id="activityIndicator" />
 
-                    <!-- XML file information. -->
+                    <!-- Input file information. -->
                     <Separator bxml:id="fileSeparator" />
                     <BoxPane bxml:id="fileBoxPane" orientation="horizontal" styles="{spacing:5, padding:10}">
                         <Label bxml:id="fileLabel"
@@ -69,7 +69,7 @@
                	  	    		horizontalAlignment:'left', verticalAlignment:'center'}" />
                     </BoxPane>
 
-                    <!-- XML file statistics. -->
+                    <!-- Input file statistics. -->
                     <Separator bxml:id="dataSeparator" />
                     <BoxPane bxml:id="dataBoxPane" orientation="horizontal" styles="{spacing:5, padding:10}">
                         <Label bxml:id="numAudioTracksLabel"

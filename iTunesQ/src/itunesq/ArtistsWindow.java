@@ -96,6 +96,7 @@ public class ArtistsWindow
     @BXML private Border alphaBorder = null;
     @BXML private BoxPane alphaBoxPane = null;
     @BXML private Label alphaLabel = null;
+    @BXML private PushButton numericButton = null;
     @BXML private PushButton alphaAButton = null;
     @BXML private PushButton alphaBButton = null;
     @BXML private PushButton alphaCButton = null;
@@ -259,7 +260,7 @@ public class ArtistsWindow
         /*
          * Set the number of artists label.
          */
-        numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + XMLHandler.getNumberOfArtists());
+        numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + Database.getNumberOfArtists());
 
         /*
          * Create a list suitable for the setTableData() method.
@@ -269,7 +270,7 @@ public class ArtistsWindow
         /*
          * Get the list of artist correlators. These contain the unaltered artist display names.
          */
-        ArrayList<ArtistCorrelator> artistCorrs = XMLHandler.getArtistCorrelators();
+        ArrayList<ArtistCorrelator> artistCorrs = Database.getArtistCorrelators();
 
         /*
          * The correlators are currently sorted by normalized names, but we want them sorted by
@@ -290,7 +291,7 @@ public class ArtistsWindow
          */
         for (ArtistCorrelator artistCorr : artistCorrs)
         {
-            Artist artistObj = XMLHandler.getArtists().get(artistCorr.getArtistKey());
+            Artist artistObj = Database.getArtists().get(artistCorr.getArtistKey());
 
             HashMap<String, String> artistAttrs = artistObj.toDisplayMap();
             displayArtists.add(artistAttrs);
@@ -324,7 +325,7 @@ public class ArtistsWindow
             public void sortChanged(TableView tableView)
             {
                 List<Object> tableDataOfTableView = (List<Object>) tableView.getTableData();
-                tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView, uiLogger));
+                tableDataOfTableView.setComparator(new LQTTableViewRowComparator(tableView, uiLogger));
             }
         });
         
@@ -340,6 +341,20 @@ public class ArtistsWindow
             {
             	TableView table = tableViewHeader.getTableView();
             	tableSortColumnName = table.getColumns().get(index).getName();
+
+            	/*
+            	 * Enable or disable the alpha bar depending on the column that was sorted.
+            	 */
+                ArtistDisplayColumns.ColumnNames columnName = ArtistDisplayColumns.ColumnNames.getEnum(tableSortColumnName);
+            	switch (columnName)
+            	{
+            	case ARTIST:
+            		setAlphaBarState(true);
+            		break;
+            		
+            	default:
+            		setAlphaBarState(false);
+            	}
             }        	
         });
         
@@ -597,14 +612,14 @@ public class ArtistsWindow
         uiLogger.trace("createAlphaEventHandlers: " + this.hashCode());
 
         /*
-         * Listener to handle the A button press.
+         * Listener to handle the numeric button press.
          */
-        alphaAButton.getButtonPressListeners().add(new ButtonPressListener()
+        numericButton.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
             {
-                uiLogger.info("alpha bar numeric button pressed");
+            	uiLogger.info("alpha bar numeric button pressed");
                 
                 switch (tableSortColumnName)
                 {
@@ -1211,8 +1226,8 @@ public class ArtistsWindow
          * artist object. But to get the artist object we need the artist correlator, so get that
          * now.
          */
-        ArtistCorrelator artistCorr = XMLHandler.findArtistCorrelator(artistName);
-        Artist artistObj = XMLHandler.getArtists().get(artistCorr.getArtistKey());
+        ArtistCorrelator artistCorr = Database.findArtistCorrelator(artistName);
+        Artist artistObj = Database.getArtists().get(artistCorr.getArtistKey());
         ArtistNames artistNames = artistObj.getArtistNames();
 
         /*
@@ -1404,7 +1419,7 @@ public class ArtistsWindow
              * Inject some sanity by checking if the artist does not start or end with the same
              * word as the surrounding artists we've saved. We use this to warn the user.
              */
-            String[] artistWords = artistName.split(" ");
+            String[] artistWords = artistName.replaceAll("^(?i)The ", "").split(" ");
             String previousArtist = null;
             String nextArtist = null;
             if (index >= 1)
@@ -1585,8 +1600,8 @@ public class ArtistsWindow
          * The alternate artist names are kept in an ArtistNames object, which is obtained from the
          * artist object. But to get the artist object we need the artist correlator.
          */
-        ArtistCorrelator artistCorr = XMLHandler.findArtistCorrelator(primaryForRemoval);
-        Artist artistObj = XMLHandler.getArtists().get(artistCorr.getArtistKey());
+        ArtistCorrelator artistCorr = Database.findArtistCorrelator(primaryForRemoval);
+        Artist artistObj = Database.getArtists().get(artistCorr.getArtistKey());
         ArtistNames artistNames = artistObj.getArtistNames();
 
         /*
@@ -1872,7 +1887,7 @@ public class ArtistsWindow
             /*
              * Get the artist correlator list.
              */
-            ArrayList<ArtistCorrelator> artistCorrs = XMLHandler.getArtistCorrelators();
+            ArrayList<ArtistCorrelator> artistCorrs = Database.getArtistCorrelators();
             
             /*
              * Create a search correlator for the primary.
@@ -1911,16 +1926,16 @@ public class ArtistsWindow
                 /*
                  * Transfer the alternate to the primary.
                  */
-                XMLHandler.transferArtistToPrimary(altCorr, primaryIdx, altIdx);
+                ArtistNames.transferArtistToPrimary(altCorr, primaryIdx, altIdx);
 
                 /*
                  * If we have an automatic artist override for the primary, remove the alternate from 
                  * the override.
                  */
-                if (userPrefs.getArtistOverridePrimaryName(altArtist, 
+                if (userPrefs.getArtistOverride(altArtist, 
                         ArtistAlternateNameOverride.OverrideType.AUTOMATIC) != null)
                 {
-                    userPrefs.removeArtistOverride(primaryArtist, altArtist);
+                    userPrefs.removeArtistOverride(primaryArtist, altArtist, ArtistAlternateNameOverride.OverrideType.AUTOMATIC);
                 }
                 
                 /*
@@ -1943,8 +1958,8 @@ public class ArtistsWindow
             /*
              * Access primary artist objects and update the primary in the list of displayed artists.
              */
-            ArtistCorrelator primaryArtistCorr = XMLHandler.findArtistCorrelator(primaryArtist);
-            Artist primaryArtistObj = XMLHandler.getArtists().get(primaryArtistCorr.getArtistKey());
+            ArtistCorrelator primaryArtistCorr = Database.findArtistCorrelator(primaryArtist);
+            Artist primaryArtistObj = Database.getArtists().get(primaryArtistCorr.getArtistKey());
             
             HashMap<String, String> primaryRowData = primaryArtistObj.toDisplayMap();
             artistRows.update(primaryTableIndex, primaryRowData);
@@ -2042,15 +2057,15 @@ public class ArtistsWindow
             /*
              * Fix the database by transferring the alternate to become its own standalone artist.
              */
-            XMLHandler.transferArtistFromPrimary(primaryForRemoval, altArtist);
+            ArtistNames.transferArtistFromPrimary(primaryForRemoval, altArtist);
             
             /*
              * If we have a manual artist override for the primary, remove the alternate from the override.
              */
-            if (userPrefs.getArtistOverridePrimaryName(altArtist, 
+            if (userPrefs.getArtistOverride(altArtist, 
                     ArtistAlternateNameOverride.OverrideType.MANUAL) != null)
             {
-                userPrefs.removeArtistOverride(primaryForRemoval, altArtist);
+                userPrefs.removeArtistOverride(primaryForRemoval, altArtist, ArtistAlternateNameOverride.OverrideType.MANUAL);
             }
             
             /*
@@ -2066,8 +2081,8 @@ public class ArtistsWindow
              * Access alternate artist objects, so we can add this artist to the list
              * of artists being displayed.
              */
-            ArtistCorrelator altArtistCorr = XMLHandler.findArtistCorrelator(altArtist);
-            Artist altArtistObj = XMLHandler.getArtists().get(altArtistCorr.getArtistKey());
+            ArtistCorrelator altArtistCorr = Database.findArtistCorrelator(altArtist);
+            Artist altArtistObj = Database.getArtists().get(altArtistCorr.getArtistKey());
             
             /*
              * Add this alternate to the list of displayed artists.
@@ -2084,8 +2099,8 @@ public class ArtistsWindow
         /*
          * Access primary artist objects and update the primary in the list of displayed artists.
          */
-        ArtistCorrelator primaryArtistCorr = XMLHandler.findArtistCorrelator(primaryForRemoval);
-        Artist primaryArtistObj = XMLHandler.getArtists().get(primaryArtistCorr.getArtistKey());
+        ArtistCorrelator primaryArtistCorr = Database.findArtistCorrelator(primaryForRemoval);
+        Artist primaryArtistObj = Database.getArtists().get(primaryArtistCorr.getArtistKey());
         
         HashMap<String, String> primaryRowData = primaryArtistObj.toDisplayMap();
         artistRows.update(index, primaryRowData);
@@ -2152,12 +2167,12 @@ public class ArtistsWindow
         /*
          * Update the main window labels to get the updated number of artists.
          */
-        Utilities.updateMainWindowLabels(userPrefs.getXMLFileName());
+        Utilities.updateMainWindowLabels(userPrefs.getInputFileName());
         
         /*
          * Update the artist count label.
          */
-        numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + XMLHandler.getNumberOfArtists());
+        numArtistsLabel.setText(StringConstants.ARTISTS_NUM_ARTISTS + Database.getNumberOfArtists());
         
         /*
          * Save the updated table data.
@@ -2253,21 +2268,94 @@ public class ArtistsWindow
         /*
          * Loop through the table rows.
          */
+        int foundIndex = -1;
         for (int i = 0; i < tableData.getLength(); i++)
         {
             HashMap<String, String> row = tableData.get(i);
 
             /*
-             * If the row name starts with the character according to the button, select the
-             * corresponding name in the table.
+             * Ignore a leading "The" (any case) in the name from the row.
              */
             String name = row.get(tableSortColumnName).replaceAll("^(?i)The ", "");
-            if (name.toLowerCase().startsWith(buttonID))
-            {
-            	artistsTableView.setSelectedIndex(i);
-                break;
+        	
+            /*
+             * The numeric button is special - we loop through an array of all special characters, and
+             * check if the row name starts with each of them.
+             */
+        	if (buttonID.equals("#"))
+        	{
+        		for (char numericChar : InternalConstants.ALPHA_BAR_NUMERIC_CHARS)
+        		{
+        			if (name.toLowerCase().startsWith(String.valueOf(numericChar)))
+        			{
+        				foundIndex = i;
+        				break;
+        			}
+        		}
+        		if (foundIndex >= 0)
+        		{
+        			break;
+        		}
+        	}
+        	
+        	/*
+        	 * Handle all the alphabetic buttons.
+        	 */
+        	else
+        	{
+        		
+                /*
+                 * Check if the row name starts with the character according to the button.
+                 */
+        		if (name.toLowerCase().startsWith(buttonID))
+        		{
+        			foundIndex = i;
+        			break;
+        		}
             }
         }
+        
+        /*
+         * Select the name in the table corresponding to the found index, if any.
+         */
+        if (foundIndex >= 0)
+        {
+        	artistsTableView.setSelectedIndex(foundIndex);
+        }
+    }
+    
+    /*
+     * Enable or disable the alpha bar buttons.
+     */
+    private void setAlphaBarState(boolean state)
+    {
+    	numericButton.setEnabled(state);
+    	alphaAButton.setEnabled(state);
+    	alphaBButton.setEnabled(state);
+    	alphaCButton.setEnabled(state);
+    	alphaDButton.setEnabled(state);
+    	alphaEButton.setEnabled(state);
+    	alphaFButton.setEnabled(state);
+    	alphaGButton.setEnabled(state);
+    	alphaHButton.setEnabled(state);
+    	alphaIButton.setEnabled(state);
+    	alphaJButton.setEnabled(state);
+    	alphaKButton.setEnabled(state);
+    	alphaLButton.setEnabled(state);
+    	alphaMButton.setEnabled(state);
+    	alphaNButton.setEnabled(state);
+    	alphaOButton.setEnabled(state);
+    	alphaPButton.setEnabled(state);
+    	alphaQButton.setEnabled(state);
+    	alphaRButton.setEnabled(state);
+    	alphaSButton.setEnabled(state);
+    	alphaTButton.setEnabled(state);
+    	alphaUButton.setEnabled(state);
+    	alphaVButton.setEnabled(state);
+    	alphaWButton.setEnabled(state);
+    	alphaXButton.setEnabled(state);
+    	alphaYButton.setEnabled(state);
+    	alphaZButton.setEnabled(state);
     }
 
     /*
@@ -2304,6 +2392,9 @@ public class ArtistsWindow
         alphaBorder = 
                 (Border) windowSerializer.getNamespace().get("alphaBorder");
         components.add(alphaBorder);
+    	numericButton = 
+    			(PushButton) windowSerializer.getNamespace().get("numericButton");
+    	components.add(numericButton);
         alphaBoxPane = 
                 (BoxPane) windowSerializer.getNamespace().get("alphaBoxPane");
         components.add(alphaBoxPane);

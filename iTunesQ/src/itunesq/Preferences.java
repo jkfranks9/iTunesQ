@@ -62,7 +62,7 @@ public final class Preferences
     /*
      * Variables for the actual preferences we want to serialize.
      * 
-     * - XML file name 
+     * - input file name 
      * - list of bypass playlist preferences 
      * - list of ignored playlist preferences 
      * - various track column sets 
@@ -73,7 +73,7 @@ public final class Preferences
      * - list of duplicate track exclusions
      * - artist alternate name overrides
      */
-    private String xmlFileName;
+    private String inputFileName;
     private List<BypassPreference> bypassPrefs;
     private List<String> ignoredPrefs;
     private List<List<String>> trackColumnsFullView;
@@ -89,7 +89,7 @@ public final class Preferences
     /*
      * The artist alternate name overrides are special. They need to be saved, which is why they're
      * here. But they are not part of the Edit -> Preferences window. Instead, they are saved when a
-     * user creates an override from the artists display window, and used during XML processing to
+     * user creates an override from the artists display window, and used during file processing to
      * properly set up the artists database.
      */
     private List<ArtistAlternateNameOverride> artistOverrides;
@@ -163,23 +163,23 @@ public final class Preferences
     // ---------------- Getters and setters ---------------------------------
 
     /**
-     * Gets the XML file name preference.
+     * Gets the input file name preference.
      * 
-     * @return XML file name
+     * @return input file name
      */
-    public String getXMLFileName()
+    public String getInputFileName()
     {
-        return xmlFileName;
+        return inputFileName;
     }
 
     /**
-     * Sets the XML file name preference.
+     * Sets the input file name preference.
      * 
-     * @param xmlFile XML file name
+     * @param inputFile input file name
      */
-    public void setXMLFileName(String xmlFile)
+    public void setInputFileName(String inputFile)
     {
-        xmlFileName = xmlFile;
+        inputFileName = inputFile;
     }
 
     /**
@@ -626,8 +626,9 @@ public final class Preferences
      * 
      * @param primaryArtist primary artist name
      * @param alternateArtist alternate artist name
+     * @param type override type
      */
-    public void removeArtistOverride (String primaryArtist, String alternateArtist)
+    public void removeArtistOverride (String primaryArtist, String alternateArtist, ArtistAlternateNameOverride.OverrideType type)
     {
         uiLogger.trace("removeArtistOverride: " + this.hashCode());
 
@@ -639,10 +640,10 @@ public final class Preferences
         {
             ArtistAlternateNameOverride override = artistOverridesIter.next();
             
-            if (primaryArtist.equals(override.getPrimaryArtist()))
+            if (primaryArtist.equals(override.getPrimaryArtist()) && type == override.getOverrideType())
             {
                 artistLogger.debug("removing alternate '" + alternateArtist + "' from primary override '"
-                        + primaryArtist + "', type " + override.getOverrideType());
+                        + primaryArtist + "', type " + type);
                 override.removeAlternateArtist(alternateArtist);
                 
                 /*
@@ -659,21 +660,20 @@ public final class Preferences
     }
     
     /**
-     * Gets the primary artist name associated with an alternate artist if
-     * an artist override of the same type exists.
+     * Gets the artist override associated with an alternate artist with
+     * a matching type.
      * 
      * @param alternateArtist alternate artist display name to check for an
      * artist override
      * @param type artist override type
-     * @return primary artist normalized name for the alternate artist, or null
-     * if an artist override of the same type was not found
+     * @return matching artist override or null
      */
-    public String getArtistOverridePrimaryName (String alternateArtist, 
+    public ArtistAlternateNameOverride getArtistOverride (String alternateArtist, 
             ArtistAlternateNameOverride.OverrideType type)
     {
         uiLogger.trace("getArtistOverridePrimaryName: " + this.hashCode());
         
-        String result = null;
+        ArtistAlternateNameOverride result = null;
 
         for (ArtistAlternateNameOverride override : artistOverrides)
         {
@@ -685,12 +685,7 @@ public final class Preferences
                 {
                     if (type == override.getOverrideType())
                     {
-
-                        /*
-                         * We found a match, but we need to return a normalized name.
-                         */
-                        ArtistNames temp = new ArtistNames(override.getPrimaryArtist());
-                        result = new String(temp.normalizeName());
+                    	result = override;
                         break;
                     }
                 }
@@ -833,7 +828,7 @@ public final class Preferences
             throw new IllegalArgumentException("prefs argument is null");
         }
 
-        this.xmlFileName = prefs.xmlFileName;
+        this.inputFileName = prefs.inputFileName;
         if (prefs.bypassPrefs != null)
         {
             replaceBypassPrefs(prefs.bypassPrefs);
@@ -1028,12 +1023,12 @@ public final class Preferences
         output.append("***** " + reason + " preferences *****" + lineSeparator);
 
         /*
-         * XML file name.
+         * Input file name.
          */
-        if (xmlFileName != null)
+        if (inputFileName != null)
         {
-            output.append(String.format("%2d", ++itemNum) + ") " + "XML file name:" + lineSeparator);
-            output.append(indent + xmlFileName + lineSeparator);
+            output.append(String.format("%2d", ++itemNum) + ") " + "Input file name:" + lineSeparator);
+            output.append(indent + inputFileName + lineSeparator);
         }
 
         /*

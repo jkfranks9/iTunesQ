@@ -38,8 +38,9 @@ public class Track
     private int trkPlayCount;
     private Date trkReleased;
     private int trkRating;
+    private String trkEncoder;
     private List<TrackPlaylistInfo> trkPlaylists;
-    private TrackType trackType;
+    private TrackType trkType;
     
     /**
      * The type of track, for example audio or video.
@@ -334,6 +335,26 @@ public class Track
     {
         this.trkRating = rating;
     }
+    
+    /**
+     * Gets the encoder.
+     * 
+     * @return encoder
+     */
+    public String getEncoder()
+    {
+    	return trkEncoder;
+    }
+    
+    /**
+     * Sets the encoder.
+     * 
+     * @param encoder encoder
+     */
+    public void setEncoder(String encoder)
+    {
+    	this.trkEncoder = encoder;
+    }
 
     /**
      * Get the list of playlist info objects.
@@ -352,7 +373,7 @@ public class Track
      */
     public TrackType getTrackType()
     {
-    	return trackType;
+    	return trkType;
     }
     
     /**
@@ -362,7 +383,7 @@ public class Track
      */
     public void setTrackType(TrackType trackType)
     {
-    	this.trackType = trackType;
+    	this.trkType = trackType;
     }
 
     // ---------------- Public methods --------------------------------------
@@ -432,16 +453,16 @@ public class Track
             trkPlaylists.update(index, playlistInfo);
         }
     }
-
+    
     /**
-     * Compares a given track to this track, used for sorting. We sort by track
-     * name.
+     * Compares a given track to this track, using only the name.
+     * This is used when building the duplicates map of tracks.
      * 
      * @param t2 track to be compared to this track
      * @return negative value, zero, or positive value to indicate less than,
      * equal to, or greater than, respectively
      */
-    public int compareTo(Track t2)
+    public int compareToName (Track t2)
     {
     	
     	/*
@@ -449,8 +470,116 @@ public class Track
     	 */
     	String thisName = this.trkName.replaceAll("^(?i)The ", "");
     	String thatName = t2.trkName.replaceAll("^(?i)The ", "");
+        
+    	return thisName.toLowerCase().compareTo(thatName.toLowerCase());    	
+    }
+
+    /**
+     * Compares a given track to this track, used for sorting and binary search.
+     * 
+     * @param t2 track to be compared to this track
+     * @return negative value, zero, or positive value to indicate less than,
+     * equal to, or greater than, respectively
+     */
+    public int compareTo(Track t2)
+    {
+    	int retval;
     	
-        return thisName.toLowerCase().compareTo(thatName.toLowerCase());
+    	/*
+    	 * Ignore leading "The" (case insensitive).
+    	 */
+    	String thisName = this.trkName.replaceAll("^(?i)The ", "");
+    	String thatName = t2.trkName.replaceAll("^(?i)The ", "");
+
+        /*
+         * Compare the following items to determine the result. The first item that doesn't match
+         * is the overall result.
+         */
+    	
+    	/*
+    	 * Name (always exists)
+    	 */
+        retval = thisName.toLowerCase().compareTo(thatName.toLowerCase());
+        
+        if (retval == 0)
+        {
+        	
+        	/*
+        	 * Artist (could be null)
+        	 */
+        	String thisArtist = this.trkArtist;
+        	String thatArtist = t2.trkArtist;
+        	if (thisArtist == null && thatArtist == null)
+        	{
+        		retval = 0;
+        	}
+        	else if (thisArtist == null)
+        	{
+        		retval = -1;
+        	}
+        	else if (thatArtist == null)
+        	{
+        		retval = 1;
+        	}
+        	else
+        	{
+        		retval = this.trkArtist.toLowerCase().compareTo(t2.trkArtist.toLowerCase());
+        	}
+            
+        	if (retval == 0)
+            {
+            	
+            	/*
+            	 * Album (could be null)
+            	 */
+            	String thisAlbum = this.trkAlbum;
+            	String thatAlbum = t2.trkAlbum;
+            	if (thisAlbum == null && thatAlbum == null)
+            	{
+            		retval = 0;
+            	}
+            	else if (thisAlbum == null)
+            	{
+            		retval = -1;
+            	}
+            	else if (thatAlbum == null)
+            	{
+            		retval = 1;
+            	}
+            	else
+            	{
+                    retval = this.trkAlbum.toLowerCase().compareTo(t2.trkAlbum.toLowerCase());
+            	}
+                
+            	if (retval == 0)
+                {
+                	
+                	/*
+                	 * Kind (don't think it can be null, but let's check anyway)
+                	 */
+                	String thisKind = this.trkKind;
+                	String thatKind = t2.trkKind;
+                	if (thisKind == null && thatKind == null)
+                	{
+                		retval = 0;
+                	}
+                	else if (thisKind == null)
+                	{
+                		retval = -1;
+                	}
+                	else if (thatKind == null)
+                	{
+                		retval = 1;
+                	}
+                	else
+                	{
+                        retval = this.trkKind.toLowerCase().compareTo(t2.trkKind.toLowerCase());
+                	}
+                }
+            }
+        }
+        
+        return retval;
     }
 
     /**
@@ -505,6 +634,7 @@ public class Track
 
         result.put(TrackDisplayColumns.ColumnNames.RATING.getNameValue(),
                 Integer.toString(trkRating / RATING_DIVISOR));
+        result.put(TrackDisplayColumns.ColumnNames.ENCODER.getNameValue(), trkEncoder);
 
         /*
          * Create the string of playlist names and the corresponding bypassed indicators.

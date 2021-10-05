@@ -313,11 +313,11 @@
                                         </TablePane.Row>
 
                                         <TablePane.Row height="1*">
-                                            <BoxPane bxml:id="xmlLogLevelPrefsBoxPane"
+                                            <BoxPane bxml:id="fileLogLevelPrefsBoxPane"
                                                 orientation="horizontal" styles="{verticalAlignment:'center'}">
-                                                <Label bxml:id="xmlLogLevelPrefsLabel" 
+                                                <Label bxml:id="fileLogLevelPrefsLabel" 
                                                     styles="{font:{bold:true}}" />
-                                                <Spinner bxml:id="xmlLogLevelPrefsSpinner" />
+                                                <Spinner bxml:id="fileLogLevelPrefsSpinner" />
                                             </BoxPane>
                                         </TablePane.Row>
 

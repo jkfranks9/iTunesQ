@@ -39,7 +39,7 @@ public class ArtistCorrelator
     // ---------------- Getters and setters ---------------------------------
 
     /**
-     * Gets the display name, which is the artist name from the XML 
+     * Gets the display name, which is the artist name from the input 
      * file.
      * 
      * @return artist display name
@@ -50,7 +50,7 @@ public class ArtistCorrelator
     }
 
     /**
-     * Sets the display name, which is the artist name from the XML 
+     * Sets the display name, which is the artist name from the input 
      * file.
      * 
      * @param artistName artist display name

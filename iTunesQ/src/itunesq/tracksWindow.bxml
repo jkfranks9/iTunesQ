@@ -65,6 +65,7 @@
                 <BoxPane bxml:id="alphaBoxPane" orientation="horizontal" 
                 	styles="{spacing:0, padding:10, verticalAlignment:'center'}">
                     <Label bxml:id="alphaLabel" styles="{font:{bold:true}, padding:5}" />
+                    <PushButton bxml:id="numericButton" buttonData=" # " />
                     <PushButton bxml:id="alphaAButton" buttonData=" A " />
                     <PushButton bxml:id="alphaBButton" buttonData=" B " />
                     <PushButton bxml:id="alphaCButton" buttonData=" C " />

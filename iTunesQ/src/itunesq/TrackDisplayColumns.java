@@ -138,6 +138,11 @@ public class TrackDisplayColumns
         RATING(StringConstants.TRACK_COLUMN_RATING, StringConstants.TRACK_COLUMN_RATING),
 
         /**
+         * encoder
+         */
+        ENCODER(StringConstants.TRACK_COLUMN_ENCODER, StringConstants.TRACK_COLUMN_ENCODER),
+
+        /**
          * number of playlists
          */
         NUMPLAYLISTS(StringConstants.TRACK_COLUMN_NUMPLAYLISTS, "NumPlaylists");
@@ -318,6 +323,7 @@ public class TrackDisplayColumns
         result.put(ColumnNames.YEAR.getNameValue(),         "1*");
         result.put(ColumnNames.ADDED.getNameValue(),        "2*");
         result.put(ColumnNames.RATING.getNameValue(),       "1*");
+        result.put(ColumnNames.ENCODER.getNameValue(),      "2*");
         result.put(ColumnNames.NUMPLAYLISTS.getNameValue(), "1*");
 
         COLUMN_WIDTH_MAP = result;

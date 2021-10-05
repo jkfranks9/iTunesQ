@@ -427,7 +427,7 @@ public class FiltersWindow
                         ArrayList<String> artistNames = new ArrayList<String>();
                         artistNames.setComparator(String.CASE_INSENSITIVE_ORDER);
 
-                        ArrayList<ArtistCorrelator> artistCorrs = XMLHandler.getArtistCorrelators();
+                        ArrayList<ArtistCorrelator> artistCorrs = Database.getArtistCorrelators();
 
                         for (ArtistCorrelator artistCorr : artistCorrs)
                         {

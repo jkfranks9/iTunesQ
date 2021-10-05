@@ -7,7 +7,7 @@ package itunesq;
  * <ul>
  * <li>log messages</li>
  * <li>exception text</li>
- * <li>strings found in the XML file</li>
+ * <li>strings found in the input file</li>
  * <li>simple constants such as newline or "/"</li>
  * </ul>
  * 
@@ -30,6 +30,7 @@ public class StringConstants
             "Check to exclude bypassed playlists from the list of results.";
     public static final String EXIT = "Exit";
     public static final String FILE = "File";
+    public static final String JSON = "json";
     public static final String OPEN = "Open";
     public static final String PLAYLIST_NAME = "Playlist Name";
     public static final String PLAYLIST_NUMBER = "Number of Playlists: ";
@@ -40,6 +41,7 @@ public class StringConstants
     public static final String QUERY_TRACKS = "Query Tracks";
     public static final String SAVE = "Save";
     public static final String TRACK_NUMBER = "Number of Tracks: ";
+    public static final String XML = "xml";
 
     /*
      * ArtistDisplayColumns constants.
@@ -97,7 +99,7 @@ public class StringConstants
      * FileSaveDialog constants.
      */
     public static final String FILESAVE_ENTER_FILE_NAME = "Enter file name";
-    public static final String FILESAVE_HEADER = "iTunesQ Query Results" + lineSeparator;
+    public static final String FILESAVE_HEADER = "Library Query Results" + lineSeparator;
     public static final String FILESAVE_NAME_TIP =
             "Specify a file name for saving the queried tracks.";
     public static final String FILESAVE_OPTIONS = "Options";
@@ -169,6 +171,8 @@ public class StringConstants
     /*
      * MainWindow constants.
      */
+    public static final String MAIN_FILE_INFO = "Working File";
+    public static final String MAIN_FILE_STATS = "File Statistics";
     public static final String MAIN_QUERY_PLAYLISTS_TIP =
             "Perform operations such as comparing playlist contents.";
     public static final String MAIN_QUERY_TRACKS_TIP =
@@ -181,8 +185,6 @@ public class StringConstants
     public static final String MAIN_VIEW_PLAYLISTS_TIP = "Show all playlists.";
     public static final String MAIN_VIEW_VIDEO_TRACKS = "View Video Tracks";
     public static final String MAIN_VIEW_VIDEO_TRACKS_TIP = "Show all video tracks.";
-    public static final String MAIN_XML_FILE_INFO = "Working XML File";
-    public static final String MAIN_XML_FILE_STATS = "XML File Statistics";
     
     /*
      * PlaylistDisplayColumns constants.
@@ -259,6 +261,9 @@ public class StringConstants
     public static final String PREFS_ARTIST_LOG_LEVEL = "Artist Log Level:";
     public static final String PREFS_ARTIST_LOG_LEVEL_TIP =
             "This is the log level for the artist management component.";
+    public static final String PREFS_FILE_LOG_LEVEL = "File Log Level:";
+    public static final String PREFS_FILE_LOG_LEVEL_TIP =
+            "This is the log level for the file management component.";
     public static final String PREFS_FILTER_LOG_LEVEL = "Filter Log Level:";
     public static final String PREFS_FILTER_LOG_LEVEL_TIP =
             "This is the log level for the filter management component.";
@@ -317,9 +322,6 @@ public class StringConstants
     public static final String PREFS_UI_LOG_LEVEL = "UI Log Level:";
     public static final String PREFS_UI_LOG_LEVEL_TIP =
             "This is the log level for the user interface component.";
-    public static final String PREFS_XML_LOG_LEVEL = "XML Log Level:";
-    public static final String PREFS_XML_LOG_LEVEL_TIP =
-            "This is the log level for the XML management component.";
 
     /*
      * QueryPlaylistsWindow constants.
@@ -374,7 +376,7 @@ public class StringConstants
     public static final String SKIN_WINDOW_FAMILY_PLAYLISTS = "Family Expansion Playlists";
     public static final String SKIN_WINDOW_FILE_SAVE = "File Save";
     public static final String SKIN_WINDOW_FIND_DUPLICATES = "Find Duplicates";
-    public static final String SKIN_WINDOW_MAIN = "iTunes Query Tool";
+    public static final String SKIN_WINDOW_MAIN = "Library Query Tool";
     public static final String SKIN_WINDOW_PLAYLISTS = "Playlists";
     public static final String SKIN_WINDOW_PREFERENCES = "Preferences";
     public static final String SKIN_WINDOW_REMOVE_ALT_NAME_SELECTION = "Remove Alternate Name Selection";
@@ -393,6 +395,7 @@ public class StringConstants
     public static final String TRACK_COLUMN_BITRATE = "Bit Rate";
     public static final String TRACK_COLUMN_COMPOSER = "Composer";
     public static final String TRACK_COLUMN_DURATION = "Duration";
+    public static final String TRACK_COLUMN_ENCODER = "Encoder";
     public static final String TRACK_COLUMN_GENRE = "Genre";
     public static final String TRACK_COLUMN_ID = "ID";
     public static final String TRACK_COLUMN_KIND = "Kind";
@@ -417,12 +420,12 @@ public class StringConstants
     /*
      * Utilities constants.
      */
+    public static final String UTILITY_FILE_DATE = ", dated ";
     public static final String UTILITY_NUM_ARTISTS = "Number of artists: ";
     public static final String UTILITY_NUM_AUDIO_TRACKS = "Number of audio tracks: ";
     public static final String UTILITY_NUM_PLAYLISTS = "Number of playlists: ";
     public static final String UTILITY_NUM_VIDEO_TRACKS = "Number of video tracks: ";
     public static final String UTILITY_UNKNOWN_DATE = "--unknown--";
-    public static final String UTILITY_XMLFILE_DATE = ", dated ";
 
     /*
      * Alert constants. These are last so they can reference other elements such as buttons.
@@ -438,6 +441,7 @@ public class StringConstants
     public static final String ALERT_FILE_NOT_WRITABLE = "The file you specified is not writable.";
     public static final String ALERT_FILTER_ERROR = "Filter error: ";
     public static final String ALERT_FILTER_TOO_FEW_ROWS = "You need at least one filter row.";
+    public static final String ALERT_JSON_FILE_ERROR = "Unable to read and process JSON file: ";
     public static final String ALERT_LOG_HISTORY_VALUE =
             "You must specify a positive numeric value for the log history.";
     public static final String ALERT_NO_ALTERNATE_NAMES =
@@ -445,10 +449,10 @@ public class StringConstants
     public static final String ALERT_NO_FAMILY_PLAYLIST = 
             "You did not enter a family playlist for expansion";
     public static final String ALERT_NO_FILE_SELECTED = "You didn't select a file.";
+    public static final String ALERT_NO_INPUT_FILE =
+            "No input file has been saved. Use the File -> Open menu to select a file.";
     public static final String ALERT_NO_PRINTER = "Could not locate a printer service.";
     public static final String ALERT_NO_TRACKS = "There are no tracks matching the set of filters.";
-    public static final String ALERT_NO_XML_FILE =
-            "No XML file has been saved. Use the File -> Open menu to select a file.";
     public static final String ALERT_NON_FATAL_ERROR =
             "An internal error has occurred, but it is not severe enough to close the application.";
     public static final String ALERT_NOTHING_SAVED =

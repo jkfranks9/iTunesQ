@@ -14,7 +14,25 @@ public class InternalConstants
      * Width and height of the main window activity indicator.
      */
     public static final int ACTIVITY_INDICATOR_SIZE = 50;
-
+    
+    /**
+     * Characters that represent numeric scrolling for the alpha bar.
+     */
+    public static final char[] ALPHA_BAR_NUMERIC_CHARS = 
+    	{
+    	    
+    	    /*
+    	     * Numerals and all special characters on a standard keyboard are included.
+    	     * These are the most rational ones.
+    	     */
+    		'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '"', '\'', '#', '(', '.', '{', '[', '<', '*',
+    		
+    		/*
+    		 * Somewhat irrational, but possible.
+    		 */
+    		'`', '~', '!', '@', '$', '%', '^', '&', ')', '-', '_', '=', '+', ']', '}', '\\', '|', ';', ':', ',', '>', '/', '?'
+    	};
+    
     /**
      * Padding of the alpha bar. 
      * 

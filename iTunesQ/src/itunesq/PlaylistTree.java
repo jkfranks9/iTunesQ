@@ -75,7 +75,7 @@ public final class PlaylistTree
         /*
          * Get the playlists into a map, and sort it by persistent ID.
          */
-        playlists = XMLHandler.getPlaylists();
+        playlists = Database.getPlaylists();
         playlists.setComparator(new Comparator<String>()
         {
             @Override

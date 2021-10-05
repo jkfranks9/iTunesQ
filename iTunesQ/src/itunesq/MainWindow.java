@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
+import org.apache.commons.io.FilenameUtils;
 import org.apache.pivot.beans.BXML;
 import org.apache.pivot.beans.BXMLSerializer;
 import org.apache.pivot.collections.ArrayList;
@@ -20,6 +21,8 @@ import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
 import org.apache.pivot.serialization.SerializationException;
 import org.apache.pivot.util.Version;
+import org.apache.pivot.util.concurrent.Task;
+import org.apache.pivot.util.concurrent.TaskListener;
 import org.apache.pivot.wtk.ActivityIndicator;
 import org.apache.pivot.wtk.Alert;
 import org.apache.pivot.wtk.Application;
@@ -37,6 +40,7 @@ import org.apache.pivot.wtk.Label;
 import org.apache.pivot.wtk.MessageType;
 import org.apache.pivot.wtk.PushButton;
 import org.apache.pivot.wtk.Separator;
+import org.apache.pivot.wtk.TaskAdapter;
 import org.apache.pivot.wtk.Window;
 import org.apache.pivot.wtk.WindowStateListener;
 import org.slf4j.LoggerFactory;
@@ -45,10 +49,10 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 
 /**
- * Class that represents the Apache Pivot application for the iTunes Query Tool.
+ * Class that represents the Apache Pivot application for the Library Query Tool.
  * <p>
- * This application operates on the XML file containing music library tracks
- * and playlists. The XML file is exported by the library application. As such,
+ * This application operates on the input file containing music library tracks
+ * and playlists. The input file is exported by the library application. As such,
  * this application does not have access to the actual songs, album art,
  * and so on. The layout of, and access to, all that stuff is proprietary.
  * <p>
@@ -197,8 +201,8 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
 
     private Window mainWindow = null;
     private Display display = null;
-    private String xmlFileName = null;
-    private boolean xmlFileExists = false;
+    private String inputFileName = null;
+    private boolean inputFileExists = false;
     private Logger logger = null;
     private Logging logging = null;
     private Preferences userPrefs = null;
@@ -283,7 +287,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
 
         /*
          * Create the diagnostic logger, used for logging things like current
-         * preferences and XML file statistics. This logger lives outside of the
+         * preferences and input file statistics. This logger lives outside of the
          * logger registry and always uses the INFO log level.
          */
         logging.createDiagLogger();
@@ -317,9 +321,11 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         /*
          * Initialize loggers in static classes.
          */
+        ArtistNames.initializeLogging();
         PlaylistCollection.initializeLogging();
         PlaylistTree.initializeLogging();
         XMLHandler.initializeLogging();
+        JSONHandler.initializeLogging();
 
         /*
          * Initialize variables.
@@ -500,17 +506,22 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          * Initialize the playlist display column sets.
          */
         PlaylistDisplayColumns.initializeColumnSets();
+        
+        /*
+         * Initialize the internal database.
+         */
+        Database.initializeDB();
 
         /*
-         * Get the XML file name, if it exists.
+         * Get the input file name, if it exists.
          */
-        if ((xmlFileName = userPrefs.getXMLFileName()) != null)
+        if ((inputFileName = userPrefs.getInputFileName()) != null)
         {
-            xmlFileExists = true;
+            inputFileExists = true;
         }
 
         /*
-         * Gray out the main buttons until the XML file is successfully processed.
+         * Gray out the main buttons until the input file is successfully processed.
          */
         updateMainButtonsState(false);
 
@@ -524,8 +535,8 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
          * Add widget texts.
          */
         titleLabel.setText(StringConstants.SKIN_WINDOW_MAIN);
-        fileSeparator.setHeading(StringConstants.MAIN_XML_FILE_INFO);
-        dataSeparator.setHeading(StringConstants.MAIN_XML_FILE_STATS);
+        fileSeparator.setHeading(StringConstants.MAIN_FILE_INFO);
+        dataSeparator.setHeading(StringConstants.MAIN_FILE_STATS);
         viewAudioTracksButton.setButtonData(StringConstants.MAIN_VIEW_AUDIO_TRACKS);
         viewAudioTracksButton.setTooltipText(StringConstants.MAIN_VIEW_AUDIO_TRACKS_TIP);
         viewAudioTracksButton.setTooltipDelay(InternalConstants.TOOLTIP_DELAY);
@@ -573,19 +584,87 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         mainWindow.open(display);
 
         /*
-         * We have an XML file name, so read and process it.
+         * We have an input file name, so read and process it.
          * 
-         * We're going to read and process the XML file in a background task, with an activity
+         * We're going to read and process the input file in a background task, with an activity
          * indicator on the main window. This lets the user know that something is going on in
          * the background. When the task completes successfully, we update the main window labels
          * and inactivate the activity indicator.
          */
-        if (xmlFileName != null)
+        if (inputFileName != null)
         {
-            logger.info("using XML file '" + xmlFileName + "'");
+            logger.info("using input file '" + inputFileName + "'");
 
-            Utilities.updateFromXMLFile(xmlFileName, mainWindow);
+            updateFromInputFile(inputFileName, mainWindow);
         }
+    }
+
+    /**
+     * Processes the input file, and updates the main window file information.
+     * 
+     * @param inputFileName name of the input file to be processed
+     * @param owningWindow owning window
+     * @throws IOException If an error occurs trying to read the input
+     * file.
+     */
+    public static void updateFromInputFile(String inputFileName, Window owningWindow) 
+            throws IOException
+    {
+
+        /*
+         * Start the activity indicator.
+         */
+        MainWindow.updateActivityIndicator(true);
+        
+        /*
+         * Create the concurrent task.
+         */
+        ReadFileTask fileTask = new ReadFileTask(inputFileName);
+        
+        /*
+         * Listener that gets called when the task completes.
+         */
+        TaskListener<Integer> taskListener = new TaskListener<Integer>()
+        {
+            
+            /*
+             * The task completed successfully. Stop the activity indicator, update the main
+             * window labels and repaint the main window.
+             */
+            @Override
+            public void taskExecuted(Task<Integer> task)
+            {
+                MainWindow.updateActivityIndicator(false);
+                Utilities.updateMainWindowLabels(inputFileName);
+                owningWindow.repaint(true);
+            }
+
+            /*
+             * The task failed. I think this only happens if an exception was throw, in which
+             * case we convert it to an internal error exception. But also throw an exception
+             * if getFault returns null, because we really can't do anything without the input
+             * file being processed.
+             */
+            @Override
+            public void executeFailed(Task<Integer> task)
+            {
+                MainWindow.updateActivityIndicator(false);
+                
+                if (task.getFault() != null)
+                {
+                    throw new InternalErrorException(true, task.getFault().getMessage());
+                }
+                else
+                {
+                    throw new InternalErrorException(true, "failed to execute ReadFileTask");
+                }
+            }
+        };
+        
+        /*
+         * All set. Run the background task.
+         */
+        fileTask.execute(new TaskAdapter<Integer>(taskListener));
     }
 
     /**
@@ -830,7 +909,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
                 {
                     TracksWindow tracksWindowHandler = new TracksWindow();
                     tracksWindowHandler.displayTracks(display, Skins.Window.AUDIO_TRACKS, 
-                    		XMLHandler.getTracksFromMap(XMLHandler.getAudioTracksMap()), null);
+                    		Database.getTracksFromMap(Database.getAudioTracksMap()), null);
                 }
                 catch (IOException | SerializationException e)
                 {
@@ -854,7 +933,7 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
                 {
                     TracksWindow tracksWindowHandler = new TracksWindow();
                     tracksWindowHandler.displayTracks(display, Skins.Window.VIDEO_TRACKS, 
-                    		XMLHandler.getTracksFromMap(XMLHandler.getVideoTracksMap()), null);
+                    		Database.getTracksFromMap(Database.getVideoTracksMap()), null);
                 }
                 catch (IOException | SerializationException e)
                 {
@@ -958,18 +1037,18 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
 
         /*
          * This window state listener gets control when the main window opens.
-         * If we don't have an XML file, gently prod the user to provide one.
+         * If we don't have an input file, gently prod the user to provide one.
          */
         mainWindow.getWindowStateListeners().add(new WindowStateListener.Adapter()
         {
             @Override
             public void windowOpened(Window window)
             {
-                if (xmlFileExists == false)
+                if (inputFileExists == false)
                 {
-                    logger.info("XML file does not exist");
+                    logger.info("Input file does not exist");
 
-                    Alert.alert(MessageType.INFO, StringConstants.ALERT_NO_XML_FILE, mainWindow);
+                    Alert.alert(MessageType.INFO, StringConstants.ALERT_NO_INPUT_FILE, mainWindow);
                 }
             }
         });
@@ -1027,9 +1106,9 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
             copyFileToZip(Preferences.getPrefsFilePath(), zipStream);
 
             /*
-             * Copy the XML file.
+             * Copy the input file.
              */
-            copyFileToZip(userPrefs.getXMLFileName(), zipStream);
+            copyFileToZip(userPrefs.getInputFileName(), zipStream);
 
             /*
              * Copy all log files.
@@ -1231,5 +1310,106 @@ public class MainWindow implements Application, Application.UncaughtExceptionHan
         queryPlaylistsButton = 
                 (PushButton) windowSerializer.getNamespace().get("queryPlaylistsButton");
         components.add(queryPlaylistsButton);
+    }
+
+    // ---------------- Nested classes --------------------------------------
+    
+    /**
+     * Inner class that encapsulates reading the input file in a
+     * background task.
+     * 
+     * @author Jon
+     *
+     */
+    public static final class ReadFileTask extends Task<Integer>
+    {
+    	
+    	/*
+    	 * Private variables.
+    	 */
+        private static Logger uiLogger = (Logger) LoggerFactory.getLogger(MainWindow.class.getSimpleName() + "_UI");
+        private static String inputFileName;
+        
+        /*
+         * The type of processors that need to be run.
+         */
+        private enum Processors
+        {
+        	XML, JSON
+        }
+        
+        /**
+         * Constructor.
+         * 
+         * @param fileName input file name
+         */
+        public ReadFileTask(String fileName)
+        {
+        	inputFileName = fileName;
+        }
+        
+        /**
+         * Execute on a concurrent task.
+         * 
+         * @return <code>zero</code> if successful
+         */
+        @Override
+        public Integer execute()
+        {
+            int result = 0;
+            
+            /*
+             * Initialize logging.
+             */
+            Logging logging = Logging.getInstance();
+            logging.registerLogger(Logging.Dimension.UI, uiLogger);
+            
+            /*
+             * Gather the input file name.
+             */
+        	String fileNameExt = FilenameUtils.getExtension(inputFileName);
+        	
+        	/*
+        	 * Determine which file processors need to be run.
+        	 */
+        	Processors processors;
+        	
+        	if (fileNameExt.equals(StringConstants.XML))
+        	{
+        		processors = Processors.XML;
+        	}
+        	else if (fileNameExt.equals(StringConstants.JSON))
+        	{
+        		processors = Processors.JSON;
+        	}
+        	else
+        	{
+                throw new InternalErrorException(false, "Input file is of unknown type");
+        	}
+            
+            /*
+             * Process the input file.
+             */
+            try
+            {
+            	switch (processors)
+            	{
+            	case XML:
+            		XMLHandler.processXML(inputFileName);
+            		break;
+            		
+            	case JSON:
+            		JSONHandler.processJSON(inputFileName);
+            		break;
+            	}
+            }
+            catch (IOException e)
+            {
+                MainWindow.logException(uiLogger, e);
+                throw new InternalErrorException(true, e.getMessage());
+            }
+            
+            return result;            
+        }
     }
 }

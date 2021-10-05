@@ -266,7 +266,7 @@ public class FindDuplicatesDialog
                  * Get the duplicates map. This maps track name to all the IDs
                  * with that name.
                  */
-                Map<String, List<Integer>> duplicatesMap = XMLHandler.getDuplicatesMap();
+                Map<String, List<Integer>> duplicatesMap = Database.getDuplicatesMap();
 
                 /*
                  * Walk through all the duplicates.
@@ -292,11 +292,11 @@ public class FindDuplicatesDialog
                     	switch (window)
                     	{
                     	case AUDIO_TRACKS:
-                            trackIndex = XMLHandler.getAudioTracksMap().get(dupID);
+                            trackIndex = Database.getAudioTracksMap().get(dupID);
                     		break;
                     		
                     	case VIDEO_TRACKS:
-                            trackIndex = XMLHandler.getVideoTracksMap().get(dupID);
+                            trackIndex = Database.getVideoTracksMap().get(dupID);
                     		break;
                     		
                     	default:
@@ -310,7 +310,7 @@ public class FindDuplicatesDialog
                          */
                         if (trackIndex != null)
                         {
-                        	track = XMLHandler.getTracks().get(trackIndex);                 
+                        	track = Database.getTracks().get(trackIndex);                 
                         	dupTracksForName.add(track);
                         }
                     }

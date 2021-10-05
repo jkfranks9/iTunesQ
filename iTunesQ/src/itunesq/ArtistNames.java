@@ -1,8 +1,13 @@
 package itunesq;
 
+import java.io.IOException;
+import java.util.Iterator;
+
 import org.apache.pivot.collections.ArrayList;
 import org.apache.pivot.collections.HashMap;
+import org.apache.pivot.collections.List;
 import org.apache.pivot.collections.Map;
+import org.slf4j.LoggerFactory;
 
 import ch.qos.logback.classic.Logger;
 
@@ -35,8 +40,8 @@ public class ArtistNames
     
     /**
      * Type of artist post-processing to be performed. Depending on the order
-     * that artists are discovered in the XML file, some types of 
-     * artist alternate names cannot be handled as the XML file is read, but
+     * that artists are discovered in the input file, some types of 
+     * artist alternate names cannot be handled as the input file is read, but
      * instead require post-processing afterwards.
      */
     public enum PostProcessType
@@ -101,6 +106,8 @@ public class ArtistNames
     private String normalizedName;
     private Preferences userPrefs;
 
+    private static Logger artistLogger = (Logger) LoggerFactory.getLogger(ArtistNames.class.getSimpleName() + "_Artist");
+
     /**
      * Class constructor.
      * 
@@ -149,6 +156,16 @@ public class ArtistNames
     }
 
     // ---------------- Public methods --------------------------------------
+
+    /**
+     * Initializes logging for static methods. This is called once at application 
+     * initialization.
+     */
+    public static void initializeLogging()
+    {
+        Logging logging = Logging.getInstance();
+        logging.registerLogger(Logging.Dimension.ARTIST, artistLogger);
+    }
 
     /**
      * Normalizes the artist name. This involves:
@@ -289,12 +306,12 @@ public class ArtistNames
                      * 
                      * NOTE: this means we never do post-processing for automatic overrides.
                      */
-                    String autoPrimary = userPrefs.getArtistOverridePrimaryName(displayName,
+                    ArtistAlternateNameOverride autoOverride = userPrefs.getArtistOverride(displayName,
                             ArtistAlternateNameOverride.OverrideType.AUTOMATIC);
-                    if (autoPrimary != null)
+                    if (autoOverride != null)
                     {
                         artistLogger.debug("found automatic override for '" + displayName
-                                + "', primary '" + autoPrimary + "'");
+                                + "', primary '" + autoOverride.getPrimaryArtist() + "'");
                         break;
                     }
                     
@@ -302,11 +319,12 @@ public class ArtistNames
                      * Check for an artist manual override. We're looking for the primary artist for an
                      * alternate name.
                      */
-                    String primaryName = userPrefs.getArtistOverridePrimaryName(displayName,
+                    ArtistAlternateNameOverride manualOverride = userPrefs.getArtistOverride(displayName,
                             ArtistAlternateNameOverride.OverrideType.MANUAL);
-                    if (primaryName != null)
+                    if (manualOverride != null)
                     {
-                        artistToCheck = primaryName;
+                        ArtistNames temp = new ArtistNames(manualOverride.getPrimaryArtist());
+                        artistToCheck = new String(temp.normalizeName());
                         artistLogger.debug("now checking for '" + artistToCheck + "' (artist override)");
 
                         /*
@@ -443,8 +461,10 @@ public class ArtistNames
          * database, if we find an automatic override we just treat the artist as unique.
          */    
         case ARTIST_OVERRIDE:
-            artistToCheck = normalizeName(userPrefs.getArtistOverridePrimaryName(displayName,
-                    ArtistAlternateNameOverride.OverrideType.MANUAL));
+        	ArtistAlternateNameOverride manualOverride = userPrefs.getArtistOverride(displayName,
+                    ArtistAlternateNameOverride.OverrideType.MANUAL);
+            ArtistNames temp = new ArtistNames(manualOverride.getPrimaryArtist());
+            artistToCheck = new String(temp.normalizeName());
             break;
             
         case NONE:
@@ -590,6 +610,173 @@ public class ArtistNames
         artistLogger.debug("added alternate artist '" + artistName + "' to '" + displayName + "'");
     }
     
+    /**
+     * Performs post-processing on artists after all tracks have been read
+     * from the input file.
+     */
+    public static void postProcessArtists()
+    {
+
+        /*
+         * Now that the tracks (and artists) are all created, post-process the artists
+         * to try and find additional alternate names.
+         */
+        artistLogger.info("looking for post-process artist alternate names");
+        lookForArtistAlternateNames();
+        
+        /*
+         * Verify that all artists contained in alternate name overrides still exist.
+         */
+        artistLogger.info("verifying artist alternate name overrides");
+        verifyArtistOverrides();
+    }
+
+    /**
+     * Transfers an artist as an alternate name to a primary artist.
+     * 
+     * @param altArtistCorr artist correlator object for the alternate artist
+     * @param primaryIdx index into the list of artist correlators for the 
+     * primary artist
+     * @param artistCorrelatorsIter iterator for the list of artist correlators
+     * to be used to remove the alternate artist
+     */
+    public static void transferArtistToPrimary(ArtistCorrelator altArtistCorr, int primaryIdx,
+            Iterator<ArtistCorrelator> artistCorrelatorsIter)
+    {
+        artistLogger.trace("transferArtistToPrimary (with iterator)");
+        
+        if (altArtistCorr == null)
+        {
+            throw new IllegalArgumentException("altArtistCorr argument is null");
+        }
+        
+        if (primaryIdx < 0)
+        {
+            throw new IllegalArgumentException("primaryIdx argument is negative");
+        }
+        
+        if (artistCorrelatorsIter == null)
+        {
+            throw new IllegalArgumentException("artistCorrelatorsIter argument is null");
+        }
+        
+        /*
+         * Call the implementation method.
+         */
+        transferArtistToPrimaryImpl(altArtistCorr, primaryIdx);
+        
+        /*
+         * Delete the now-alternate name from the artist correlators list.
+         */
+        artistCorrelatorsIter.remove();
+    }
+
+    /**
+     * Transfers an artist as an alternate name to a primary artist.
+     * 
+     * @param altArtistCorr artist correlator object for the alternate artist
+     * @param primaryIdx index into the list of artist correlators for the 
+     * primary artist
+     * @param altIdx index into the list of artist correlators to be used to 
+     * remove the alternate artist 
+     */
+    public static void transferArtistToPrimary(ArtistCorrelator altArtistCorr, int primaryIdx, int altIdx)
+    {
+        artistLogger.trace("transferArtistToPrimary (with index)");
+        
+        if (altArtistCorr == null)
+        {
+            throw new IllegalArgumentException("altArtistCorr argument is null");
+        }
+        
+        if (primaryIdx < 0)
+        {
+            throw new IllegalArgumentException("primaryIdx argument is negative");
+        }
+        
+        if (altIdx < 0)
+        {
+            throw new IllegalArgumentException("altIdx argument is negative");
+        }
+        
+        /*
+         * Call the implementation method.
+         */
+        transferArtistToPrimaryImpl(altArtistCorr, primaryIdx);
+        
+        /*
+         * Delete the now-alternate name from the artist correlators list.
+         */
+        Database.getArtistCorrelators().remove(altIdx, 1);
+    }
+    
+    /**
+     * Transfers an artist from a primary artist (as an alternate) to a 
+     * standalone artist.
+     * 
+     * @param primaryArtist primary artist name
+     * @param altArtist alternate artist name
+     */
+    public static void transferArtistFromPrimary (String primaryArtist, String altArtist)
+    {
+        artistLogger.trace("transferArtistFromPrimary");
+        
+        /*
+         * Step 1 is to create the appropriate objects and add the alternate artist to the 
+         * artistCorrelators and artists lists ...
+         */
+        
+        /*
+         * Access primary artist objects.
+         */
+        Map<Integer, Artist> artists = Database.getArtists();
+        ArtistCorrelator primaryArtistCorr = Database.findArtistCorrelator(primaryArtist);
+        Artist primaryArtistObj = artists.get(primaryArtistCorr.getArtistKey());
+        ArtistNames primaryArtistNames = primaryArtistObj.getArtistNames();
+
+        /*
+         * Create the alternate artist names object.
+         */
+        ArtistNames altArtistNames = new ArtistNames(altArtist);
+
+        /*
+         * Create and add the alternate artist correlator object.
+         */
+        ArtistCorrelator altArtistCorr = new ArtistCorrelator(altArtist);
+        altArtistCorr.setNormalizedName(altArtistNames.normalizeName());
+        Database.getArtistCorrelators().add(altArtistCorr);
+
+        /*
+         * Create the alternate artist object and attach the artist names object.
+         */
+        Artist altArtistObj = new Artist(altArtist);
+        altArtistObj.setArtistNames(altArtistNames);
+        
+        /*
+         * Create the correlator key and add the artist object to the list
+         */
+        Integer correlator = altArtistObj.getCorrelator();
+        altArtistCorr.setArtistKey(correlator);
+        artists.put(correlator, altArtistObj);
+        
+        /*
+         * Step 2 is to remove the alternate artist from the primary's list of alternate names. 
+         * This returns the alternate artist track data representing the alternate. 
+         */
+        ArtistTrackData altTrackData = primaryArtistNames.getAltNames().remove(altArtist);
+        
+        /*
+         * Step 3 is to update the track counts and times for both the primary artist (by decrementing 
+         * the data for the removed alternate), and the alternate artist (by using the artist track 
+         * data retrieved above).
+         */
+        primaryArtistObj.getArtistTrackData().decrementNumTracks(altTrackData.getNumTracks());
+        primaryArtistObj.getArtistTrackData().decrementTotalTime(altTrackData.getTotalTime());
+        
+        altArtistObj.getArtistTrackData().setNumTracks(altTrackData.getNumTracks());
+        altArtistObj.getArtistTrackData().setTotalTime(altTrackData.getTotalTime());
+    }
+    
     /*
      * Normalize the name. This private method (used only by us, of course) is called by the public
      * method that doesn't have an argument.
@@ -704,5 +891,263 @@ public class ArtistNames
         }
 
         return normalizedName;
+    }
+
+    /*
+     * As we collected tracks and artists, we were able to find alternate artist names like
+     * the following:
+     * 
+     *   ABC
+     *   ABC Featuring Q
+     * 
+     * But only if the artists were found in the above order. If the name with the "featuring"
+     * tag was found first, then we didn't try looking when artist ABC was found, the reason 
+     * being it would be very inefficient to check all artists in such a way for a fringe case.
+     * 
+     * However, such an artist was flagged in the ArtistNames object. So here we run the artist
+     * list looking for those flags and trying to find the primary artist. If so, we then process
+     * the name with the "featuring" tag as an alternate for the primary.
+     * 
+     * Similar logic is used for artist overrides set by the user. We have the same 
+     * out of order problem detailed above.
+     */
+    private static void lookForArtistAlternateNames ()
+    {
+        artistLogger.trace("lookForArtistAlternateNames");
+
+        /*
+         * Loop through the correlator list. We need to use an iterator instead of a foreach
+         * so we can safely remove correlator items while looping.
+         */
+        ArrayList<ArtistCorrelator> artistCorrelators = Database.getArtistCorrelators();
+        Iterator<ArtistCorrelator> artistCorrelatorsIter = artistCorrelators.iterator();
+        while (artistCorrelatorsIter.hasNext())
+        {
+            ArtistCorrelator artistCorr = artistCorrelatorsIter.next();
+
+            Artist artistObj = Database.getArtists().get(artistCorr.getArtistKey());
+            ArtistNames artistNames = artistObj.getArtistNames();
+
+            /*
+             * If the post-processing type is set, try to find the associated primary artist.
+             */
+            ArtistNames.PostProcessType postProcessType = artistNames.getPostProcessType();
+            if (postProcessType != ArtistNames.PostProcessType.NONE)
+            {
+                artistLogger.debug("artist name '" + artistCorr.getDisplayName() + "', normalized '"
+                        + artistCorr.getNormalizedName() + "', post-processing type '"
+                        + postProcessType.getDisplayValue() + "'");
+
+                int index = artistNames.checkPostProcessType(artistCorrelators);
+
+                /*
+                 * If we found the primary artist then transfer this alternate to it, and remove
+                 * this alternate from the correlators list.
+                 */
+                if (index >= 0)
+                {
+                    transferArtistToPrimary(artistCorr, index, artistCorrelatorsIter);
+                }
+            }
+        }
+    }
+    
+    /*
+     * Verify that artist names contained in any artist overrides are still valid. The 
+     * input file could have been changed or updated. Fix the overrides for any invalid ones found.
+     */
+    private static void verifyArtistOverrides ()
+    {
+        artistLogger.trace("verifyArtistOverrides");
+        
+        /*
+         * Get the user preferences.
+         */
+        Preferences userPrefs = Preferences.getInstance();
+        
+        /*
+         * We need a search correlator to look up artists in the database.
+         */
+        ArtistCorrelator searchCorr = new ArtistCorrelator();
+        
+        /*
+         * Get the artist overrides from the preferences.
+         */
+        List<ArtistAlternateNameOverride> artistOverrides = userPrefs.getArtistOverrides();
+        boolean prefsUpdated = false;
+        
+        /*
+         * Loop through all overrides to verify the artists still exist.
+         */
+        Iterator<ArtistAlternateNameOverride> artistOverridesIter = artistOverrides.iterator();
+        while (artistOverridesIter.hasNext())
+        {
+            ArrayList<ArtistCorrelator> artistCorrelators = Database.getArtistCorrelators();
+            ArtistAlternateNameOverride override = artistOverridesIter.next();
+            
+            int primaryIdx;
+            String primaryArtist = override.getPrimaryArtist();
+
+            /*
+             * The primary artists always exist in the database, so we search for them there.
+             */
+            ArtistNames primaryTemp = new ArtistNames(primaryArtist);
+            searchCorr.setNormalizedName(primaryTemp.normalizeName());
+            
+            /*
+             * If the primary from the override doesn't exist in the database, remove the entire
+             * override and iterate the loop.
+             */
+            if ((primaryIdx = ArrayList.binarySearch(artistCorrelators, 
+                    searchCorr, artistCorrelators.getComparator())) < 0)
+            {
+                artistLogger.debug("found invalid primary artist " + primaryArtist);
+                
+                artistOverridesIter.remove();
+                prefsUpdated = true;
+                continue;
+            }
+
+            /*
+             * The primary from the override exists in the database. Check the alternates from the 
+             * override.
+             */
+            List<String> alternateArtists = override.getAlternateArtists();
+            
+            /*
+             * If for some reason we have no alternate artists, remove the entire override.
+             */
+            if (alternateArtists.getLength() == 0)
+            {
+                artistLogger.debug("found empty primary artist " + primaryArtist);
+                
+                artistOverridesIter.remove();
+                prefsUpdated = true;
+                continue;
+            }
+            
+            Iterator<String> alternateArtistsIter = alternateArtists.iterator();
+            while (alternateArtistsIter.hasNext())
+            {
+                String alternateArtist = alternateArtistsIter.next();
+                
+                /*
+                 * Look for this alternate in the primary's alternate list if the override type is
+                 * manual.
+                 */
+                boolean altInvalid = false;
+                if (override.getOverrideType() == ArtistAlternateNameOverride.OverrideType.MANUAL)
+                {
+                    ArtistCorrelator primaryCorr = artistCorrelators.get(primaryIdx);
+                    Artist primaryArtistObj = Database.getArtists().get(primaryCorr.getArtistKey());
+                    ArtistNames primaryNames = primaryArtistObj.getArtistNames();
+                    Map<String, ArtistTrackData> altNames = primaryNames.getAltNames();
+
+                    /*
+                     * If the alternate from the override doesn't exist, flag it.
+                     */
+                    if (!altNames.containsKey(alternateArtist))
+                    {
+                        altInvalid = true;
+                    }
+                }
+                
+                /*
+                 * Look for this alternate in the database if the override type is automatic.
+                 */
+                else
+                {
+                    ArtistNames altTemp = new ArtistNames(alternateArtist);
+                    searchCorr.setNormalizedName(altTemp.normalizeName());
+
+                    /*
+                     * If the alternate from the override doesn't exist, flag it.
+                     */
+                    if (ArrayList.binarySearch(artistCorrelators, searchCorr, 
+                            artistCorrelators.getComparator()) < 0)
+                    {
+                        altInvalid = true;
+                    }
+                }
+                
+                /*
+                 * If the alternate is invalid remove it from the override.
+                 */
+                if (altInvalid == true)
+                {
+                    artistLogger.debug("found invalid alternate artist " + alternateArtist);
+
+                    alternateArtistsIter.remove();
+                    prefsUpdated = true;
+                    
+                    /*
+                     * Remove the entire override if it's now empty.
+                     */
+                    if (alternateArtists.getLength() == 0)
+                    {
+                        artistOverridesIter.remove();
+                    }
+                }
+            }
+        }
+        
+        /*
+         * Write the user preferences if the overrides were updated.
+         */
+        if (prefsUpdated == true)
+        {
+            try
+            {
+                userPrefs.writePreferences();
+            }
+            catch (IOException e)
+            {
+                MainWindow.logException(artistLogger, e);
+                throw new InternalErrorException(true, e.getMessage());
+            }
+        }
+    }
+    
+    /*
+     * This is the implementation method for transferring an alternate artist to a primary. There
+     * are multiple public methods with differing parameters for deleting the alternate artist
+     * correlator, but the bulk of the logic (this method) is identical.
+     */
+    private static void transferArtistToPrimaryImpl (ArtistCorrelator altArtistCorr, int primaryIdx)
+    {
+        artistLogger.trace("transferArtistToPrimaryImpl");
+
+        /*
+         * Access the objects we need.
+         */
+        ArrayList<ArtistCorrelator> artistCorrelators = Database.getArtistCorrelators();
+        Map<Integer, Artist> artists = Database.getArtists();
+        
+        Artist altArtistObj = artists.get(altArtistCorr.getArtistKey());
+
+        ArtistCorrelator primaryArtistCorr = artistCorrelators.get(primaryIdx);
+        Artist primaryArtistObj = artists.get(primaryArtistCorr.getArtistKey());
+        ArtistNames primaryArtistNames = primaryArtistObj.getArtistNames();
+
+        /*
+         * Add the alternate name to the primary artist.
+         */
+        primaryArtistNames.addAlternateName(altArtistObj.getDisplayName(), 
+                altArtistObj.getArtistTrackData(), artistLogger);
+
+        /*
+         * Update the primary artist counts and times.
+         */
+        int updatedValue = primaryArtistObj.getArtistTrackData().getNumTracks() + 
+                altArtistObj.getArtistTrackData().getNumTracks();
+        primaryArtistObj.getArtistTrackData().setNumTracks(updatedValue);
+        updatedValue = primaryArtistObj.getArtistTrackData().getTotalTime() + 
+                altArtistObj.getArtistTrackData().getTotalTime();
+        primaryArtistObj.getArtistTrackData().setTotalTime(updatedValue);
+
+        /*
+         * Delete the now-alternate name from the artist list.
+         */
+        artists.remove(altArtistCorr.getArtistKey());
     }
 }

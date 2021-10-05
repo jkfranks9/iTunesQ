@@ -59,8 +59,8 @@ public class Logging
     private Logger diagLogger = null;
 
     /**
-     * The dimension, or scope, of a logger. For example, <code>XML</code> only
-     * concerns logging related to the reading and processing of the XML
+     * The dimension, or scope, of a logger. For example, <code>FILE</code> only
+     * concerns logging related to the reading and processing of the input
      * file.
      * <p>
      * Each dimension contains the associated log level.
@@ -79,9 +79,9 @@ public class Logging
         UI("UI"),
 
         /**
-         * logging associated with processing the XML file
+         * logging associated with processing the input file
          */
-        XML("XML"),
+        FILE("File"),
 
         /**
          * logging associated with processing of tracks
@@ -173,7 +173,7 @@ public class Logging
 
     private Preferences userPrefs = null;
 
-    private static final String LOG_FILE_NAME = "iTunesQ";
+    private static final String LOG_FILE_NAME = "LibQuery";
     private static final String LOG_FILE_SUFFIX = ".log";
     private static final String FILE_NAME_PATTERN = "%date %level [%thread] [%file:%line] %msg%n";
 

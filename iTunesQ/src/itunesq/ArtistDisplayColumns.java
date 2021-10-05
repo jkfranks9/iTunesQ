@@ -83,6 +83,30 @@ public class ArtistDisplayColumns
         {
             return nameValue;
         }
+
+        /**
+         * Performs a reverse lookup of the <code>enum</code> from the name
+         * value.
+         * 
+         * @param value name value to look up
+         * @return enum value
+         */
+        public static ColumnNames getEnum(String value)
+        {
+            return lookup.get(value);
+        }
+
+        /*
+         * Reverse lookup capability to get the enum based on its name value.
+         */
+        private static final Map<String, ColumnNames> lookup = new HashMap<String, ColumnNames>();
+        static
+        {
+            for (ColumnNames value : ColumnNames.values())
+            {
+                lookup.put(value.getNameValue(), value);
+            }
+        }
     }
 
     /**

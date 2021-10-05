@@ -64,6 +64,7 @@ public class TracksWindow
     @BXML private Border alphaBorder = null;
     @BXML private BoxPane alphaBoxPane = null;
     @BXML private Label alphaLabel = null;
+    @BXML private PushButton numericButton = null;
     @BXML private PushButton alphaAButton = null;
     @BXML private PushButton alphaBButton = null;
     @BXML private PushButton alphaCButton = null;
@@ -242,7 +243,7 @@ public class TracksWindow
         		break;
         	
         	case AUDIO_TRACKS:
-        		if (XMLHandler.getAudioTracksMap().get(track.getID()) != null)
+        		if (Database.getAudioTracksMap().get(track.getID()) != null)
         		{
                     trackAttrs = track.toDisplayMap(++trackNum);
                     displayTracks.add(trackAttrs);
@@ -250,7 +251,7 @@ public class TracksWindow
         		break;
         	
         	case VIDEO_TRACKS:
-        		if (XMLHandler.getVideoTracksMap().get(track.getID()) != null)
+        		if (Database.getVideoTracksMap().get(track.getID()) != null)
         		{
                     trackAttrs = track.toDisplayMap(++trackNum);
                     displayTracks.add(trackAttrs);
@@ -300,7 +301,7 @@ public class TracksWindow
             public void sortChanged(TableView tableView)
             {
                 List<Object> tableDataOfTableView = (List<Object>) tableView.getTableData();
-                tableDataOfTableView.setComparator(new ITQTableViewRowComparator(tableView, logger));
+                tableDataOfTableView.setComparator(new LQTTableViewRowComparator(tableView, logger));
             }
         });
         
@@ -316,6 +317,25 @@ public class TracksWindow
             {
             	TableView table = tableViewHeader.getTableView();
             	tableSortColumnName = table.getColumns().get(index).getName();
+
+            	/*
+            	 * Enable or disable the alpha bar depending on the column that was sorted.
+            	 */
+                if (queryType == ListQueryType.Type.NONE)
+                {
+                	TrackDisplayColumns.ColumnNames columnName = TrackDisplayColumns.ColumnNames.getEnum(tableSortColumnName);
+                	switch (columnName)
+                	{
+                	case NAME:
+                	case ARTIST:
+                	case ALBUM:
+                		setAlphaBarState(true);
+                		break;
+
+                	default:
+                		setAlphaBarState(false);
+                	}
+                }
             }        	
         });
 
@@ -706,9 +726,9 @@ public class TracksWindow
     	logger.trace("createAlphaEventHandlers: " + this.hashCode());
 
         /*
-         * Listener to handle the A button press.
+         * Listener to handle the numeric button press.
          */
-        alphaAButton.getButtonPressListeners().add(new ButtonPressListener()
+        numericButton.getButtonPressListeners().add(new ButtonPressListener()
         {
             @Override
             public void buttonPressed(Button button)
@@ -1472,7 +1492,7 @@ public class TracksWindow
     	String buttonID = buttonData.trim().toLowerCase();
 
     	/*
-    	 * Get the artists table view data.
+    	 * Get the tracks table view data.
     	 */
         @SuppressWarnings("unchecked") 
         List<HashMap<String, String>> tableData = 
@@ -1481,21 +1501,94 @@ public class TracksWindow
         /*
          * Loop through the table rows.
          */
+        int foundIndex = -1;
         for (int i = 0; i < tableData.getLength(); i++)
         {
             HashMap<String, String> row = tableData.get(i);
 
             /*
-             * If the row name starts with the character according to the button, select the
-             * corresponding name in the table.
+             * Ignore a leading "The" (any case) in the name from the row.
              */
             String name = row.get(tableSortColumnName).replaceAll("^(?i)The ", "");
-            if (name.toLowerCase().startsWith(buttonID))
-            {
-            	tracksTableView.setSelectedIndex(i);
-                break;
+        	
+            /*
+             * The numeric button is special - we loop through an array of all special characters, and
+             * check if the row name starts with each of them.
+             */
+        	if (buttonID.equals("#"))
+        	{
+        		for (char numericChar : InternalConstants.ALPHA_BAR_NUMERIC_CHARS)
+        		{
+        			if (name.toLowerCase().startsWith(String.valueOf(numericChar)))
+        			{
+        				foundIndex = i;
+        				break;
+        			}
+        		}
+        		if (foundIndex >= 0)
+        		{
+        			break;
+        		}
+        	}
+        	
+        	/*
+        	 * Handle all the alphabetic buttons.
+        	 */
+        	else
+        	{
+        		
+                /*
+                 * Check if the row name starts with the character according to the button.
+                 */
+        		if (name.toLowerCase().startsWith(buttonID))
+        		{
+        			foundIndex = i;
+        			break;
+        		}
             }
         }
+        
+        /*
+         * Select the name in the table corresponding to the found index, if any.
+         */
+        if (foundIndex >= 0)
+        {
+			tracksTableView.setSelectedIndex(foundIndex);
+        }
+    }
+    
+    /*
+     * Enable or disable the alpha bar buttons.
+     */
+    private void setAlphaBarState(boolean state)
+    {
+    	numericButton.setEnabled(state);
+    	alphaAButton.setEnabled(state);
+    	alphaBButton.setEnabled(state);
+    	alphaCButton.setEnabled(state);
+    	alphaDButton.setEnabled(state);
+    	alphaEButton.setEnabled(state);
+    	alphaFButton.setEnabled(state);
+    	alphaGButton.setEnabled(state);
+    	alphaHButton.setEnabled(state);
+    	alphaIButton.setEnabled(state);
+    	alphaJButton.setEnabled(state);
+    	alphaKButton.setEnabled(state);
+    	alphaLButton.setEnabled(state);
+    	alphaMButton.setEnabled(state);
+    	alphaNButton.setEnabled(state);
+    	alphaOButton.setEnabled(state);
+    	alphaPButton.setEnabled(state);
+    	alphaQButton.setEnabled(state);
+    	alphaRButton.setEnabled(state);
+    	alphaSButton.setEnabled(state);
+    	alphaTButton.setEnabled(state);
+    	alphaUButton.setEnabled(state);
+    	alphaVButton.setEnabled(state);
+    	alphaWButton.setEnabled(state);
+    	alphaXButton.setEnabled(state);
+    	alphaYButton.setEnabled(state);
+    	alphaZButton.setEnabled(state);
     }
 
     /*
@@ -1554,6 +1647,9 @@ public class TracksWindow
         	alphaLabel = 
         			(Label) windowSerializer.getNamespace().get("alphaLabel");
         	components.add(alphaLabel);
+        	numericButton = 
+        			(PushButton) windowSerializer.getNamespace().get("numericButton");
+        	components.add(numericButton);
         	alphaAButton = 
         			(PushButton) windowSerializer.getNamespace().get("alphaAButton");
         	components.add(alphaAButton);

@@ -20,7 +20,7 @@ import ch.qos.logback.classic.Logger;
  * @author Jon
  *
  */
-public class ITQTableViewRowComparator implements Comparator<Object>
+public class LQTTableViewRowComparator implements Comparator<Object>
 {
 
     // ---------------- Private variables -----------------------------------
@@ -45,7 +45,7 @@ public class ITQTableViewRowComparator implements Comparator<Object>
      * @param tableView table view object containing the rows to be sorted
      * @param logger logger for logging messages
      */
-    public ITQTableViewRowComparator(TableView tableView, Logger logger)
+    public LQTTableViewRowComparator(TableView tableView, Logger logger)
     {
         if (tableView == null)
         {
@@ -222,11 +222,13 @@ public class ITQTableViewRowComparator implements Comparator<Object>
 
                     /*
                      * For all other columns, use the String Comparable
-                     * interface compareTo method.
+                     * interface compareTo method. Ignore leading "The" (case insensitive).
                      */
                     else
                     {
-                        result = ((Comparable<Object>) value1).compareTo(value2);
+                    	String string1 = ((String) value1).replaceAll("^(?i)The ", "");
+                    	String string2 = ((String) value2).replaceAll("^(?i)The ", "");
+                        result = (string1).compareToIgnoreCase(string2);
                     }
                 }
 
